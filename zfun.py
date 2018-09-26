@@ -35,16 +35,14 @@ from builtins import range, zip
 
 def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=600e3, f_lo=0.001):
     '''estimation of dynamic baseline for input timeseries'''
-
+    
     # poly_ordr  polynomial order for detrending
     # tau:           timescale constant for baseline estimation (default 10 minutes)
     # f_lo:          highpass cutoff frequency
     # t_stack:       time for imaging a single stack (in ms)
-    # freq_stack:    frequency of imaging a single stack (in Hz) 
-
     # length of interval of dynamic baseline time-scales
     ltau = int(np.ceil(tau / t_stack) // 2 * 2 + 1)
-
+    
     # detrend with a low-order polynomial
     xtime = np.arange(timesers.shape[0])
     coefpoly = np.polyfit(xtime, timesers, poly_ordr)
@@ -58,11 +56,13 @@ def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=600e3, f_lo=0.001):
     timesers = signal.filtfilt(krnl, 1, timesers_pad, padtype=None)
     
     # compute dynamic baseline
-    baseline = pd.rolling_quantile(timesers, ltau, quantile=0.1, min_periods=1, center=True)
-    baseline = pd.rolling_mean(    baseline, ltau,               min_periods=1, center=True)
+    timesers_df = pd.DataFrame(timesers)
+    baseline_df = timesers_df.rolling(ltau, min_periods=1, center=True).quantile(0.1)
+    baseline_df = baseline_df.rolling(ltau, min_periods=1, center=True).mean()
+    baseline = np.ravel(baseline_df)
     baseline += np.percentile(timesers - baseline, 1)
     assert(np.allclose(np.percentile(timesers - baseline, 1), 0))
-
+    
     return(timesers[lt:2*lt], baseline[lt:2*lt])
     
 
