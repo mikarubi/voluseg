@@ -30,7 +30,7 @@ def show_vol(IDX, Cell_X, Cell_Y, Cell_Z, x, y, z, Cell_spcesers, Cell_bandpowr,
     pp.subplot(121), pp.imshow(SNV[0].max(2).T, vmin=0, vmax=cmax, cmap='hot')
     pp.title('%d cells to be kept (maximum projection).' %IDX[0].shape)
     pp.subplot(122), pp.imshow(SNV[1].max(2).T, vmin=0, vmax=cmax, cmap='hot')
-    pp.title('%d cells to be deleted (maximum projection).' %IDX[0].shape)
+    pp.title('%d cells to be deleted (maximum projection).' %IDX[1].shape)
     pp.show()
     
     
