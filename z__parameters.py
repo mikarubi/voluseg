@@ -27,6 +27,9 @@
 # - imageframe_nmbr: number of brains in each image
 #     typical value is 1.
 #     value is 2 if two-color image
+# - freq_cutoff: frequency cut-off for high-pass filtering
+#     typical value is 0.001
+#     set to 0 to disable high-pass filtering
 
 ants_dir        = '/groups/ahrens/home/rubinovm/ants-2.1.0-redhat/'
 code_dir        = '/groups/ahrens/home/rubinovm/mycode/zfish_prepro/code/'
@@ -39,6 +42,7 @@ ds              = 1
 blok_cell_nmbr  = 100
 cell_diam       = 6.0
 imageframe_nmbr = 1
+freq_cutoff     = 0
 
 
 # imaging parameters
@@ -51,7 +55,7 @@ try:
     execfile(code_dir + 'zfun.py')
     xml_filename    = input_dir + '/ch0.xml'
     stack_filename  = input_dir + '/Stack_frequency.txt'
-    resn_x, resn_y, resn_z, lx, ly, lz, t_exposure, t_stack, freq_stack \
+    resn_x, resn_y, resn_z, lx, ly, lz, t_exposure, freq_stack \
         = parse_info(xml_filename, stack_filename, imageframe_nmbr)
         
 # manually specify imaging parameters
@@ -64,8 +68,6 @@ except:
     lz = 1
     t_exposure = 9.7
     freq_stack = 2.66
-    t_stack = 1000.0 / freq_stack
-
 
 # packed planes: set to 1 when single plane stacks are packed into a 3d-volume
 packed_planes = 0

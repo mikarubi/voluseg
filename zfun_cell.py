@@ -35,8 +35,8 @@ def process_blok(x0_x1_y0_y1_z0_z1_):
         for i in range(len(voxl_position)):
             # get timepoints of midpoint and zi plane for interpolation
             zi = voxl_position[i, 2]                  # number of plane
-            timepoints_zi = t_stack * np.arange(lt) +  zi      * t_exposure
-            timepoints_zm = t_stack * np.arange(lt) + (lz / 2) * t_exposure
+            timepoints_zi = np.arange(lt) * 1000.0 / freq_stack +  zi      * t_exposure
+            timepoints_zm = np.arange(lt) * 1000.0 / freq_stack + (lz / 2) * t_exposure
 
             # make spline interpolator and interpolate timeseries
             spline_interpolator_xyzi = \

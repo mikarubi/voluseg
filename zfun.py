@@ -33,27 +33,29 @@ import xml
 from builtins import range, zip
 
 
-def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=600e3, f_lo=0.001):
+def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=600e3):
     '''estimation of dynamic baseline for input timeseries'''
     
     # poly_ordr  polynomial order for detrending
     # tau:           timescale constant for baseline estimation (default 10 minutes)
-    # f_lo:          highpass cutoff frequency
-    # t_stack:       time for imaging a single stack (in ms)
+    # freq_cutoff:   highpass cutoff frequency
+    # freq_stack:    frequency of imaging a single stack (in Hz)
+    
     # length of interval of dynamic baseline time-scales
-    ltau = int(np.ceil(tau / t_stack) // 2 * 2 + 1)
+    ltau = int(np.ceil(tau * freq_stack / 1000.0) // 2 * 2 + 1)
     
     # detrend with a low-order polynomial
     xtime = np.arange(timesers.shape[0])
     coefpoly = np.polyfit(xtime, timesers, poly_ordr)
     timesers -= np.polyval(coefpoly, xtime)
+    timesers = np.concatenate((timesers[::-1], timesers, timesers[::-1]))
     
     #highpass filter
     nyquist = freq_stack / 2
-    f_rng = np.r_[np.maximum(f_lo, 1e-10), nyquist - 1e-10]
-    krnl = signal.firwin(lt, f_rng / nyquist, pass_zero=False)
-    timesers_pad = np.concatenate((timesers[::-1], timesers, timesers[::-1]))
-    timesers = signal.filtfilt(krnl, 1, timesers_pad, padtype=None)
+    if (freq_cutoff > 1e-10) and (freq_cutoff < nyquist - 1e-10):
+        f_rng = np.r_[freq_cutoff, nyquist - 1e-10]
+        krnl = signal.firwin(lt, f_rng / nyquist, pass_zero=False)
+        timesers = signal.filtfilt(krnl, 1, timesers, padtype=None)
     
     # compute dynamic baseline
     timesers_df = pd.DataFrame(timesers)
@@ -265,9 +267,8 @@ def parse_info(xml_filename, stack_filename, imageframe_nmbr):
     except:
         print(('Warning: cannot read from ' + stack_filename + '.'))
         freq_stack = np.nan
-    t_stack = 1000.0 / freq_stack               # t_stack and t_exposure are in ms
 
-    return resn_x, resn_y, resn_z, lx, ly, lz, t_exposure, t_stack, freq_stack
+    return resn_x, resn_y, resn_z, lx, ly, lz, t_exposure, freq_stack
 
 
 def get_ball(radi):

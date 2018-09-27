@@ -64,7 +64,7 @@ for frame_i in range(imageframe_nmbr):
         print('nans: %d' %np.sum(ix))
         Cmpn_timesers[ix] = np.min(Cmpn_timesers[np.where(Cmpn_timesers)]);
 
-    freq, Cmpn_pwsd = signal.periodogram(Cmpn_timesers, 1000 / t_stack, axis=1)
+    freq, Cmpn_pwsd = signal.periodogram(Cmpn_timesers, freq_stack, axis=1)
 
     lidx0 = (freq > freq_lims[0]) & (freq < freq_lims[1])
     Cmpn_bandpowr = np.log10(np.sum(Cmpn_pwsd[:, lidx0], 1))[:, None]

@@ -61,10 +61,9 @@ try:
 except:
     dt_range = np.r_[dt]
 
-# in case of packed planes, modify lz and freq_stack/t_stack
+# in case of packed planes, modify lz and freq_stack
 if packed_planes:
     freq_stack *= lz
-    t_stack /= lz
     lz = 1;
     
 if alignment_type.lower() == 'rigid':
@@ -111,6 +110,7 @@ try:
         file_handle['ds']                      = ds
         file_handle['dt_range']                = dt_range
         file_handle['freq_stack']              = freq_stack
+        file_handle['freq_cutoff']             = freq_cutoff
         file_handle['image_ext']               = image_ext
         file_handle['image_names']             = image_names
         file_handle['imageframe_nmbr']         = imageframe_nmbr
@@ -127,7 +127,6 @@ try:
         file_handle['resn_x']                  = resn_x
         file_handle['resn_y']                  = resn_y
         file_handle['resn_z']                  = resn_z
-        file_handle['t_stack']                 = t_stack
         file_handle['t_exposure']              = t_exposure
         file_handle['thr_mask']                = thr_mask
     
