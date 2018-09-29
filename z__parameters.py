@@ -43,7 +43,7 @@ blok_cell_nmbr  = 100
 cell_diam       = 6.0
 imageframe_nmbr = 1
 freq_cutoff     = 0
-n_components    = [20, 60]
+n_components    = 50
 
 
 # imaging parameters

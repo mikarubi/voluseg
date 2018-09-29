@@ -64,9 +64,9 @@ for frame_i in range(imageframe_nmbr):
         print('nans: %d' %np.sum(ix))
         Cmpn_timesers[ix] = np.min(Cmpn_timesers[np.where(Cmpn_timesers)]);
 
-    freq, Cmpn_pwsd = signal.periodogram(Cmpn_timesers, freq_stack, axis=1)
+    Freq, Cmpn_pwsd = signal.periodogram(Cmpn_timesers, freq_stack, axis=1)
 
-    lidx0 = (freq > freq_lims[0]) & (freq < freq_lims[1])
+    lidx0 = (Freq > freq_lims[0]) & (Freq < freq_lims[1])
     Cmpn_bandpowr = np.log10(np.sum(Cmpn_pwsd[:, lidx0], 1))[:, None]
     gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(Cmpn_bandpowr)
     Cmpn_signalpr = gmm.predict_proba(Cmpn_bandpowr)
@@ -147,6 +147,12 @@ for frame_i in range(imageframe_nmbr):
     Cell_timesers1, Cell_baseline1 = \
         list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
     
+    if n_components:
+        T = np.maximum(0, Cell_timesers1 - Cell_baseline1)
+        model = decomposition.NMF(n_components, init='nndsvd', solver='cd', tol=0.0001, max_iter=100, verbose=1)
+        W = model.fit_transform(T)
+        H = model.components_
+    
     Volume = np.zeros((x, y, z))
     Labels = np.zeros((x, y, z))
     for i in range(len(Cell_X)):
@@ -171,4 +177,6 @@ for frame_i in range(imageframe_nmbr):
         file_handle['Cell_timesers0'] = Cell_timesers0
         file_handle['Cell_timesers1'] = Cell_timesers1
         file_handle['Cell_baseline1'] = Cell_baseline1
+        file_handle['W'] = W
+        file_handle['H'] = H
         

@@ -1,3 +1,6 @@
+import os, multiprocessing
+os.environ['MKL_NUM_THREADS'] = str(multiprocessing.cpu_count())
+
 # navigate to the output directory first before executing this block
 try:
     import h5py
