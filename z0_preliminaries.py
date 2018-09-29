@@ -120,6 +120,7 @@ try:
         file_handle['lx']                      = lx
         file_handle['ly']                      = ly
         file_handle['lz']                      = lz
+        file_handle['n_components']            = n_components
         file_handle['nii_ext']                 = nii_ext
         file_handle['niiaffmat']               = niiaffmat
         file_handle['output_dir']              = output_dir

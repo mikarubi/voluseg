@@ -2,7 +2,7 @@ def nmfh_lite(V, H, miniter=10, maxiter=100, tolfun=1e-3, powr=1):
     
     n, t  = V.shape
     k, t_ = H.shape
-    assert(t_ == t);
+    assert(t_ == t)
     
     V = V / (np.mean(V**powr, 1)**(1.0/powr))[:, None]
     
@@ -47,8 +47,8 @@ def nndsvd_econ(A):
     H = np.zeros((k, n))
     
     # choose the first singular triplet to be nonnegative
-    W[:, 0] = np.sqrt(S[0]) * np.abs(U[:, 0]  );
-    H[0, :] = np.sqrt(S[0]) * np.abs(V[:, 0].T);
+    W[:, 0] = np.sqrt(S[0]) * np.abs(U[:, 0]  )
+    H[0, :] = np.sqrt(S[0]) * np.abs(V[:, 0].T)
     
     # 2nd SVD for the other factors (see table 1 in our paper)
     for i in range(1, k):
@@ -58,14 +58,14 @@ def nndsvd_econ(A):
         n_uup = np.linalg.norm(uup);    n_vvp = np.linalg.norm(vvp);
         n_uun = np.linalg.norm(uun);    n_vvn = np.linalg.norm(vvn);
         
-        termp = n_uup * n_vvp;
-        termn = n_uun * n_vvn;
+        termp = n_uup * n_vvp
+        termn = n_uun * n_vvn
         if (termp >= termn):
-            W[:, i] = np.sqrt(S[i] * termp) * uup   / n_uup;
-            H[i, :] = np.sqrt(S[i] * termp) * vvp.T / n_vvp;
+            W[:, i] = np.sqrt(S[i] * termp) * uup   / n_uup
+            H[i, :] = np.sqrt(S[i] * termp) * vvp.T / n_vvp
         else:
-            W[:, i] = np.sqrt(S[i] * termn) * uun   / n_uun;
-            H[i, :] = np.sqrt(S[i] * termn) * vvn.T / n_vvn;
+            W[:, i] = np.sqrt(S[i] * termn) * uun   / n_uun
+            H[i, :] = np.sqrt(S[i] * termn) * vvn.T / n_vvn
     
     return (W, H)
     
@@ -78,10 +78,14 @@ for frame_i in range(imageframe_nmbr):
     W0, H0 = nndsvd_econ(T)
         
     h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'w')
-    for i, k in enumerate([20, 60]):
-        W, H, V = nmfh_lite(T, H0[:k], 100, 100, 1e-4);
+    for i, k in enumerate(n_components):
+        W, H, V = nmfh_lite(T, H0[:k], 100, 100, 1e-4)
         
         with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'r+') as file_handle:
             file_handle['W' + str(i)] = W
             file_handle['H' + str(i)] = H
 
+    with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'r+') as file_handle:
+        file_handle['T'] = T
+        file_handle['Winit'] = W0
+        file_handle['Hinit'] = H0
