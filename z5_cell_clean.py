@@ -146,13 +146,7 @@ for frame_i in range(imageframe_nmbr):
     
     Cell_timesers1, Cell_baseline1 = \
         list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
-    
-    if n_components:
-        T = np.maximum(0, Cell_timesers1 - Cell_baseline1)
-        model = decomposition.NMF(n_components, init='nndsvd', solver='cd', tol=0.0001, max_iter=100, verbose=1)
-        W = model.fit_transform(T)
-        H = model.components_
-    
+        
     Volume = np.zeros((x, y, z))
     Labels = np.zeros((x, y, z))
     for i in range(len(Cell_X)):
@@ -177,6 +171,4 @@ for frame_i in range(imageframe_nmbr):
         file_handle['Cell_timesers0'] = Cell_timesers0
         file_handle['Cell_timesers1'] = Cell_timesers1
         file_handle['Cell_baseline1'] = Cell_baseline1
-        file_handle['W'] = W
-        file_handle['H'] = H
         

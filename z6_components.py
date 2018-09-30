@@ -30,7 +30,7 @@ def nmfh_lite(V, H, miniter=10, maxiter=100, tolfun=1e-3, powr=1):
         
         print('%4d\t%.8f\t%.8f' %(i, dnorm, diffh))
         
-    return (W, H, V)
+    return (W, H)
 
 
 def nndsvd_econ(A):
@@ -70,22 +70,24 @@ def nndsvd_econ(A):
     return (W, H)
     
 
-for frame_i in range(imageframe_nmbr):
+if nmf:
+    for frame_i in range(imageframe_nmbr):
+        with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'r') as file_handle:
+            T = np.maximum(0, file_handle['Cell_timesers1'][()] - file_handle['Cell_baseline1'][()])
+            
+        if nmf==1:
+            W0, H0 = nndsvd_econ(T)
+            
+        h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'w')
+        for i, k in enumerate(n_components):
+            if nmf==1:
+                W, H = nmfh_lite(T, H0[:k], 100, 100, 1e-4)
+            elif nmf==2:
+                model = decomposition.NMF(n_components=k, init='nndsvd', solver='cd', tol=0.0001, max_iter=100, verbose=1)
+                W = model.fit_transform(T)
+                H = model.components_
+            
+            with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'r+') as file_handle:
+                file_handle['W' + str(i)] = W
+                file_handle['H' + str(i)] = H
     
-    with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'r') as file_handle:
-        T = np.maximum(0, file_handle['Cell_timesers1'][()] - file_handle['Cell_baseline1'][()])
-    
-    W0, H0 = nndsvd_econ(T)
-        
-    h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'w')
-    for i, k in enumerate(n_components):
-        W, H, V = nmfh_lite(T, H0[:k], 100, 100, 1e-4)
-        
-        with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'r+') as file_handle:
-            file_handle['W' + str(i)] = W
-            file_handle['H' + str(i)] = H
-
-    with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'r+') as file_handle:
-        file_handle['T'] = T
-        file_handle['Winit'] = W0
-        file_handle['Hinit'] = H0

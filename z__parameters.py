@@ -30,6 +30,12 @@
 # - freq_cutoff: frequency cut-off for high-pass filtering
 #     typical value is 0.001
 #     set to 0 to disable high-pass filtering
+# - nmf_algorithm: type of nmf algorithm for component detection
+#     nmf_algorithm=0               # no nmf component detection
+#     nmf_algorithm=1               # alternating least squares (custom implementation)
+#     nmf_algorithm=2               # coordinate descent (sklearn implementation)
+# - n_components: number of components for nmf
+#     could be a scalar or an array
 
 ants_dir        = '/groups/ahrens/home/rubinovm/ants-2.1.0-redhat/'
 code_dir        = '/groups/ahrens/home/rubinovm/mycode/zfish_prepro/code/'
@@ -43,7 +49,8 @@ blok_cell_nmbr  = 100
 cell_diam       = 6.0
 imageframe_nmbr = 1
 freq_cutoff     = 0
-n_components    = 50
+nmf_algorithm   = 1
+n_components    = [20, 60]
 
 
 # imaging parameters
