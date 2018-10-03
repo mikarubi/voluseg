@@ -21,9 +21,9 @@ for frame_i in range(imageframe_nmbr):
         blok_part = np.sqrt(blok_nmbr0)
     else:
         blok_part = np.cbrt(blok_nmbr0)
-    x0_range = np.unique(np.round(np.linspace(0, lx//ds, blok_part + 1)))
-    y0_range = np.unique(np.round(np.linspace(0, ly//ds, blok_part + 1)))
-    z0_range = np.unique(np.round(np.linspace(0, lz,     blok_part + 1)))
+    x0_range = np.unique(np.round(np.linspace(0, lx//ds, int(blok_part + 1))))
+    y0_range = np.unique(np.round(np.linspace(0, ly//ds, int(blok_part + 1))))
+    z0_range = np.unique(np.round(np.linspace(0, lz,     int(blok_part + 1))))
     for i, x0 in enumerate(x0_range):
         for j, y0 in enumerate(y0_range):
             for k, z0 in enumerate(z0_range):

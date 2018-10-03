@@ -70,19 +70,19 @@ def nndsvd_econ(A):
     return (W, H)
     
 
-if nmf:
+if nmf_algorithm:
     for frame_i in range(imageframe_nmbr):
         with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'r') as file_handle:
             T = np.maximum(0, file_handle['Cell_timesers1'][()] - file_handle['Cell_baseline1'][()])
             
-        if nmf==1:
+        if nmf_algorithm==1:
             W0, H0 = nndsvd_econ(T)
             
         h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'w')
         for i, k in enumerate(n_components):
-            if nmf==1:
+            if nmf_algorithm==1:
                 W, H = nmfh_lite(T, H0[:k], 100, 100, 1e-4)
-            elif nmf==2:
+            elif nmf_algorithm==2:
                 model = decomposition.NMF(n_components=k, init='nndsvd', solver='cd', tol=0.0001, max_iter=100, verbose=1)
                 W = model.fit_transform(T)
                 H = model.components_

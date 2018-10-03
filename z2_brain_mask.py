@@ -17,54 +17,59 @@ if mask_reset:
         
         image_dims = get_img_hdf(image_names[0]).shape
         assert(np.allclose(image_dims, (lx//ds, ly//ds, lz)))
-        try:
-            class accum_param(pyspark.accumulators.AccumulatorParam):
-                '''define accumulator class'''
         
-                def zero(self, val0):
-                    return np.zeros(val0.shape, dtype='float32')
-        
-                def addInPlace(self, val1, val2):
-                    return val1 + val2
-                                
-            image_accumulator = \
-                sc.accumulator(np.zeros(image_dims, dtype='float32'), accum_param())
-                                
-            sc.parallelize(image_names).foreach(
-                lambda name_i: image_accumulator.add(get_img_hdf(name_i)))
-        except:
-            print('Image-mean parallelization failed -- proceeding serially.')
-            for name_i in image_names:
-                image_accumulator.add(get_img_hdf(name_i))
-        
+        class accum_param(pyspark.accumulators.AccumulatorParam):
+            '''define accumulator class'''
+    
+            def zero(self, val0):
+                return np.zeros(val0.shape, dtype='float32')
+    
+            def addInPlace(self, val1, val2):
+                return val1 + val2
+                            
+        image_accumulator = \
+            sc.accumulator(np.zeros(image_dims, dtype='float32'), accum_param())
+                            
+        sc.parallelize(image_names).foreach(
+            lambda name_i: image_accumulator.add(get_img_hdf(name_i)))
+                    
         image_mean = 1.0 * image_accumulator.value / lt
-        
+                  
         # get medium and fine resolution peaks
         def medin_filt(img, ftp):
             return ndimage.filters.median_filter(img, footprint=ftp)
 
         image_peak      = image_mean > medin_filt(image_mean, cell_ball)
         image_peak_fine = image_mean > medin_filt(image_mean, cell_ball_fine)
-
+        
+        # compute power and probability
+        Powr = np.log10(image_mean.ravel())[:, None]
+        Powr = np.log10(np.random.permutation(image_mean.ravel())[:100000, None])
+        gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(Powr)
+        Prob = gmm.predict_proba(Powr)
+        Prob = Prob[:, np.argmax(Powr[np.argmax(Prob, 0)])]
+        
         # get and save brain mask
         mask_flag = 0
         while 1:
             if thr_mask:
                 mask_flag = 1
             else:
-                plt.figure(1, (81, 4))
-                thr_range = np.linspace(image_mean.min(), image_mean.max(), 1000)
-                n_suprathr_voxs = np.array([np.mean(image_mean > thr) for thr in thr_range])
-                plt.plot(thr_range, n_suprathr_voxs)
-                plt.xlabel('Mean signal of pixel'); plt.xlim(np.percentile(thr_range, (40, 60))), plt.xticks(thr_range[::100]);
-                plt.ylabel('Fraction of pixels'); plt.ylim([0, 1])
-                plt.xticks(np.around(np.linspace(image_mean.min(), image_mean.max(), 200)))
-                plt.show()
+                pp.figure(1, (12, 4))
+                pp.subplot(121); _ = pp.hist(Powr, 100); pp.title('10^(Pixel power histogram)')
+                pp.subplot(122); _ = pp.hist(Prob, 100); pp.title('Probability threshold')
+                pp.show()
+        
                 try:
-                    thr_mask = eval(input('Enter threshold for mean signal of pixel: [default 105]: '))
+                    thr_prob = eval(input('Enter probability threshold [default 0.5]: '))
                 except SyntaxError:
-                    thr_mask = 105
-
+                    thr_prob = 0.5
+        
+                ix = np.argmin(np.abs(Prob - thr_prob))
+                thr_mask = 10 ** Powr[ix][0]
+                if np.isinf(thr_prob):
+                    thr_mask = thr_prob
+            
             # remove all disconnected components less than 5000 cubic microliters in size
             small_obj = int(np.round(5000 * (resn_x * ds * resn_y * ds * resn_z)))
             brain_mask = (image_mean > thr_mask)
@@ -77,7 +82,7 @@ if mask_reset:
 
             if not mask_flag:
                 try:
-                    mask_flag = eval(input('Is thr_mask = ' + str(thr_mask) + ' accurate? [1, yes]; 0, no. '))
+                    mask_flag = eval(input('Is thr_prob = %.4f (thr_mask = %.1f) accurate? [1, yes]; 0, no. ' %(thr_prob, thr_mask)))
                 except SyntaxError:
                     mask_flag = 1
                     

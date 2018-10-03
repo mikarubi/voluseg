@@ -76,9 +76,11 @@ else:
 # if single plane, adjust resolution and padding
 if (lz==1) or (reg_tip=='t'):
     lpad = 0
-    resn_z = 1.0
 else:
     lpad = 4
+    
+if (lz==1):
+    resn_z = 1.0
 
 niiaffmat = np.diag([resn_x * ds, resn_y * ds, resn_z, 1])
 cell_ball_fine, cell_ball_midpoint_fine = get_ball(0.5 * cell_diam)
@@ -121,6 +123,7 @@ try:
         file_handle['ly']                      = ly
         file_handle['lz']                      = lz
         file_handle['n_components']            = n_components
+        file_handle['nmf_algorithm']           = nmf_algorithm
         file_handle['nii_ext']                 = nii_ext
         file_handle['niiaffmat']               = niiaffmat
         file_handle['output_dir']              = output_dir
@@ -132,6 +135,16 @@ try:
         file_handle['thr_mask']                = thr_mask
     
     print('Parameter file successfully saved.')
+    
+    with h5py.File(output_dir + 'prepro_parameters.hdf5', 'r') as file_handle:
+        for i in file_handle:
+            if not 'cell' in i:
+                try:
+                    len(file_handle[i])
+                except:
+                    try: print("{} = {}".format(i,file_handle[i][()].decode()))
+                    except: print("{} = {}".format(i,file_handle[i][()]))
+        
 except:
     print('Error: Parameter file not saved.')
     
