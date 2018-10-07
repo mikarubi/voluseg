@@ -51,15 +51,13 @@ while 1:
 lt = len(image_names)
 
 # get dt_range
-try:
-    if len(dt) == 0: dt_range = 1
-except:
-    if dt == 0:      dt_range = 1
-        
-try:
-    dt_range = np.r_[:lt:dt]
-except:
-    dt_range = np.r_[dt]
+dt = np.array(dt)
+if (dt.size > 1):
+    dt_range = dt
+elif (dt.size == 1):
+    dt_range = np.r_[:lt:np.maximum(dt, 1)]
+else:
+    dt_range = np.r_[:lt]
 
 # in case of packed planes, modify lz and freq_stack
 if packed_planes:
@@ -105,25 +103,25 @@ try:
         file_handle['cell_ball_midpoint']      = cell_ball_midpoint
         file_handle['cell_ball_midpoint_fine'] = cell_ball_midpoint_fine
         file_handle['cell_diam']               = cell_diam
-        file_handle['cell_voxl_nmbr']          = cell_voxl_nmbr
+        file_handle['cell_voxl_nmbr']          = np.round(cell_voxl_nmbr).astype(int)
         file_handle['code_dir']                = code_dir
-        file_handle['blok_cell_nmbr']          = blok_cell_nmbr
+        file_handle['blok_cell_nmbr']          = np.round(blok_cell_nmbr).astype(int)
         file_handle['data_type']               = data_type
         file_handle['ds']                      = ds
-        file_handle['dt_range']                = dt_range
+        file_handle['dt_range']                = np.round(dt_range).astype(int)
         file_handle['freq_stack']              = freq_stack
         file_handle['freq_cutoff']             = freq_cutoff
         file_handle['image_ext']               = image_ext
         file_handle['image_names']             = image_names
         file_handle['imageframe_nmbr']         = imageframe_nmbr
         file_handle['input_dir']               = input_dir
-        file_handle['lpad']                    = lpad
-        file_handle['lt']                      = lt
-        file_handle['lx']                      = lx
-        file_handle['ly']                      = ly
-        file_handle['lz']                      = lz
-        file_handle['n_components']            = n_components
-        file_handle['nmf_algorithm']           = nmf_algorithm
+        file_handle['lpad']                    = np.round(lpad).astype(int)
+        file_handle['lt']                      = np.round(lt).astype(int)
+        file_handle['lx']                      = np.round(lx).astype(int)
+        file_handle['ly']                      = np.round(ly).astype(int)
+        file_handle['lz']                      = np.round(lz).astype(int)
+        file_handle['n_components']            = np.round(n_components).astype(int)
+        file_handle['nmf_algorithm']           = np.round(nmf_algorithm).astype(int)
         file_handle['nii_ext']                 = nii_ext
         file_handle['niiaffmat']               = niiaffmat
         file_handle['output_dir']              = output_dir
@@ -132,7 +130,7 @@ try:
         file_handle['resn_y']                  = resn_y
         file_handle['resn_z']                  = resn_z
         file_handle['t_exposure']              = t_exposure
-        file_handle['thr_mask']                = thr_mask
+        file_handle['thr_prob']                = thr_prob
     
     print('Parameter file successfully saved.')
     

@@ -1,30 +1,20 @@
-import os, multiprocessing
-os.environ['MKL_NUM_THREADS'] = str(multiprocessing.cpu_count())
-
 # navigate to the output directory first before executing this block
-try:
-    import h5py
-    with h5py.File('prepro_parameters.hdf5', 'r') as file_handle:
-        for key in file_handle:
-            var = file_handle[key][()]
-            try:         var = var.decode()
+import h5py
+with h5py.File('prepro_parameters.hdf5', 'r') as file_handle:
+    for key in file_handle:
+        var = file_handle[key][()]
+        try:         var = var.decode()
+        except:
+            try:     var = [i.decode() for i in var]
             except:
-                try:     var = [i.decode() for i in var]
-                except:
-                    pass
-                    
-            exec(key + '=var')
-    print('Successfully imported from prepro_parameters.hdf5')
-except:
-    print('Warning: Did not import from prepro_parameters.hdf5')
-    pass
+                pass
+                
+        exec(key + '=var')
 
-# get_ipython().run_line_magic('matplotlib', 'inline')
+## actual preprocessing begins here ##
 from past.builtins import execfile
 execfile(code_dir + 'zfun.py')
 execfile(code_dir + 'zfun_cell.py')
-
-## actual preprocessing begins here ##
 
 # 1. alignment (motion correction)
 execfile(code_dir + 'z1_alignment.py')

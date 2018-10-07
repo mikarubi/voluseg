@@ -2,7 +2,7 @@ def process_blok(x0_x1_y0_y1_z0_z1_):
     
     x0_, x1_, y0_, y1_, z0_, z1_ = x0_x1_y0_y1_z0_z1_
 
-    print(('Setting number of threads in process_blok to ' + str(nthread) + '.\n'))
+    print('Setting number of threads in process_blok to %d.\n' %nthread)
     os.environ['MKL_NUM_THREADS'] = str(nthread)
     
     # load and dilate initial voxel peak positions
@@ -23,7 +23,7 @@ def process_blok(x0_x1_y0_y1_z0_z1_):
         image_name_hdf = image_dir(image_names[ti], frame_i) + 'image_aligned.hdf5'
         with h5py.File(image_name_hdf, 'r') as file_handle:
             voxl_timesers_blok[ti] = file_handle['V3D'][z0:z1, y0:y1, x0:x1].T
-    print(('Load data time:', np.around((time.time() - tic) / 60, 2), 'minutes.\n'))
+    print('Load data time: %.1f minutes.\n' %((time.time() - tic) / 60))
 
     voxl_timesers_blok = np.transpose(voxl_timesers_blok, (1, 2, 3, 0))
     
@@ -56,10 +56,9 @@ def process_blok(x0_x1_y0_y1_z0_z1_):
     voxl_timesers_peak_rank = normalize_rank_timesers(voxl_timesers[voxl_peakaidx])
 
     # connectivity is given by the combination of high proximity and high similarity
-    voxl_conn_peak = np.zeros((len(voxl_peakaidx), len(voxl_peakaidx)), 'bool')
-    idx = np.linspace(0, len(voxl_peakaidx), 11, dtype='int')
+    voxl_conn_peak = np.zeros((len(voxl_peakaidx), len(voxl_peakaidx)), dtype=bool)
+    idx = np.linspace(0, len(voxl_peakaidx), 11, dtype=int)
     for i in range(len(idx) - 1):
-        print(i)
         idx_i = np.r_[idx[i]:idx[i + 1]]
         voxl_dist_peak_i = np.sqrt(
             np.square(voxl_position_peak_phys[idx_i, 0:1] - voxl_position_peak_phys[:, 0:1].T) +
@@ -68,8 +67,8 @@ def process_blok(x0_x1_y0_y1_z0_z1_):
         voxl_corr_peak_i = np.dot(voxl_timesers_peak_rank[idx_i], voxl_timesers_peak_rank.T)
 
         voxl_neib_peak_i = voxl_dist_peak_i < cell_diam
-        voxl_neib_simi_i = np.r_[[corr_ij > np.median(corr_ij[neib_ij])
-                                  for neib_ij, corr_ij in zip(voxl_neib_peak_i, voxl_corr_peak_i)]]
+        voxl_neib_simi_i = np.array([corr_ij > np.median(corr_ij[neib_ij])
+                                  for neib_ij, corr_ij in zip(voxl_neib_peak_i, voxl_corr_peak_i)])
         voxl_conn_peak[idx_i] = (voxl_neib_peak_i & voxl_neib_simi_i)
 
     voxl_conn_peak = voxl_conn_peak | voxl_conn_peak.T
@@ -85,7 +84,7 @@ def blok_cell_detection(blok_i_blok_xyz_01):
 
     blok_i, blok_xyz_01 = blok_i_blok_xyz_01
 
-    print(('Setting number of threads in blok_cell_detection to ' + str(nthread) + '.\n'))
+    print('Setting number of threads in blok_cell_detection to %d.\n' %nthread)
     os.environ['MKL_NUM_THREADS'] = str(nthread)
 
     (voxl_position, voxl_timesers, voxl_peakaidx, voxl_position_peak,
@@ -98,7 +97,7 @@ def blok_cell_detection(blok_i_blok_xyz_01):
     for iter_i in range(128):                                 # 0.95**31 = 0.2
         try:
             # estimate sparseness of each component
-            cmpn_nmbr = np.around(peak_valdlidx.size / (0.5 * cell_voxl_nmbr)).astype('int32')
+            cmpn_nmbr = np.round(peak_valdlidx.size / (0.5 * cell_voxl_nmbr)).astype(int)
 
             print((iter_i, voxl_fraction, cmpn_nmbr))
 
@@ -110,11 +109,11 @@ def blok_cell_detection(blok_i_blok_xyz_01):
                     linkage='ward')\
                 .fit(voxl_position_peak_phys[peak_valdlidx])
             cmpn_labl = cmpn_clusters.labels_
-            print(('Hierarchical Clustering time:', np.around((time.time() - tic) / 60, 2), 'minutes.\n;'))
+            print('Hierarchical Clustering time: %.1f minutes.\n' %((time.time() - tic) / 60))
 
             # initialize spatial component properties
             cmpn_spceinit = np.zeros((blok_voxl_nmbr, cmpn_nmbr + 1))
-            cmpn_neibhood = np.zeros((blok_voxl_nmbr, cmpn_nmbr + 1), dtype='bool')
+            cmpn_neibhood = np.zeros((blok_voxl_nmbr, cmpn_nmbr + 1), dtype=bool)
             cmpn_sparsity = np.zeros(cmpn_nmbr + 1)
             cmpn_percentl = np.zeros(cmpn_nmbr + 1)
             for cmpn_i in range(cmpn_nmbr):
@@ -142,7 +141,7 @@ def blok_cell_detection(blok_i_blok_xyz_01):
                 cmpn_neibhood[cmpn_neibridx_i, cmpn_i] = 1
 
                 cmpn_vect_i = np.zeros(len(cmpn_neibridx_i))
-                cmpn_vect_i[:int(round(cell_voxl_nmbr))] = 1
+                cmpn_vect_i[:cell_voxl_nmbr] = 1
                 cmpn_sparsity[cmpn_i] = sparseness(cmpn_vect_i)
                 cmpn_percentl[cmpn_i] = 100 * (1 - np.mean(cmpn_vect_i))
 
@@ -163,7 +162,7 @@ def blok_cell_detection(blok_i_blok_xyz_01):
                 miniter=10, maxiter=100, tolfun=1e-3)
 
             detection_success = 1
-            print(('NMF time:', np.around((time.time() - tic) / 60, 2), 'minutes.\n'))
+            print('NMF time: %.1f minutes.\n' %((time.time() - tic) / 60))
             break
         except ValueError:
             detection_success = 0
@@ -175,45 +174,37 @@ def blok_cell_detection(blok_i_blok_xyz_01):
     # get cell positions and timeseries, and save cell data
     with h5py.File(cell_dir + '/Block' + str(blok_i).zfill(5) + '.hdf5', 'w') as file_handle:
         if detection_success:
-            cell_i = 0
             for cmpn_i in range(cmpn_nmbr):
-                try:
-                    cmpn_lidx_i = np.nonzero(cmpn_spcesers_vald[:, cmpn_i])[0]
-                    cmpn_position_i = voxl_position_vald[cmpn_lidx_i]
-                    cmpn_spcesers_i = cmpn_spcesers_vald[cmpn_lidx_i, cmpn_i]
-                    mean_spcevoxl_i = bimage_mean.value[list(zip(*cmpn_position_i))]
-                    mean_i = np.sum(mean_spcevoxl_i * cmpn_spcesers_i) / np.sum(cmpn_spcesers_i)
-                    cmpn_timesers_i = cmpn_timesers_vald[cmpn_i]
-                    cmpn_timesers_i = cmpn_timesers_i * mean_i / np.mean(cmpn_timesers_i)
-                    # cmpn_polytrnd_i = nonlinear_trend(cmpn_timesers_i, poly_ordr=2)[0]
-                    # cmpn_basedetr_i = dynamic_baseline(cmpn_timesers_i - cmpn_polytrnd_i)
-    
-                    hdf5_dir = '/cell/' + str(cell_i).zfill(5)
-                    file_handle[hdf5_dir + '/cell_position'] = cmpn_position_i
-                    file_handle[hdf5_dir + '/cell_spcesers'] = cmpn_spcesers_i
-                    file_handle[hdf5_dir + '/cell_timesers'] = cmpn_timesers_i
-                    # file_handle[hdf5_dir + '/cell_baseline'] = cmpn_polytrnd_i + cmpn_basedetr_i
-                    cell_i += 1
-                except ValueError:
-                    print((blok_i, cmpn_i, 'not saved.'))
+                cmpn_lidx_i = np.nonzero(cmpn_spcesers_vald[:, cmpn_i])[0]
+                cmpn_position_i = voxl_position_vald[cmpn_lidx_i]
+                cmpn_spcesers_i = cmpn_spcesers_vald[cmpn_lidx_i, cmpn_i]
+                mean_spcevoxl_i = bimage_mean.value[list(zip(*cmpn_position_i))]
+                mean_i = np.sum(mean_spcevoxl_i * cmpn_spcesers_i) / np.sum(cmpn_spcesers_i)
+                cmpn_timesers_i = cmpn_timesers_vald[cmpn_i]
+                cmpn_timesers_i = cmpn_timesers_i * mean_i / np.mean(cmpn_timesers_i)
 
-        file_handle['cell_nmbr'] = cmpn_nmbr
+                hdf5_dir = '/cmpn/' + str(cmpn_i).zfill(5)
+                file_handle[hdf5_dir + '/cmpn_position'] = cmpn_position_i
+                file_handle[hdf5_dir + '/cmpn_spcesers'] = cmpn_spcesers_i
+                file_handle[hdf5_dir + '/cmpn_timesers'] = cmpn_timesers_i
+
+        file_handle['cmpn_nmbr'] = cmpn_nmbr
         file_handle['success'] = 1
 
 
 def nnmf_sparse(V0, XYZ0, W0, B0, Sparsity0, Percentl0,
                 tolfun=1e-4, miniter=10, maxiter=100, verbosity=1, time_mean=1.0):
 
-    print(('Setting number of threads in nnmf_sparse to ' + str(nthread) + '.\n'))
+    print('Setting number of threads in nnmf_sparse to %d.\n' %nthread)
     os.environ['MKL_NUM_THREADS'] = str(nthread)
 
     # CAUTION: Input variable is modified to save memory
     V0 *= (time_mean / V0.mean(1)[:, None])                 # normalize voxel timeseries
 
-    V = V0[:, dt_range].astype('double')                        # copy input signal
-    XYZ = XYZ0.astype('int32')
-    W = W0.astype('double')
-    B = B0.astype('bool')
+    V = V0[:, dt_range].astype(float)                        # copy input signal
+    XYZ = XYZ0.astype(int)
+    W = W0.astype(float)
+    B = B0.astype(bool)
     Sparsity = Sparsity0.copy()
     Percentl = Percentl0.copy()
 
@@ -233,7 +224,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, Sparsity0, Percentl0,
         H *= (time_mean / H.mean(1)[:, None])                 # normalize component timeseries
 
         W = np.maximum(linalg.lstsq(V.T, H.T)[0], 0)
-        W[~B] = 0                                             # restrict component boundaries
+        W[np.logical_not(B)] = 0                              # restrict component boundaries
         for ci in range(c):
             W_ci = W[B[:, ci], ci]
             if any(W_ci) & ((Sparsity[ci] > 0) | (Percentl[ci] > 0)):
@@ -245,7 +236,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, Sparsity0, Percentl0,
                 # W_ci[W_ci <= np.percentile(W_ci, Percentl[ci])] = 0
                 
                 # retain component of maximal size
-                L_ci = np.zeros(np.ptp(XYZ_ci, 0) + 1, dtype='bool')
+                L_ci = np.zeros(np.ptp(XYZ_ci, 0) + 1, dtype=bool)
                 L_ci[list(zip(*XYZ_ci))] = W_ci > 0
                 L_ci = measure.label(L_ci, connectivity=3)
                 lci_size = np.bincount(L_ci[L_ci.nonzero()])
@@ -290,7 +281,7 @@ def projection(Si, s, at_least_as_sparse=False):
             return S
 
     # initialize components with negative values
-    Z = np.zeros(S.shape, 'bool')
+    Z = np.zeros(S.shape, dtype=bool)
 
     negatives = True
     while negatives:
