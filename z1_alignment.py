@@ -2,7 +2,7 @@ def z1():
     image_nameRDD = sc.parallelize(image_names)
     for frame_i in range(imageframe_nmbr):
                     
-        image_nameRDD.foreach(init_image_process)
+        image_nameRDD.foreach(lambda image_name: init_image_process(image_name, frame_i))
         
         def ants_reg(image_name):
             cmd = ants_registration(

@@ -298,7 +298,7 @@ def get_ball(radi):
 ####
 
 
-def init_image_process(image_name, image_proc=1):
+def init_image_process(image_name, frame_i=0, image_proc=1):
     print((image_name + ': start'))
 
     # load original images
