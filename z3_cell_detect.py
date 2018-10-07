@@ -1,4 +1,7 @@
 def z3():
+    global bimage_mean, bimage_peak_fine, cell_dir, frame_i, nthread
+    nthread = 1
+    
     # load plane filename
     for frame_i in range(imageframe_nmbr):
         with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:

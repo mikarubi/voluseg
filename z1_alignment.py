@@ -1,8 +1,13 @@
 def z1():
+    global frame_i
+    
+    if os.path.isfile(output_dir + 'brain_mask0.hdf5'):
+        return
+    
     image_nameRDD = sc.parallelize(image_names)
     for frame_i in range(imageframe_nmbr):
                     
-        image_nameRDD.foreach(lambda image_name: init_image_process(image_name, frame_i))
+        image_nameRDD.foreach(init_image_process)
         
         def ants_reg(image_name):
             cmd = ants_registration(
