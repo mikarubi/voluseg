@@ -1,4 +1,6 @@
 def z2():
+    global thr_prob
+    
     if os.path.isfile(output_dir + 'brain_mask0.hdf5'):
         try:
             mask_reset = eval(input('Reset brain_mask? [0, no]; 1, yes. '))
