@@ -76,12 +76,10 @@ def z6():
     if nmf_algorithm:
         for frame_i in range(imageframe_nmbr):
             
-            with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:
-                background = file_handle['background'][()]
-            
             with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'r') as file_handle:
                 Cell_timesers1 = file_handle['Cell_timesers1'][()]
                 Cell_baseline1 = file_handle['Cell_baseline1'][()]
+                background = file_handle['background'][()]
                 
             T = (Cell_timesers1 - Cell_baseline1) / (Cell_baseline1 - background * 0.8)
             T = np.maximum(T, 0)

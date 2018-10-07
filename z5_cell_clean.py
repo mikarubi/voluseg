@@ -85,6 +85,9 @@ def z5():
                     Volume[xij, yij, zij] = Cell_spcesers[i, j]
                     Labels[xij, yij, zij] = i;
                     
+        with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:
+            background = file_handle['background'][()]
+                    
         with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean' + '.hdf5', 'w-') as file_handle:
             file_handle['n'] = n
             file_handle['x'] = x
@@ -100,5 +103,6 @@ def z5():
             file_handle['Cell_timesers0'] = Cell_timesers0
             file_handle['Cell_timesers1'] = Cell_timesers1
             file_handle['Cell_baseline1'] = Cell_baseline1
+            file_handle['background'] = background
         
 z5()
