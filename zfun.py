@@ -7,6 +7,7 @@
 import os
 import sys
 import shutil
+import difflib
 import itertools
 import numpy as np
 import pandas as pd
@@ -21,7 +22,6 @@ try:
 except:
     pass
 import time
-import PIL.Image
 import tempfile
 import multiprocessing
 
@@ -29,6 +29,7 @@ from scipy import io, interpolate, linalg, stats, ndimage, signal, optimize, spa
 from sklearn import cluster, mixture, decomposition, externals
 from skimage import morphology, measure, filters
 from skimage.external import tifffile
+from PIL import Image
 import xml
 
 from builtins import range, zip
@@ -306,7 +307,7 @@ def init_image_process(image_name, image_proc=1):
         try:
             image_data = tifffile.imread(input_dir + image_name + image_ext)
         except:
-            img = PIL.Image.open(input_dir + image_name + image_ext)
+            img = Image.open(input_dir + image_name + image_ext)
             image_data = []
             for i in range(img.n_frames):
                 img.seek(i)
