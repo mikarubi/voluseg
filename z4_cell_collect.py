@@ -2,6 +2,7 @@ def z4():
     for frame_i in range(imageframe_nmbr):
         if os.path.isfile(output_dir + 'Cells' + str(frame_i) + '.hdf5'):
             print('Cells' + str(frame_i) + '.hdf5 already exists, skipping.')
+            break
         else:
             print('Creating Cells' + str(frame_i) + '.hdf5.')
             
