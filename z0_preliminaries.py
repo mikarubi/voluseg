@@ -23,8 +23,10 @@ def z0():
         
         image_names = [i.encode('utf8') for i, j in zip(*file_names) if j==image_ext]
         image_names.sort()
+        delete_nums = str.maketrans('', '', '0123456789')
         def compute_match_szes(i):
-            a, b = image_names[i], image_names[i+1]
+            a = image_names[i  ].decode().translate(delete_nums)
+            b = image_names[i+1].decode().translate(delete_nums)
             return difflib.SequenceMatcher(None,a,b).\
                     find_longest_match(0, len(a), 0, len(b)).size
         
