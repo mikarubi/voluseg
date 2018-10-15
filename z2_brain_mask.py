@@ -65,11 +65,19 @@ def z2():
                         thr_prob = eval(input('Enter probability threshold [default 0.5]: '))
                     except SyntaxError:
                         thr_prob = 0.5
-        
-                ix = np.argmin(np.abs(Prob - thr_prob))
-                thr_mask = 10 ** Powr[ix][0]
-                if np.isinf(thr_prob):
-                    thr_mask = thr_prob
+                        
+                thr_prob = np.ravel(thr_prob)
+                if len(thr_prob) == 1:
+                    ix = np.argmin(np.abs(Prob - thr_prob))
+                    thr_mask = 10 ** Powr[ix][0]
+                    if np.isinf(thr_prob):
+                        thr_mask = thr_prob
+                elif len(thr_prob) == 2:
+                    thr_mask = thr_prob[1]
+                    thr_prob = thr_prob[0]
+                    print('Proceeding with fluorescence threshold of %f.' %thr_mask)
+                else:
+                    continue
                 
                 # remove all disconnected components less than 5000 cubic microliters in size
                 small_obj = np.round(5000 * (resn_x * ds * resn_y * ds * resn_z)).astype(int)
