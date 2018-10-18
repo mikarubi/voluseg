@@ -29,7 +29,7 @@ def z5():
         ix = np.any(np.isnan(Cmpn_timesers), 1);
         if np.any(ix):
             print('nans: %d' %np.sum(ix))
-            Cmpn_timesers[ix] = np.min(Cmpn_timesers[np.where(Cmpn_timesers)]);
+            Cmpn_timesers[ix] = np.nanmin(Cmpn_timesers[np.where(Cmpn_timesers)])
             
         Cell_validity = np.empty(Cmpn_timesers.shape[0], dtype=bool);
         for i in range(Cell_validity.size):
@@ -73,8 +73,15 @@ def z5():
         Cell_spcesers = Cmpn_spcesers[Cell_validity]
         Cell_timesers0 = Cmpn_timesers[Cell_validity]
         
-        Cell_timesers1, Cell_baseline1 = \
-            list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
+        if (freq_stack > 10) and (lt > 1e5):
+            print('High-frequency recording. Disabling parallelism.')
+            Cell_timesers1, Cell_baseline1 = \
+                list(zip(*map(detrend_dynamic_baseline, Cell_timesers0)))
+            Cell_timesers1 = np.array(Cell_timesers1)
+            Cell_baseline1 = np.array(Cell_baseline1)
+        else:
+            Cell_timesers1, Cell_baseline1 = \
+                list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
             
         Volume = np.zeros((x, y, z))
         Labels = np.zeros((x, y, z))
