@@ -19,16 +19,16 @@ execfile(code_dir + 'zfun_cell.py')
 # 1. alignment (motion correction)
 execfile(code_dir + 'z1_alignment.py')
 
-# 2. series conversion
+# 2. brain-mask creation
 execfile(code_dir + 'z2_brain_mask.py')
 
 # 3. cell detection
 execfile(code_dir + 'z3_cell_detect.py')
 
-# 4. cell collection into a single file
+# 4. cell collection
 execfile(code_dir + 'z4_cell_collect.py')
 
-# 5. cell cleaning and baseline detection
+# 5. cell clean and baseline detection
 execfile(code_dir + 'z5_cell_clean.py')
 
 # 6. component detection
