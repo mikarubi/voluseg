@@ -77,8 +77,8 @@ def z6():
         for frame_i in range(imageframe_nmbr):
             
             with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'r') as file_handle:
-                Cell_timesers1 = file_handle['Cell_timesers1'][()]
-                Cell_baseline1 = file_handle['Cell_baseline1'][()]
+                Cell_timesers1 = file_handle['Cell_timesers1'][()].astype(float)
+                Cell_baseline1 = file_handle['Cell_baseline1'][()].astype(float)
                 background = file_handle['background'][()]
                 
             T = (Cell_timesers1 - Cell_baseline1) / (Cell_baseline1 - background * 0.8)

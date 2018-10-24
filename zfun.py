@@ -18,6 +18,10 @@ import nibabel
 import nrrd
 import h5py
 try:
+    import pyspark
+except:
+    pass
+try:
     import pyklb
 except:
     pass

@@ -73,15 +73,15 @@ def z5():
         Cell_spcesers = Cmpn_spcesers[Cell_validity]
         Cell_timesers0 = Cmpn_timesers[Cell_validity]
         
-        if (freq_stack > 10) and (lt > 1e5):
-            print('High-frequency recording. Disabling parallelism.')
+        try:
+            Cell_timesers1, Cell_baseline1 = \
+                list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
+        except:
+            print('Failed parallel baseline computation. Proceeding serially.')
             Cell_timesers1, Cell_baseline1 = \
                 list(zip(*map(detrend_dynamic_baseline, Cell_timesers0)))
             Cell_timesers1 = np.array(Cell_timesers1)
             Cell_baseline1 = np.array(Cell_baseline1)
-        else:
-            Cell_timesers1, Cell_baseline1 = \
-                list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
             
         Volume = np.zeros((x, y, z))
         Labels = np.zeros((x, y, z))
@@ -106,10 +106,10 @@ def z5():
             file_handle['Cell_Z'] = Cell_Z
             file_handle['Volume'] = Volume
             file_handle['Labels'] = Labels
-            file_handle['Cell_spcesers'] = Cell_spcesers
-            file_handle['Cell_timesers0'] = Cell_timesers0
-            file_handle['Cell_timesers1'] = Cell_timesers1
-            file_handle['Cell_baseline1'] = Cell_baseline1
+            file_handle['Cell_spcesers'] = Cell_spcesers.astype('float32')
+            file_handle['Cell_timesers0'] = Cell_timesers0.astype('float32')
+            file_handle['Cell_timesers1'] = Cell_timesers1.astype('float32')
+            file_handle['Cell_baseline1'] = Cell_baseline1.astype('float32')
             file_handle['background'] = background
         
 z5()
