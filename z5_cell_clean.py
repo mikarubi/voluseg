@@ -80,8 +80,9 @@ def z5():
             print('Failed parallel baseline computation. Proceeding serially.')
             Cell_timesers1, Cell_baseline1 = \
                 list(zip(*map(detrend_dynamic_baseline, Cell_timesers0)))
-            Cell_timesers1 = np.array(Cell_timesers1)
-            Cell_baseline1 = np.array(Cell_baseline1)
+                
+        Cell_timesers1 = np.array(Cell_timesers1)
+        Cell_baseline1 = np.array(Cell_baseline1)
             
         Volume = np.zeros((x, y, z))
         Labels = np.zeros((x, y, z))
