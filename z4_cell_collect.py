@@ -1,12 +1,16 @@
 def z4():
     for frame_i in range(imageframe_nmbr):
         if os.path.isfile(output_dir + 'Cells' + str(frame_i) + '.hdf5'):
-            print('Cells' + str(frame_i) + '.hdf5 already exists, skipping.')
-            break
-        else:
-            print('Creating Cells' + str(frame_i) + '.hdf5.')
+            try:
+                cell_reset = eval(input('Reset cells? [0, no]; 1, yes. '))
+            except SyntaxError:
+                cell_reset = 0
             
-        
+            if not cell_reset:
+                continue
+                
+        print('Creating Cells' + str(frame_i) + '.hdf5.')            
+                
         with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:
             blok_nmbr = file_handle['blok_nmbr'][()]
             blok_lidx = file_handle['blok_lidx'][()]
@@ -38,7 +42,7 @@ def z4():
             Cmpn_spcesers_array[i, :j] = Cmpn_spcesers[i]
         Cmpn_timesers_array = np.array(Cmpn_timesers)
     
-        with h5py.File(output_dir + 'Cells' + str(frame_i) + '.hdf5', 'w-') as file_handle:
+        with h5py.File(output_dir + 'Cells' + str(frame_i) + '.hdf5', 'w') as file_handle:
             file_handle['Cmpn_position'] = Cmpn_position_array
             file_handle['Cmpn_spcesers'] = Cmpn_spcesers_array
             file_handle['Cmpn_timesers'] = Cmpn_timesers_array

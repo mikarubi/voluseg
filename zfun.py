@@ -39,7 +39,7 @@ import xml
 from builtins import range, zip
 
 
-def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=600):
+def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=baseline_tau):
     '''estimation of dynamic baseline for input timeseries'''
     
     # poly_ordr  polynomial order for detrending

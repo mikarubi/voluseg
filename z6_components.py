@@ -75,6 +75,14 @@ def z6():
     
     if nmf_algorithm:
         for frame_i in range(imageframe_nmbr):
+            if os.path.isfile(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5'):
+                try:
+                    cell_reset = eval(input('Reset cluster cells? [0, no]; 1, yes. '))
+                except SyntaxError:
+                    cell_reset = 0
+                
+                if not cell_reset:
+                    continue
             
             with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'r') as file_handle:
                 Cell_timesers1 = file_handle['Cell_timesers1'][()].astype(float)

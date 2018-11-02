@@ -1,5 +1,13 @@
 def z5():
     for frame_i in range(imageframe_nmbr):
+        if os.path.isfile(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5'):
+            try:
+                cell_reset = eval(input('Reset clean cells? [0, no]; 1, yes. '))
+            except SyntaxError:
+                cell_reset = 0
+            
+            if not cell_reset:
+                continue
     
         thr_similarity = 0.5
     
@@ -96,7 +104,7 @@ def z5():
         with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:
             background = file_handle['background'][()]
                     
-        with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean' + '.hdf5', 'w-') as file_handle:
+        with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'w') as file_handle:
             file_handle['n'] = n
             file_handle['x'] = x
             file_handle['y'] = y
