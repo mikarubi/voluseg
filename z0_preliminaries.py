@@ -124,6 +124,7 @@ def z0():
             file_handle['cell_diam']               = cell_diam
             file_handle['cell_voxl_nmbr']          = np.round(cell_voxl_nmbr).astype(int)
             file_handle['code_dir']                = code_dir
+            file_handle['baseline_tau']            = baseline_tau
             file_handle['blok_cell_nmbr']          = np.round(blok_cell_nmbr).astype(int)
             file_handle['data_type']               = data_type
             file_handle['ds']                      = ds

@@ -36,7 +36,7 @@ def z5():
         
         ix = np.any(np.isnan(Cmpn_timesers), 1);
         if np.any(ix):
-            print('nans: %d' %np.sum(ix))
+            print('nans (to be cleaned): %d' %np.count_nonzero(ix))
             Cmpn_timesers[ix] = np.nanmin(Cmpn_timesers[np.where(Cmpn_timesers)])
             
         Cell_validity = np.empty(Cmpn_timesers.shape[0], dtype=bool);
@@ -72,8 +72,32 @@ def z5():
         for i, pi in enumerate(duplicate_pairs):
             Cell_validity[pi[np.argmin(Cmpn_wsum[pi])]] = 0
             
-        n = np.count_nonzero(Cell_validity);
+        Idx0 = np.where(Cell_validity)[0]
+        try:
+            Cmpn_timesers1_idx0, Cmpn_baseline1_idx0 = \
+                list(zip(*sc.parallelize(Cmpn_timesers[Idx0]).map(detrend_dynamic_baseline).collect()))
+        except:
+            print('Failed parallel baseline computation. Proceeding serially.')
+            Cmpn_timesers1_idx0, Cmpn_baseline1_idx0 = \
+                list(zip(*map(detrend_dynamic_baseline, Cmpn_timesers[Idx0])))
+                
+        with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:
+            background = file_handle['background'][()]
+            
+        Cmpn_timesers1 = [None] * Cmpn_timesers.shape[0]
+        Cmpn_baseline1 = [None] * Cmpn_timesers.shape[0]
+        for i, h in enumerate(Idx0):
+            Cmpn_timesers1[h] = Cmpn_timesers1_idx0[i]
+            Cmpn_baseline1[h] = Cmpn_baseline1_idx0[i]
         
+        lo_baseline = np.percentile(Cmpn_baseline1_idx0 - background, 1, 1) < 0
+        print('low-baseline components (to be removed): %d' %np.count_nonzero(lo_baseline))
+        Cell_validity[Idx0[lo_baseline]] = 0
+        
+        Idx1 = np.where(Cell_validity)[0]
+        Cell_timesers1 = np.array([Cmpn_timesers1[i] for i in Idx1])
+        Cell_baseline1 = np.array([Cmpn_baseline1[i] for i in Idx1])
+                
         Cell_X = Cmpn_X[Cell_validity]
         Cell_Y = Cmpn_Y[Cell_validity]
         Cell_Z = Cmpn_Z[Cell_validity]
@@ -81,17 +105,7 @@ def z5():
         Cell_spcesers = Cmpn_spcesers[Cell_validity]
         Cell_timesers0 = Cmpn_timesers[Cell_validity]
         
-        try:
-            Cell_timesers1, Cell_baseline1 = \
-                list(zip(*sc.parallelize(Cell_timesers0).map(detrend_dynamic_baseline).collect()))
-        except:
-            print('Failed parallel baseline computation. Proceeding serially.')
-            Cell_timesers1, Cell_baseline1 = \
-                list(zip(*map(detrend_dynamic_baseline, Cell_timesers0)))
-                
-        Cell_timesers1 = np.array(Cell_timesers1)
-        Cell_baseline1 = np.array(Cell_baseline1)
-            
+        n = np.count_nonzero(Cell_validity)
         Volume = np.zeros((x, y, z))
         Labels = np.zeros((x, y, z))
         for i in range(len(Cell_X)):
@@ -100,10 +114,7 @@ def z5():
                 if Cell_spcesers[i, j] > Volume[xij, yij, zij]:
                     Volume[xij, yij, zij] = Cell_spcesers[i, j]
                     Labels[xij, yij, zij] = i;
-                    
-        with h5py.File(output_dir + 'brain_mask' + str(frame_i) + '.hdf5', 'r') as file_handle:
-            background = file_handle['background'][()]
-                    
+        
         with h5py.File(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5', 'w') as file_handle:
             file_handle['n'] = n
             file_handle['x'] = x

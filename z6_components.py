@@ -89,9 +89,15 @@ def z6():
                 Cell_baseline1 = file_handle['Cell_baseline1'][()].astype(float)
                 background = file_handle['background'][()]
                 
-            T = (Cell_timesers1 - Cell_baseline1) / (Cell_baseline1 - background * 0.8)
-            T = np.maximum(T, 0)
-            T = np.minimum(T, np.max(T[np.isfinite(T)]))
+            ltau = (np.round(baseline_tau * freq_stack / 2) * 2 + 1).astype(int)
+            T  = np.maximum(Cell_timesers1 - Cell_baseline1, 0)
+            assert(np.all(np.isfinite(T)))
+            T /= np.maximum(Cell_baseline1 - background * 0.8, 0)
+            T[np.isnan(T)] = 0
+            assert(np.min(T)==0)
+            T[np.isinf(T)] = np.max(T[np.isfinite(T)])
+            T[:, ltau:] /= T[:, ltau:].mean(1)[:, None]
+            T[:, :ltau]  = T[:, ltau:].mean()
             assert(np.all(np.isfinite(T)))
                         
             if nmf_algorithm==1:
@@ -99,6 +105,7 @@ def z6():
                 
             h5py.File(output_dir + 'Cells' + str(frame_i) + '_clust.hdf5', 'w')
             for i, k in enumerate(n_components):
+                print('Running NMF: %d components' %k)
                 if nmf_algorithm==1:
                     W, H = nmfh_lite(T, H0[:k], 100, 100, 1e-4)
                 elif nmf_algorithm==2:
