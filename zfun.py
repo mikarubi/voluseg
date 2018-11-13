@@ -41,11 +41,11 @@ import xml
 from builtins import range, zip
 
 
-def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=baseline_tau):
+def detrend_dynamic_baseline(timesers, poly_ordr=2):
     '''estimation of dynamic baseline for input timeseries'''
     
     # poly_ordr  polynomial order for detrending
-    # tau:           timescale constant for baseline estimation (in seconds)
+    # baseline_tau:  timescale constant for baseline estimation (in seconds)
     # freq_cutoff:   highpass cutoff frequency
     # freq_stack:    frequency of imaging a single stack (in Hz)
     
@@ -53,7 +53,7 @@ def detrend_dynamic_baseline(timesers, poly_ordr=2, tau=baseline_tau):
     timesers_mean = timesers.mean()
     
     # length of interval of dynamic baseline time-scales
-    ltau = (np.round(tau * freq_stack / 2) * 2 + 1).astype(int)
+    ltau = (np.round(baseline_tau * freq_stack / 2) * 2 + 1).astype(int)
     
     # detrend with a low-order polynomial
     xtime = np.arange(timesers.shape[0])
