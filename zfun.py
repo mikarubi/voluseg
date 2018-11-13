@@ -1,5 +1,4 @@
 # pip.main(['install', 'nibabel'])
-# pip.main(['install', 'pynrrd'])
 # pip.main(['install', 'h5py'])
 # pip.main(['install', 'scikit-image'])
 # pip.main(['install', 'future'])
@@ -19,7 +18,6 @@ except:
     print('Warning: Did not import matplotlib.')
 
 import nibabel
-import nrrd
 import h5py
 try:
     import pyspark
