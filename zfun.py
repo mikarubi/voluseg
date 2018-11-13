@@ -11,8 +11,12 @@ import difflib
 import itertools
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as pp
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib.pyplot as pp
+    import matplotlib.pyplot as plt
+except:
+    print('Warning: Did not import matplotlib.')
 
 import nibabel
 import nrrd
