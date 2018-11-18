@@ -381,5 +381,4 @@ def init_image_process(image_name, image_proc=1):
         print((image_name + ': end'))
         
     except Exception as msg:
-        
         raise Exception(' '.join(['error processing', image_name+':', str(msg)]))
