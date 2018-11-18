@@ -77,6 +77,15 @@ def z0():
         dt_range = np.r_[:lt:np.maximum(dt, 1)]
     else:
         dt_range = np.r_[:lt]
+        
+    # process censoring intervals
+    censor_tau = np.array(censor_tau).astype(float)
+    if (censor_tau.size == 0):
+        censor_tau = np.zeros(2)
+    elif (censor_tau.size == 1):
+        censor_tau = np.array([censor_tau, censor_tau]).astype(float)
+    elif (censor_tau.size > 2):
+        raise Exception('censor_tau must have at most two values.')        
     
     # in case of packed planes, modify lz and freq_stack
     if packed_planes:
@@ -123,6 +132,7 @@ def z0():
             file_handle['cell_ball_midpoint_fine'] = cell_ball_midpoint_fine
             file_handle['cell_diam']               = cell_diam
             file_handle['cell_voxl_nmbr']          = np.round(cell_voxl_nmbr).astype(int)
+            file_handle['censor_tau']              = np.array(censor_tau).astype(float)
             file_handle['code_dir']                = code_dir
             file_handle['baseline_tau']            = baseline_tau
             file_handle['blok_cell_nmbr']          = np.round(blok_cell_nmbr).astype(int)

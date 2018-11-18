@@ -306,75 +306,80 @@ def get_ball(radi):
 
 
 def init_image_process(image_name, image_proc=1):
-    print((image_name + ': start'))
-
-    # load original images
-    if '.tif' in image_ext:
-        try:
-            image_data = tifffile.imread(input_dir + image_name + image_ext)
-        except:
-            img = Image.open(input_dir + image_name + image_ext)
-            image_data = []
-            for i in range(img.n_frames):
-                img.seek(i)
-                image_data.append(np.array(img).T)
-            image_data = np.array(image_data)
-    elif ('.stack.bz2' in image_ext) or ('.stack.gz' in image_ext):
-        tempdir = tempfile.mkdtemp() + '/'
-        if '.stack.bz2' in image_ext:
-            unzip_cmd = 'bzcat '
-        elif '.stack.gz' in image_ext:
-            unzip_cmd = 'zcat '
-        os.system(
-            unzip_cmd + input_dir + image_name + image_ext + ' > ' + tempdir + 'img.stack')
-        image_data = \
-            np.fromfile(
-                tempdir + 'img.stack', dtype='int16', count=-1, sep='')\
-            .reshape((lz, ly * imageframe_nmbr, lx))
-        os.system('rm ' + tempdir + 'img.stack; rmdir ' + tempdir)
-    elif '.stack' in image_ext:
-        image_data = \
-            np.fromfile(
-                input_dir + image_name + image_ext, dtype='int16', count=-1, sep='')\
-            .reshape((lz, ly * imageframe_nmbr, lx))
-    elif ('.h5' in image_ext) or ('.hdf5' in image_ext):
-        with h5py.File(input_dir + image_name + image_ext, 'r') as file_handle:
-            image_data = file_handle[list(file_handle.keys())[0]][()]
-    elif ('.klb' in image_ext):
-        image_data = pyklb.readfull(input_dir + image_name + image_ext)
-        image_data = image_data.transpose(0, 2, 1)
-
-    if image_data.ndim == 2:
-        image_data = image_data[None, :, :]
-    image_data = image_data.transpose(2, 1, 0).astype(data_type)
-
-    if not image_proc:
-        print('returning dimensions.')
-        return image_data.shape
-
-    # split two-color images into two halves        
-    if imageframe_nmbr == 2:
-        if frame_i == 0:
-            image_data = image_data[:, :ly, :]
-        elif frame_i == 1:
-            image_data = image_data[:, ly:, :]
+    try:
+        print((image_name + ': start'))
+    
+        # load original images
+        if '.tif' in image_ext:
+            try:
+                image_data = tifffile.imread(input_dir + image_name + image_ext)
+            except:
+                img = Image.open(input_dir + image_name + image_ext)
+                image_data = []
+                for i in range(img.n_frames):
+                    img.seek(i)
+                    image_data.append(np.array(img).T)
+                image_data = np.array(image_data)
+        elif ('.stack.bz2' in image_ext) or ('.stack.gz' in image_ext):
+            tempdir = tempfile.mkdtemp() + '/'
+            if '.stack.bz2' in image_ext:
+                unzip_cmd = 'bzcat '
+            elif '.stack.gz' in image_ext:
+                unzip_cmd = 'zcat '
+            os.system(
+                unzip_cmd + input_dir + image_name + image_ext + ' > ' + tempdir + 'img.stack')
+            image_data = \
+                np.fromfile(
+                    tempdir + 'img.stack', dtype='int16', count=-1, sep='')\
+                .reshape((lz, ly * imageframe_nmbr, lx))
+            os.system('rm ' + tempdir + 'img.stack; rmdir ' + tempdir)
+        elif '.stack' in image_ext:
+            image_data = \
+                np.fromfile(
+                    input_dir + image_name + image_ext, dtype='int16', count=-1, sep='')\
+                .reshape((lz, ly * imageframe_nmbr, lx))
+        elif ('.h5' in image_ext) or ('.hdf5' in image_ext):
+            with h5py.File(input_dir + image_name + image_ext, 'r') as file_handle:
+                image_data = file_handle[list(file_handle.keys())[0]][()]
+        elif ('.klb' in image_ext):
+            image_data = pyklb.readfull(input_dir + image_name + image_ext)
+            image_data = image_data.transpose(0, 2, 1)
+    
+        if image_data.ndim == 2:
+            image_data = image_data[None, :, :]
+        image_data = image_data.transpose(2, 1, 0).astype(data_type)
+    
+        if not image_proc:
+            print('returning dimensions.')
+            return image_data.shape
+    
+        # split two-color images into two halves        
+        if imageframe_nmbr == 2:
+            if frame_i == 0:
+                image_data = image_data[:, :ly, :]
+            elif frame_i == 1:
+                image_data = image_data[:, ly:, :]
+            
+        # ensure original dimensions are even
+        if ds > 1:
+            if lx % 2: image_data = image_data[:-1, :, :]
+            if ly % 2: image_data = image_data[:, :-1, :]
+    
+        # downsample in the x-y dimension and pad in the z dimension
+        if ds > 1:
+            image_data = downsample_xy(image_data)
+        if lpad:
+            image_data = pad_z('pad', image_data)
+    
+        # create image directory and save image as a nifti file
+        os.system('mkdir -p ' + image_dir(image_name, frame_i))
+        nibabel.save(
+            nii_image(image_data.astype(data_type), niiaffmat),
+            image_dir(image_name, frame_i) + 'image_original' + nii_ext
+        )
+    
+        print((image_name + ': end'))
         
-    # ensure original dimensions are even
-    if ds > 1:
-        if lx % 2: image_data = image_data[:-1, :, :]
-        if ly % 2: image_data = image_data[:, :-1, :]
-
-    # downsample in the x-y dimension and pad in the z dimension
-    if ds > 1:
-        image_data = downsample_xy(image_data)
-    if lpad:
-        image_data = pad_z('pad', image_data)
-
-    # create image directory and save image as a nifti file
-    os.system('mkdir -p ' + image_dir(image_name, frame_i))
-    nibabel.save(
-        nii_image(image_data.astype(data_type), niiaffmat),
-        image_dir(image_name, frame_i) + 'image_original' + nii_ext
-    )
-
-    print((image_name + ': end'))
+    except Exception as msg:
+        
+        raise Exception(' '.join(['error processing', image_name+':', str(msg)]))

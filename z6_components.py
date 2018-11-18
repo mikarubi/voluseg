@@ -96,8 +96,15 @@ def z6():
             T[np.isnan(T)] = 0
             assert(np.min(T)==0)
             T[np.isinf(T)] = np.max(T[np.isfinite(T)])
-            T[:, ltau:] /= T[:, ltau:].mean(1)[:, None]
-            T[:, :ltau]  = T[:, ltau:].mean()
+            
+            try:
+                censor_tau
+            except NameError:
+                censor_tau = np.zeros(2)
+            
+            ltau_sta, ltau_fin = np.round(censor_tau * freq_stack).astype(int)
+            T[:, ltau_sta:-ltau_fin] /= T[:, ltau_sta:-ltau_fin].mean(1)[:, None]
+            T[:, :ltau_sta] = T[:, -ltau_fin:] = T[:, ltau_sta:-ltau_fin].mean()
             assert(np.all(np.isfinite(T)))
                         
             if nmf_algorithm==1:

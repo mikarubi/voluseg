@@ -27,6 +27,13 @@
 # - imageframe_nmbr: number of brains in each image
 #     typical value is 1.
 #     value is 2 if two-color image
+# - baseline_tau; time intervals for baseline detection (in seconds)
+#     typical values are 300-600 (5-10 minutes)
+# - censor_tau: time intervals for censoring signal (in seconds)
+#     censor_tau = 0                # apply no censoring
+#     censor_tau = [300, 0]         # censor 300 seconds at start of recording
+#     censor_tau = [0, 300]         # censor 300 seconds at end of recording
+#     censor_tau = 300              # censor 300 seconds at beginning and end of recording
 # - freq_cutoff: frequency cut-off for high-pass filtering
 #     typical value is 0.001
 #     set to 0 to disable high-pass filtering
@@ -49,6 +56,7 @@ blok_cell_nmbr  = 100
 cell_diam       = 6.0
 imageframe_nmbr = 1
 baseline_tau    = 300
+censor_tau      = [300, 300]
 freq_cutoff     = 0
 nmf_algorithm   = 2
 n_components    = [20, 60]
