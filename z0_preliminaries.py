@@ -1,5 +1,5 @@
 def z0():
-    global input_dir, output_dir, code_dir, packed_planes, dt, lz, resn_z, freq_stack
+    global input_dir, output_dir, code_dir, packed_planes, dt, lz, resn_z, freq_stack, censor_tau
     
     # configure only if prepro_parameters doesn't exist
     if os.path.isfile(output_dir + 'prepro_parameters.hdf5'):

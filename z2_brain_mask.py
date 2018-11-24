@@ -47,19 +47,19 @@ def z2():
         image_peak_fine = image_mean > medin_filt(image_mean, cell_ball_fine)
         
         # compute power and probability
-        Powr = np.log10(image_mean.ravel())[:, None]
-        Powr = np.log10(np.random.permutation(image_mean.ravel())[:100000, None])
-        gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(Powr)
-        Prob = gmm.predict_proba(Powr)
-        Prob = Prob[:, np.argmax(Powr[np.argmax(Prob, 0)])]
+        pixel_powr = np.log10(image_mean.ravel())[:, None]
+        pixel_powr = np.log10(np.random.permutation(image_mean.ravel())[:100000, None])
+        gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(pixel_powr)
+        pixel_prob = gmm.predict_proba(pixel_powr)
+        pixel_prob = pixel_prob[:, np.argmax(pixel_powr[np.argmax(pixel_prob, 0)])]
         
         # get and save brain mask
         thr_prob = np.copy(thr_prob0)
         mask_flag = (thr_prob != 0)
         while 1:
             plt.figure(1, (12, 4))
-            plt.subplot(121); _ = plt.hist(Powr, 100); plt.title('10^(Pixel power histogram)')
-            plt.subplot(122); _ = plt.hist(Prob, 100); plt.title('Probability threshold')
+            plt.subplot(121); _ = plt.hist(pixel_powr, 100); plt.title('10^(Pixel power histogram)')
+            plt.subplot(122); _ = plt.hist(pixel_prob, 100); plt.title('Probability threshold')
             plt.show()
             
             if not thr_prob:
@@ -70,8 +70,8 @@ def z2():
                     
             thr_prob = np.ravel(thr_prob)
             if len(thr_prob) == 1:
-                ix = np.argmin(np.abs(Prob - thr_prob))
-                thr_mask = 10 ** Powr[ix][0]
+                ix = np.argmin(np.abs(pixel_prob - thr_prob))
+                thr_mask = 10 ** pixel_powr[ix][0]
                 if np.isinf(thr_prob):
                     thr_mask = thr_prob
             elif len(thr_prob) == 2:
@@ -112,5 +112,7 @@ def z2():
             file_handle['thr_prob']        = thr_prob
             file_handle['thr_mask']        = thr_mask
             file_handle['background']      = np.median(image_mean[brain_mask==0])
+            file_handle['pixel_powr']      = pixel_powr
+            file_handle['pixel_prob']      = pixel_prob
 
 z2()
