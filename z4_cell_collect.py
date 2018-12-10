@@ -1,13 +1,18 @@
 def z4():
+    global batch_mode
+    
     for frame_i in range(imageframe_nmbr):
         if os.path.isfile(output_dir + 'Cells' + str(frame_i) + '.hdf5'):
-            try:
-                cell_reset = eval(input('Reset cells? [0, no]; 1, yes. '))
-            except SyntaxError:
-                cell_reset = 0
-            
-            if not cell_reset:
+            if batch_mode:
                 continue
+            else:
+                try:
+                    cell_reset = eval(input('Reset cell collection? [0, no]; 1, yes. '))
+                except SyntaxError:
+                    cell_reset = 0
+                
+                if not cell_reset:
+                    continue
                 
         print('Creating Cells' + str(frame_i) + '.hdf5.')            
                 

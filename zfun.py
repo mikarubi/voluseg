@@ -40,6 +40,13 @@ import xml
 
 from builtins import range, zip
 
+try:
+    if batch_mode:
+        batch_mode = 1
+    else:
+        batch_mode = 0
+except NameError:
+    batch_mode = 0
 
 def detrend_dynamic_baseline(timesers, poly_ordr=2):
     '''estimation of dynamic baseline for input timeseries'''

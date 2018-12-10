@@ -35,7 +35,7 @@ execfile(code_dir + 'z5_cell_clean.py')
 execfile(code_dir + 'z6_components.py')
 
 # shutdown spark job
-os.system('spark-janelia-lsf stopcluster -f')
+# os.system('spark-janelia-lsf stopcluster -f')
 
 # find . -name "image_aligned*" -delete
 # find . -name "Block*hdf5" -delete

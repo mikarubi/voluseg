@@ -1,11 +1,10 @@
 def z1():
     global frame_i
     
-    if os.path.isfile(output_dir + 'brain_mask0.hdf5'):
-        return
-    
     image_nameRDD = sc.parallelize(image_names)
     for frame_i in range(imageframe_nmbr):
+        if os.path.isfile(output_dir + 'brain_mask' + str(frame_i) + '.hdf5'):
+            continue
                     
         image_nameRDD.foreach(init_image_process)
         

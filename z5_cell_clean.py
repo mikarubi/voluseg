@@ -1,13 +1,18 @@
 def z5():
+    global batch_mode
+    
     for frame_i in range(imageframe_nmbr):
         if os.path.isfile(output_dir + 'Cells' + str(frame_i) + '_clean.hdf5'):
-            try:
-                cell_reset = eval(input('Reset clean cells? [0, no]; 1, yes. '))
-            except SyntaxError:
-                cell_reset = 0
-            
-            if not cell_reset:
+            if batch_mode:
                 continue
+            else:
+                try:
+                    cell_reset = eval(input('Reset clean cells? [0, no]; 1, yes. '))
+                except SyntaxError:
+                    cell_reset = 0
+                
+                if not cell_reset:
+                    continue
     
         thr_similarity = 0.5
     
@@ -26,13 +31,18 @@ def z5():
         Cmpn_Z = Cmpn_position[:, :, 2]
     
         if ((t > 2e4) and (freq < 10)) or (np.logical_not(np.isfinite(freq))):
-            while 1:
-                try:
-                    freq = eval(input('t: %d, freq: %.3f. Enter frequency: ' %(t, freq)))
-                    print('Continuing with frequency: %f' %freq)
-                    break
-                except SyntaxError:
-                    pass
+            if batch_mode:
+                print('Warning: t: %d, freq: %.3f. ' %(t, freq))
+                freq = 50
+                print('Continuing with frequency: %f' %freq)
+            else:
+                while 1:
+                    try:
+                        freq = eval(input('t: %d, freq: %.3f. Enter frequency: ' %(t, freq)))
+                        print('Continuing with frequency: %f' %freq)
+                        break
+                    except SyntaxError:
+                        pass
         
         ix = np.any(np.isnan(Cmpn_timesers), 1);
         if np.any(ix):

@@ -1,16 +1,20 @@
 def z2():
-    global thr_prob
+    global thr_prob, batch_mode
+    
     thr_prob0 = np.copy(thr_prob)
                 
     for frame_i in range(imageframe_nmbr):
         if os.path.isfile(output_dir + 'brain_mask' + str(frame_i) + '.hdf5'):
-            try:
-                mask_reset = eval(input('Reset brain_mask? [0, no]; 1, yes. '))
-            except SyntaxError:
-                mask_reset = 0
-            
-            if not mask_reset:
+            if batch_mode:
                 continue
+            else:
+                try:
+                    mask_reset = eval(input('Reset brain masking? [0, no]; 1, yes. '))
+                except SyntaxError:
+                    mask_reset = 0
+            
+                if not mask_reset:
+                    continue
                 
                                 
         # get image mean
@@ -57,16 +61,20 @@ def z2():
         thr_prob = np.copy(thr_prob0)
         mask_flag = (thr_prob != 0)
         while 1:
-            plt.figure(1, (12, 4))
-            plt.subplot(121); _ = plt.hist(pixel_powr, 100); plt.title('10^(Pixel power histogram)')
-            plt.subplot(122); _ = plt.hist(pixel_prob, 100); plt.title('Probability threshold')
-            plt.show()
-            
-            if not thr_prob:
-                try:
-                    thr_prob = eval(input('Enter probability threshold [default 0.5]: '))
-                except SyntaxError:
+            if batch_mode:
+                if not thr_prob:
                     thr_prob = 0.5
+            else:
+                plt.figure(1, (12, 4))
+                plt.subplot(121); _ = plt.hist(pixel_powr, 100); plt.title('10^(Pixel power histogram)')
+                plt.subplot(122); _ = plt.hist(pixel_prob, 100); plt.title('Probability threshold')
+                plt.show()
+                
+                if not thr_prob:
+                    try:
+                        thr_prob = eval(input('Enter probability threshold [default 0.5]: '))
+                    except SyntaxError:
+                        thr_prob = 0.5
                     
             thr_prob = np.ravel(thr_prob)
             if len(thr_prob) == 1:
@@ -85,22 +93,26 @@ def z2():
             small_obj = np.round(5000 * (resn_x * ds * resn_y * ds * resn_z)).astype(int)
             brain_mask = (image_mean > thr_mask)
             brain_mask = morphology.remove_small_objects(brain_mask, small_obj)
-            for i in range(lz):
-                plt.figure(1, (12, 6))
-                plt.subplot(121); plt.imshow((image_mean * (    brain_mask))[:, :, i].T, cmap='hot')
-                plt.subplot(122); plt.imshow((image_peak * (1 + brain_mask))[:, :, i].T, cmap='hot')
-                plt.show()
-
-            if not mask_flag:
-                try:
-                    mask_flag = eval(input('Is thr_prob = %.4f (thr_mask = %.1f) accurate? [1, yes]; 0, no. ' %(thr_prob, thr_mask)))
-                except SyntaxError:
-                    mask_flag = 1
-                    
-            if not mask_flag:
-                thr_prob = 0
-            else:
+            
+            if batch_mode:
                 break
+            else:
+                for i in range(lz):
+                    plt.figure(1, (12, 6))
+                    plt.subplot(121); plt.imshow((image_mean * (    brain_mask))[:, :, i].T, cmap='hot')
+                    plt.subplot(122); plt.imshow((image_peak * (1 + brain_mask))[:, :, i].T, cmap='hot')
+                    plt.show()
+    
+                if not mask_flag:
+                    try:
+                        mask_flag = eval(input('Is thr_prob = %.4f (thr_mask = %.1f) accurate? [1, yes]; 0, no. ' %(thr_prob, thr_mask)))
+                    except SyntaxError:
+                        mask_flag = 1
+                        
+                if not mask_flag:
+                    thr_prob = 0
+                else:
+                    break
         
         plt.close('all')
         
