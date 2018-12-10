@@ -1,5 +1,5 @@
 def z6():
-    global brain_mask
+    global brain_mask, censor_tau
     os.environ['MKL_NUM_THREADS'] = str(multiprocessing.cpu_count())
     
     def nmfh_lite(V, H, miniter=10, maxiter=100, tolfun=1e-3, powr=1):
@@ -106,8 +106,11 @@ def z6():
                 censor_tau = np.zeros(2)
             
             ltau_sta, ltau_fin = np.round(censor_tau * freq_stack).astype(int)
-            T[:, ltau_sta:-ltau_fin] /= T[:, ltau_sta:-ltau_fin].mean(1)[:, None]
-            T[:, :ltau_sta] = T[:, -ltau_fin:] = T[:, ltau_sta:-ltau_fin].mean()
+            neg_ltau_fin = - ltau_fin
+            if not neg_ltau_fin:
+                neg_ltau_fin = None
+            T[:, ltau_sta:neg_ltau_fin] /= T[:, ltau_sta:neg_ltau_fin].mean(1)[:, None]
+            T[:, :ltau_sta] = T[:, neg_ltau_fin:] = T[:, ltau_sta:neg_ltau_fin].mean()
             assert(np.all(np.isfinite(T)))
                         
             if nmf_algorithm==1:
