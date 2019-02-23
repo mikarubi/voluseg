@@ -44,6 +44,7 @@ def z6():
         
         # 1st SVD --> partial SVD rank-k to the input matrix A.
         U, S, V = linalg.svd(A, full_matrices=0)
+        V = V.T     # transpose V for consistency with MATLAB code
         
         # the matrices of the factorization
         k = S.shape[0]
