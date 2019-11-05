@@ -1,3 +1,5 @@
+# New version of segmentation algorithm to be posted soon #
+
 # Dependencies
 - Red Hat Enterprise Linux 3.10.0
 - Python 3.5.2 and IPython 5.3.0
