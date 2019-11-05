@@ -1,0 +1,15 @@
+def load_parameters(filename):
+    ''' load previously saved parameters from filename '''
+    
+    import pickle
+            
+    try:
+        with open(filename, 'rb') as file_handle:
+            parameters = pickle.load(file_handle)
+            
+        print('Parameter file successfully loaded.')        
+        return parameters
+                        
+    except Exception as msg:
+        print('Error: Parameter file not loaded: %s.'%(msg))        
+    
