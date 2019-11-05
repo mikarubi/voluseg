@@ -1,4 +1,4 @@
-# New version of segmentation algorithm to be posted soon #
+# New version of segmentation pipeline to be posted soon #
 
 # Dependencies
 - Red Hat Enterprise Linux 3.10.0
