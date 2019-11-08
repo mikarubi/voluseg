@@ -22,7 +22,6 @@
 ```
 import voluseg
 parameters = voluseg.parameter_dictionary()
-
 ```
 
 - Set parameters as required (see `voluseg.parameter_dictionary??` for details)
