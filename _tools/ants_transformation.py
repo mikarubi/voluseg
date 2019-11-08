@@ -1,6 +1,8 @@
-def ants_transformation(in_nii, ref_nii, out_nii, in_tform, interpolation='Linear'):
+def ants_transformation(dir_ants, in_nii, ref_nii, out_nii, in_tform, interpolation='Linear'):
     '''application of ants transform'''
-
+    
+    import os
+    
     antsTransformation_call = ' '.join([
         dir_ants + '/antsApplyTransforms',
         '--dimensionality 3',

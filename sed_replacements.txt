@@ -1,1 +1,0 @@
-find . -name "*py" | xargs sed -i 's/voxel_position/block_peak/g'

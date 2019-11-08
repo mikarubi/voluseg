@@ -1,4 +1,6 @@
-def process_block_data(xyz0, xyz1, parameters, i_color, lxyz, rxyz, ball_diam, bvolume_peak):
+def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, ball_diam, bvolume_peak):
+    '''load timeseries in individual blocks, slice-time correct, and find similar timeseries'''
+    
     import os
     import h5py
     import time
@@ -25,7 +27,7 @@ def process_block_data(xyz0, xyz1, parameters, i_color, lxyz, rxyz, ball_diam, b
     peak_idx = np.argwhere(voxel_peak[voxel_mask]).T[0]
         
     tic = time.time()
-    dir_volume = os.path.join(p.dir_output, 'volumes', str(i_color))
+    dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
     x0, y0, z0 = voxel_xyz.min(0)
     x1, y1, z1 = voxel_xyz.max(0) + 1
     voxel_timeseries_block = [None] * p.lt
@@ -37,13 +39,12 @@ def process_block_data(xyz0, xyz1, parameters, i_color, lxyz, rxyz, ball_diam, b
     voxel_timeseries_block = np.transpose(voxel_timeseries_block, (1, 2, 3, 0))
     voxel_timeseries = voxel_timeseries_block[voxel_mask[x0:x1, y0:y1, z0:z1]]
     del voxel_timeseries_block
-    print('Load data time: %.1f minutes.\n' %((time.time() - tic) / 60))
+    print('data loading: %.1f minutes.\n' %((time.time() - tic) / 60))
     
     # perform slice-time correction, if there is more than one slice
     if lz > 1:
-        for i in range(len(voxel_xyz)):
+        for i, zi in enumerate(voxel_xyz[:, 2]):
             # get timepoints of midpoint and zi plane for interpolation
-            zi = voxel_xyz[i, 2]                  # number of plane
             timepoints_zi = np.arange(p.lt) / p.f_volume +  zi      * p.t_section
             timepoints_zm = np.arange(p.lt) / p.f_volume + (lz / 2) * p.t_section
 
@@ -63,8 +64,9 @@ def process_block_data(xyz0, xyz1, parameters, i_color, lxyz, rxyz, ball_diam, b
 
     # compute voxel peak similarity: combination of high proximity and high correlation
     tic = time.time()
-    voxel_similarity_peak = np.zeros((len(peak_idx), len(peak_idx)), dtype=bool)
-    for i in range(len(peak_idx)):
+    n_peaks = len(peak_idx)
+    voxel_similarity_peak = np.zeros((n_peaks, n_peaks), dtype=bool)
+    for i in range(n_peaks):
         dist_i = (((voxel_xyz_phys_peak[i] - voxel_xyz_phys_peak)**2).sum(1))**0.5
         neib_i = dist_i < p.diam_cell
         corr_i = np.dot(voxel_timeseries_peak_nrm[i], voxel_timeseries_peak_nrm.T)
@@ -72,6 +74,6 @@ def process_block_data(xyz0, xyz1, parameters, i_color, lxyz, rxyz, ball_diam, b
         
     del voxel_timeseries_peak_nrm
     voxel_similarity_peak = voxel_similarity_peak | voxel_similarity_peak.T
-    print('Compute voxel similarity: %.1f minutes.\n' %((time.time() - tic) / 60))
+    print('voxel similarity: %.1f minutes.\n' %((time.time() - tic) / 60))
     
     return (voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak)

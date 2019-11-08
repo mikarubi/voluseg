@@ -7,9 +7,9 @@ def load_parameters(filename):
         with open(filename, 'rb') as file_handle:
             parameters = pickle.load(file_handle)
             
-        print('Parameter file successfully loaded.')        
+        print('parameter file successfully loaded.')        
         return parameters
                         
     except Exception as msg:
-        print('Error: Parameter file not loaded: %s.'%(msg))        
+        print('parameter file not loaded: %s.'%(msg))        
     

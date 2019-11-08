@@ -1,46 +1,85 @@
-def collect_blocks_cells(i_color, dir_cell, parameters, lxyz):
+def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100, 
+                timeseries_mean=1.0, timepoints=None, verbosity=1):
+    '''
+    cell detection via nonnegative matrix factorization with sparseness projection
+    V0 = voxel_timeseries_valid
+    XYZ0 = voxel_xyz_valid
+    W0 = cell_weight_init_valid
+    B0 = cell_neighborhood_valid
+    S0 = cell_sparseness    
+    '''
     
     import os
-    import h5py
     import numpy as np
-    from types import SimpleNamespace
+    from scipy import stats
+    from scipy import linalg
+    from skimage import measure
+    from voluseg._tools.sparseness_projection import sparseness_projection
+    
+    os.environ['MKL_NUM_THREADS'] = '1'
 
-    p = SimpleNamespace(**parameters)
+    # CAUTION: Input variable is modified to save memory
+    V0 *= (timeseries_mean / V0.mean(1)[:, None])             # normalize voxel timeseries
+
+    if not timepoints is None:
+        V = V0[:, timepoints].astype(float)                   # copy input signal
+    else:
+        V = V0.astype(float)                                  # copy input signal
+        
+    XYZ = XYZ0.astype(int)
+    W = W0.astype(float)
+    B = B0.astype(bool)
+    S = S0.copy()
+
+    # get dimensions
+    n,  t = V.shape
+    n_, c = W.shape
+    assert(n_ == n)
+
+    H = np.zeros((c, t))                                      # zero timeseries array
+    dnorm_prev = np.full(2, np.inf)                           # last two d-norms
+    for ii in range(maxiter):
+        # save current states
+        H_ = H.copy()
+
+        # Alternate least squares with regularization
+        H = np.maximum(linalg.lstsq(W, V)[0], 0)
+        H *= (timeseries_mean / H.mean(1)[:, None])           # normalize component timeseries
+
+        W = np.maximum(linalg.lstsq(V.T, H.T)[0], 0)
+        W[np.logical_not(B)] = 0                              # restrict component boundaries
+        for ci in range(c):
+            W_ci = W[B[:, ci], ci]
+            if np.any(W_ci) and (S[ci] > 0):
+                # get relative dimensions of component
+                XYZ_ci = XYZ[B[:, ci]] - XYZ[B[:, ci]].min(0)
+
+                # enforce component sparseness and percentile threshold
+                W_ci = sparseness_projection(W_ci, S[ci], at_least_as_sparse=True)
                 
-    print('Creating cells%d.hdf5.'%(i_color))            
-            
-    with h5py.File(os.path.join(p.dir_output, 'volume%d.hdf5'%(i_color), 'r')) as file_handle:
-        n_blocks = file_handle['n_blocks'][()]
-        block_xyz0 = file_handle['block_xyz0'][()]
+                # retain largest connected component (mode)
+                L_ci = np.zeros(np.ptp(XYZ_ci, 0) + 1, dtype=bool)
+                L_ci[list(zip(*XYZ_ci))] = W_ci > 0
+                L_ci = measure.label(L_ci, connectivity=3)
+                lci_mode = stats.mode(L_ci[L_ci>0]).mode[0]
+                W_ci[L_ci[list(zip(*XYZ_ci))] != lci_mode] = 0
 
-    cell_position = []
-    cell_weights = []
-    cell_timeseries = []
-    for i_block in range(n_blocks):
-        try:
-            with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(i)), 'r') as file_handle:
-                for ci in file_handle['cell']:
-                    cell_position.append(file_handle['cell'][ci]['position'][()])
-                    cell_weights.append(file_handle['cell'][ci]['weights'][()])
-                    cell_timeseries.append(file_handle['cell'][ci]['timeseries'][()])
-        except KeyError:
-            print('block %d is empty.' %i_block)
-        except IOError:
-            if block_xyz0[i_block]:
-                print('block %d does not exist.' %i_block)
+                W[B[:, ci], ci] = W_ci
 
-    cn = len(cell_position)
-    ln = np.max([len(i) for i in cell_weights])
-    cell_position_array = np.full((cn, ln, 3), -1, dtype=int)
-    cell_weights_array = np.full((cn, ln), np.nan)
-    for i in range(cn):
-        j = len(cell_weights[i])
-        cell_position_array[i, :j] = cell_position[i]
-        cell_weights_array[i, :j] = cell_weights[i]
-    cell_timeseries_array = np.array(cell_timeseries)
+        # Get norm of difference and check for convergence
+        dnorm = np.sqrt(np.mean(np.square(V - W.dot(H)))) / timeseries_mean
+        diffh = np.sqrt(np.mean(np.square(H - H_      ))) / timeseries_mean
+        if ((dnorm_prev.max(0) - dnorm) < tolfun) & (diffh < tolfun):
+            if (ii >= miniter):
+                break
+        dnorm_prev[1] = dnorm_prev[0]
+        dnorm_prev[0] = dnorm
 
-    with h5py.File(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(i_color)), 'w') as file_handle:
-        file_handle['cell_position'] = cell_position_array
-        file_handle['cell_weights'] = cell_weights_array
-        file_handle['cell_timeseries'] = cell_timeseries_array
-        file_handle['dimensions'] = np.r_[lxyz, p.lt]
+        if verbosity:
+            print((ii, dnorm, diffh))
+
+    # Perform final regression on full input timeseries
+    H = np.maximum(linalg.lstsq(W, V0)[0], 0)
+    H *= (timeseries_mean / H.mean(1)[:, None])                     # normalize component timeseries
+
+    return (W, H, dnorm)

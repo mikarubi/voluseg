@@ -1,32 +1,35 @@
-def detect_cells(parameters):    
+def detect_cells(parameters):
+    '''detect cells in images'''
+    
     import os
     import h5py
     import time
+    import shutil
     import numpy as np
     from types import SimpleNamespace
     from pyspark.sql.session import SparkSession
-    from .._steps.step4a import define_blocks
-    from .._steps.step4b import process_block_data
-    from .._steps.step4c import initialize_block_cells
-    from .._steps.step4d import collect_blocks_cells
-    from .._tools.nnmf_sparse import nnmf_sparse
-    from .._tools.ball import ball
+    from voluseg._steps.step4a import define_blocks
+    from voluseg._steps.step4b import process_block_data
+    from voluseg._steps.step4c import initialize_block_cells
+    from voluseg._steps.step4d import nnmf_sparse
+    from voluseg._steps.step4e import collect_blocks
+    from voluseg._tools.ball import ball
         
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
     p = SimpleNamespace(**parameters)
     
-    ball_diam, ball_diam_midpoint = ball(1.0 * p.diam_cell, p.affine_mat)
+    ball_diam, ball_diam_xyz0 = ball(1.0 * p.diam_cell, p.affine_mat)
         
     # load plane filename
-    for i_color in range(p.n_colors):        
-        if os.path.isfile(os.path.join(p.dir_output, 'cells0%s.hdf5'%(i_color))):
+    for color_i in range(p.n_colors):        
+        if os.path.isfile(os.path.join(p.dir_output, 'cells%s_raw.hdf5'%(color_i))):
             continue
                                                                         
-        dir_cell = os.path.join(p.dir_output, 'cells', str(i_color))
+        dir_cell = os.path.join(p.dir_output, 'cells', str(color_i))
         os.makedirs(dir_cell, exist_ok=True)
         
-        with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(i_color)), 'r') as file_handle:
+        with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'r') as file_handle:
             volume_mean = file_handle['volume_mean'][()].T
             volume_mask = file_handle['volume_mask'][()].T
             volume_peak = file_handle['volume_peak'][()].T
@@ -46,7 +49,7 @@ def detect_cells(parameters):
 
         # dimensions and resolution        
         lxyz = volume_mean.shape
-        rxyz = np.diag(p.affine_mat)[:2]
+        rxyz = np.diag(p.affine_mat)[:3]
         
         # compute number of blocks (do only once)                 
         if flag:
@@ -61,29 +64,31 @@ def detect_cells(parameters):
                 # volume of a cylinder (change to sphere later)
                 n_voxels_cell = p.diam_cell * np.pi * ((p.diam_cell / 2.0)**2) / (rx * ry * rz)
             
+            n_voxels_cell = np.round(n_voxels_cell).astype(int)
+            
             # get number of voxels in each cell
             n_blocks, block_valids, xyz0, xyz1 = \
                 define_blocks(lx, ly, lz, p.n_cells_block, n_voxels_cell, volume_mask)
             
             # save number and indices of blocks
-            with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(i_color)), 'r+') as file_handle:
+            with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'r+') as file_handle:
                 file_handle['n_voxels_cell'] = n_voxels_cell
                 file_handle['n_blocks'] = n_blocks
                 file_handle['block_valids'] = block_valids
                 file_handle['block_xyz0'] = xyz0
                 file_handle['block_xyz1'] = xyz1
                             
-        print('Number of blocks, total: %d.'%(block_valids.sum()))
+        print('number of blocks, total: %d.'%(block_valids.sum()))
         
-        for i in np.where(block_valids)[0]:
+        for ii in np.where(block_valids)[0]:
             try:
-                with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(i)), 'r') as file_handle:
+                with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(ii)), 'r') as file_handle:
                     if ('completion' in file_handle.keys()) and file_handle['completion'][()]:
-                        block_valids[i] = 0
+                        block_valids[ii] = 0
             except (NameError, OSError):
                 pass
     
-        print('Number of blocks, remaining: %d.'%(block_valids.sum()))
+        print('number of blocks, remaining: %d.'%(block_valids.sum()))
         ix = np.where(block_valids)[0]
         block_ixyz01 = list(zip(ix, xyz0[ix], xyz1[ix]))
         
@@ -91,59 +96,72 @@ def detect_cells(parameters):
         def detect_cells_block(i_xyz0_xyz1):
             os.environ['MKL_NUM_THREADS'] = '1'
             
-            i_block, xyz0, xyz1 = i_xyz0_xyz1
+            ii, xyz0, xyz1 = i_xyz0_xyz1
             
-            (voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak) = \
-                process_block_data(xyz0, xyz1, parameters, i_color, lxyz, rxyz, ball_diam, bvolume_peak)
+            voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak = \
+                process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, ball_diam, bvolume_peak)
                 
             n_voxels_block = len(voxel_xyz)                        # number of voxels in block
             
-            frac = 1
-            voxel_order_peak = np.argsort(((voxel_timeseries[peak_idx])**2).mean(1)) / len(peak_idx)
-            for frac in np.r_[1:0:-0.05]:
+            voxel_fraction_peak = np.argsort(((voxel_timeseries[peak_idx])**2).mean(1)) / len(peak_idx)
+            for fraction in np.r_[1:0:-0.05]:
                 try:
-                    peak_valids = (voxel_order_peak >= (1 - frac))   # valid voxel indices
+                    peak_valids = (voxel_fraction_peak >= (1 - fraction))   # valid voxel indices
                     
                     n_cells = np.round(peak_valids.sum() / (0.5 * n_voxels_cell)).astype(int)
-                    print((frac, n_cells))
+                    print((fraction, n_cells))
                     
+                    tic = time.time()
                     voxel_timeseries_valid, voxel_xyz_valid, cell_weight_init_valid, \
-                    cell_neighborhood_valid, cell_sparsity = initialize_block_cells( \
-                        n_voxels_cell, n_voxels_block, n_cells, voxel_xyz, voxel_timeseries, \
-                        peak_idx, peak_valids, voxel_similarity_peak, \
-                        lxyz, rxyz, ball_diam, ball_diam_midpoint)
+                    cell_neighborhood_valid, cell_sparseness = \
+                        initialize_block_cells( n_voxels_cell, n_voxels_block, n_cells, \
+                        voxel_xyz, voxel_timeseries, peak_idx, peak_valids, voxel_similarity_peak, \
+                        lxyz, rxyz, ball_diam, ball_diam_xyz0)
+                    print('cell initialization: %.1f minutes.\n' %((time.time() - tic) / 60))
                     
                     tic = time.time()
                     cell_weights_valid, cell_timeseries_valid, d = nnmf_sparse(
                         voxel_timeseries_valid, voxel_xyz_valid, cell_weight_init_valid,
-                        cell_neighborhood_valid, cell_sparsity,
+                        cell_neighborhood_valid, cell_sparseness, timepoints=p.timepoints,
                         miniter=10, maxiter=100, tolfun=1e-3)
         
                     success = 1
-                    print('NMF time: %.1f minutes.\n' %((time.time() - tic) / 60))
+                    print('cell factorization: %.1f minutes.\n' %((time.time() - tic) / 60))
                     break
-                except ValueError:
+                except ValueError as msg:
+                    print('retrying factorization of block %d: %s'%(ii, msg))
                     success = 0
                     
-                # get cell positions and timeseries, and save cell data
-                with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(i)), 'w') as file_handle:
-                    if success:
-                        for ci in range(n_cells):
-                            ix = np.nonzero(cell_weights_valid[:, ci])[0]
-                            xyzi = voxel_xyz_valid[ix]
-                            wi = cell_weights_valid[ix, ci]
-                            fi = np.sum(wi * bvolume_mean.value[list(zip(*xyzi))]) / np.sum(wi)
-                            ti = fi * cell_timeseries_valid[ci] / np.mean(cell_timeseries_valid[ci])
-                            
-                            file_handle['/cell/%05d/position'%(ci)] = xyzi
-                            file_handle['/cell/%05d/weights'%(ci)] = wi
-                            file_handle['/cell/%05d/timeseries'%(ci)] = ti
-            
-                    file_handle['n_cells'] = n_cells
-                    file_handle['completion'] = 1
+            # get cell positions and timeseries, and save cell data
+            with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(ii)), 'w') as file_handle:
+                if success:
+                    for ci in range(n_cells):
+                        ix = cell_weights_valid[:, ci] > 0
+                        xyzi = voxel_xyz_valid[ix]
+                        wi = cell_weights_valid[ix, ci]
+                        bi = np.sum(wi * bvolume_mean.value[list(zip(*xyzi))]) / np.sum(wi)
+                        ti = bi * cell_timeseries_valid[ci] / np.mean(cell_timeseries_valid[ci])
+                        
+                        file_handle['/cell/%05d/xyz'%(ci)] = xyzi
+                        file_handle['/cell/%05d/weights'%(ci)] = wi
+                        file_handle['/cell/%05d/timeseries'%(ci)] = ti
+        
+                file_handle['n_cells'] = n_cells
+                file_handle['completion'] = 1
 
         
         if block_valids.any():
             sc.parallelize(block_ixyz01).foreach(detect_cells_block)
             
-        collect_blocks_cells(i_color, dir_cell, parameters, lxyz)
+        collect_blocks(color_i, parameters, lxyz)
+        
+    # clean up
+    completion = 1
+    for color_i in range(p.n_colors):        
+        if not os.path.isfile(os.path.join(p.dir_output, 'cells%s_raw.hdf5'%(color_i))):
+            completion= 0
+            
+    if completion:
+        return
+        shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
+        shutil.rmtree(os.path.join(p.dir_output, 'cells'))

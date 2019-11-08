@@ -1,4 +1,6 @@
-def projection(Si, s, at_least_as_sparse=False):
+def sparseness_projection(Si, s, at_least_as_sparse=False):
+    '''Hoyer sparseness projection'''
+    
     import numpy as np
     
     assert(Si.ndim == 1)
@@ -12,7 +14,7 @@ def projection(Si, s, at_least_as_sparse=False):
     L2 = np.sqrt(np.sum(np.square(S)))                        # fixed l2-norm
     L1 = L2 * (np.sqrt(d) * (1 - s) + s)                      # desired l1-norm
 
-    # quit if at_least_sparse=True and original exceeds target sparsity
+    # quit if at_least_sparse=True and original exceeds target sparseness
     if at_least_as_sparse:                                    
         if L1 >= np.sum(np.abs(S)):
             return S

@@ -1,22 +1,32 @@
-def preliminaries(parameters):
+def save_parameters(parameters):
+    '''create parameter file'''
+    
     import os
-    import sys
     import pickle
     import numpy as np
+    from voluseg._tools.parameter_dictionary import parameter_dictionary
+    
+    if not parameters:
+        parameters= []
+        
+    missing_parameters = set(parameter_dictionary()) - set(parameters)    
+    if missing_parameters:
+        print('error: missing parameters %s.'%(', '.join(missing_parameters)))
+        return
 
     dir_input = parameters['dir_input']
     dir_output = parameters['dir_output']
-            
+    
     # configure only if prepro_parameters doesn't exist
     name_parameter_file = os.path.join(dir_output, 'parameters.pickle')
     if os.path.isfile(name_parameter_file):
-        print('Parameter file already exists.')
-        print('Delete file %s to overwrite.'%(name_parameter_file))
+        print('parameter file already exists (to overwrite delete %s).'%(name_parameter_file))
         return
         
-    # check alignment
-    if not parameters['alignment'] in ['rigid', 'translation', None]:
-        raise Exception('\'alignment\' must be either \'rigid\', \'translation\' or None.') 
+    # check registration
+    if not parameters['registration'] in ['rigid', 'translation', None]:
+        print('error: \'registration\' must be either \'rigid\', \'translation\' or None.')
+        return
         
     # get image extension, image names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
@@ -26,15 +36,12 @@ def preliminaries(parameters):
     lt = len(volume_names)
     
     # get segmentation segmentation timepoints
-    dt = np.array(parameters['dt'])
-    if (dt.size > 2):
-        timepoints = dt
-    elif (dt.size == 2):
-        timepoints = np.r_[:lt:np.maximum(lt/dt[1], 1)]
-    elif (dt.size == 1):
-        timepoints = np.r_[:lt:np.maximum(dt, 1)]
+    if parameters['timepoints']:
+        if parameters['dt']:
+            print('timepoints input is non-empty, ignoring value of dt.')
+        timepoints = parameters['timepoints']
     else:
-        timepoints = np.r_[:lt]
+        timepoints = np.r_[:lt:np.maximum(parameters['dt'], 1)]
         
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'], \
@@ -48,14 +55,14 @@ def preliminaries(parameters):
     parameters['lt'] = lt
     parameters['timepoints'] = np.round(timepoints).astype(int)
     parameters['affine_mat'] = affine_mat
-    
+        
     try:
         os.makedirs(dir_output, exist_ok=True)
         with open(name_parameter_file, 'wb') as file_handle:
             pickle.dump(parameters, file_handle)
         
-            print('Parameter file successfully saved.')        
+            print('parameter file successfully saved.')        
             
-    except:
-        print('Error: Parameter file not saved.')
+    except Exception as msg:
+        print('parameter file not saved: %s.'%(msg))
         
