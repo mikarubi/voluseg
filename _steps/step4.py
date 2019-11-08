@@ -162,6 +162,5 @@ def detect_cells(parameters):
             completion= 0
             
     if completion:
-        return
         shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
         shutil.rmtree(os.path.join(p.dir_output, 'cells'))
