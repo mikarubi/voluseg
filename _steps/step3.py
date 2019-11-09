@@ -29,7 +29,14 @@ def mask_images(parameters):
         
         def load_volume(name_volume):
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
-            return nibabel.load(fullname_aligned).get_data()
+            fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
+            if os.path.isfile(fullname_aligned):
+                return nibabel.load(fullname_aligned).get_data()
+            elif os.path.isfile(fullname_aligned_hdf):
+                with h5py.File(fullname_aligned_hdf, 'r') as file_handle:
+                    return (file_handle['V3D'][()].T)
+            else:
+                raise Exception('%s or %s do not exist.'%(fullname_aligned, fullname_aligned_hdf))
             
         lx, ly, lz = load_volume(p.volume_names[0]).shape
         
@@ -75,7 +82,6 @@ def mask_images(parameters):
         plt.close(fig)
         
         if (p.thr_mask > 0) and (p.thr_mask < 1):
-            print('using probability threshold of %f.'%(p.thr_mask))
             ix = np.argmin(np.abs(voxel_probability - p.thr_mask))
             thr_intensity = voxel_intensity[ix][0]
         elif p.thr_mask > 1:
@@ -84,10 +90,12 @@ def mask_images(parameters):
         else:
             print('using no threshold.')
             thr_intensity = - np.inf
+            
+        print('using intensity threshold of %f.'%(thr_intensity))
         
         # remove all disconnected components less than 5000 cubic microliters in size
         rx, ry, rz, _ = np.diag(p.affine_mat)
-        volume_mask = (volume_mean > thr_intensity)
+        volume_mask = (volume_mean > thr_intensity).astype('bool')
         thr_size = np.round(5000 * rx * ry * rz).astype(int)
         volume_mask = morphology.remove_small_objects(volume_mask, thr_size)
         

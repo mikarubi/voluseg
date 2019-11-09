@@ -33,7 +33,8 @@ def align_images(parameters):
         def register_volume(name_volume):
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
-            if os.path.isfile(fullname_aligned):
+            fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
+            if os.path.isfile(fullname_aligned) or os.path.isfile(fullname_aligned_hdf):
                 return
             
             cmd = ants_registration(

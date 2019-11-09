@@ -6,10 +6,6 @@
 - Apache Spark 1.6.2
 - Advanced Normalization Tools (ANTS) 2.1.0
 
-# Installation
-- Copy all initial volumes into a separate directory
-- Within the python environment set the following variables:
-
 # Instructions and Demo
 - Download an example dataset folder: 
 
@@ -32,7 +28,7 @@ parameters = voluseg.parameter_dictionary()
 import os
 
 # save parameters
-print("save parameters."); voluseg.step0_save_parameters(parameters)
+print("save parameters."); voluseg.step0_process_parameters(parameters)
 
 # this step allows to load parameters in from file
 filename_parameters = os.path.join(parameters['dir_output'], 'parameters.pickle')
