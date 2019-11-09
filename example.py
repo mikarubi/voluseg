@@ -24,7 +24,7 @@ parameters['diam_cell'] = 5.0
 parameters['f_volume'] = 2.66
 
 # save parameters
-print("save parameters."); voluseg.step0_save_parameters(parameters)
+print("save parameters."); voluseg.step0_process_parameters(parameters)
 print("process images."); voluseg.step1_process_images(parameters)
 print("align images."); voluseg.step2_align_images(parameters)
 print("mask images."); voluseg.step3_mask_images(parameters)

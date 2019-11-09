@@ -51,22 +51,33 @@ def mask_images(parameters):
         volume_peak = volume_mean > median_filter(volume_mean, footprint=ball_radi)
         
         # compute power and probability
-        power_voxel = np.log10(np.random.permutation(volume_mean.ravel())[:100000, None])
-        gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(power_voxel)
-        prob_voxel = gmm.predict_proba(power_voxel)
-        prob_voxel = prob_voxel[:, np.argmax(power_voxel[np.argmax(prob_voxel, 0)])]
+        voxel_intensity = np.percentile(volume_mean, np.r_[5:95:0.001])[:, None]
+        gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(voxel_intensity)
+        voxel_probability = gmm.predict_proba(voxel_intensity)
+        voxel_probability = voxel_probability[:, np.argmax(voxel_intensity[np.argmax(voxel_probability, 0)])]
         
         # get and save brain mask
-        fig = plt.figure(1, (12, 6))
-        plt.subplot(121); _ = plt.hist(power_voxel, 100); plt.title('10^(Pixel power histogram)')
-        plt.subplot(122); _ = plt.hist(prob_voxel, 100); plt.title('Probability threshold')
+        fig = plt.figure(1, (18, 6))
+        plt.subplot(131);
+        _ = plt.hist(voxel_intensity, 100);
+        plt.xlabel('voxel intensity')
+        plt.title('histogram')
+        
+        plt.subplot(132); _ = plt.hist(voxel_probability, 100);
+        plt.xlabel('voxel signal-probability')
+        plt.title('histogram')
+       
+        plt.subplot(133); _ = plt.plot(voxel_intensity, voxel_probability, '.')
+        plt.xlabel('voxel intensity')
+        plt.ylabel('voxel signal-probability')
+        
         plt.savefig(os.path.join(dir_plot, 'histogram.png'))
         plt.close(fig)
         
         if (p.thr_mask > 0) and (p.thr_mask < 1):
             print('using probability threshold of %f.'%(p.thr_mask))
-            ix = np.argmin(np.abs(prob_voxel - p.thr_mask))
-            thr_intensity = 10 ** power_voxel[ix][0]
+            ix = np.argmin(np.abs(voxel_probability - p.thr_mask))
+            thr_intensity = voxel_intensity[ix][0]
         elif p.thr_mask > 1:
             print('using intensity threshold of %f.'%(p.thr_mask))
             thr_intensity = p.thr_mask
@@ -92,13 +103,11 @@ def mask_images(parameters):
             plt.close(fig)
             
         with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'w') as file_handle:
-            file_handle['volume_mask']   = volume_mask.T
-            file_handle['volume_mean']   = volume_mean.T
-            file_handle['volume_peak']   = volume_peak.T
-            file_handle['background']    = background
-            file_handle['power_voxel']   = power_voxel
-            file_handle['prob_voxel']    = prob_voxel
-            file_handle['thr_intensity'] = thr_intensity
+            file_handle['volume_mask']       = volume_mask.T
+            file_handle['volume_mean']       = volume_mean.T
+            file_handle['volume_peak']       = volume_peak.T
+            file_handle['thr_intensity']     = thr_intensity
+            file_handle['background']        = background
             
         # convert nifti images to hdf5 files
         def nii2hdf(name_volume):

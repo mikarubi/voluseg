@@ -1,4 +1,4 @@
-from voluseg._steps.step0 import save_parameters as step0_save_parameters
+from voluseg._steps.step0 import process_parameters as step0_process_parameters
 from voluseg._steps.step1 import process_images as step1_process_images
 from voluseg._steps.step2 import align_images as step2_align_images
 from voluseg._steps.step3 import mask_images as step3_mask_images
