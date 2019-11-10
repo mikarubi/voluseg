@@ -19,5 +19,5 @@ def parameter_dictionary():
               'res_z': 5.0,             # z resolution (microns)
               't_baseline': 300,        # interval for baseline calculation (seconds)
               't_section': 0.01,        # exposure time (seconds): time of slice acquisition
-              'thr_mask': 0.5,          # threshold for volume mask (0 to 1: least to most aggressive mask)
+              'thr_mask': 0.5,          # threshold for volume mask: 0 < thr <= 1 (probability) or thr > 1 (intensity)
             }
