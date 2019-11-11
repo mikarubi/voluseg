@@ -50,12 +50,11 @@ parameters0['diam_cell'] = 5.0
 parameters0['f_volume'] = 2.0
 voluseg.step0_process_parameters(parameters0)
 
-# load parameters
+# load and print parameters
 filename_parameters = os.path.join(parameters0['dir_output'], 'parameters.pickle')
 parameters = voluseg.load_parameters(filename_parameters)
 pprint.pprint(parameters)
 
-# save parameters
 print("process images.")
 voluseg.step1_process_images(parameters)
 
