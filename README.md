@@ -21,7 +21,6 @@
 
 - The final output is in the file `cells0_clean.hdf5` in the output directory.
 
-```
 # example code
 
 '''
