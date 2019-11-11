@@ -45,13 +45,13 @@ def process_parameters(parameters0=None):
     volume_names = np.sort([i for i, j in file_names if '.'+j==ext])    
     lt = len(volume_names)
     
-    # get segmentation segmentation timepoints
-    if parameters['timepoints']:
-        if parameters['dt']:
-            print('timepoints input is non-empty, ignoring value of dt.')
-        timepoints = parameters['timepoints']
-    else:
-        timepoints = np.r_[:lt:np.maximum(parameters['dt'], 1)]
+#    # get segmentation segmentation timepoints
+#    if parameters['timepoints']:
+#        if parameters['dt']:
+#            print('timepoints input is non-empty, ignoring value of dt.')
+#        timepoints = parameters['timepoints']
+#    else:
+#        timepoints = np.r_[:lt:np.maximum(parameters['dt'], 1)]
         
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'], \
@@ -63,7 +63,7 @@ def process_parameters(parameters0=None):
     parameters['volume_names'] = volume_names
     parameters['ext'] = ext
     parameters['lt'] = lt
-    parameters['timepoints'] = np.round(timepoints).astype(int)
+#    parameters['timepoints'] = np.round(timepoints).astype(int)
     parameters['affine_mat'] = affine_mat
         
     try:

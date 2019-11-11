@@ -18,7 +18,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
     
     os.environ['MKL_NUM_THREADS'] = '1'
 
-    # CAUTION: Input variable is modified to save memory
+    # CAUTION: variable is modified in-place to save memory
     V0 *= (timeseries_mean / V0.mean(1)[:, None])             # normalize voxel timeseries
 
     if not timepoints is None:

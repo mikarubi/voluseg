@@ -13,14 +13,13 @@ def collect_blocks(color_i, parameters, lxyz):
     print('creating cells%d_raw.hdf5.'%(color_i))            
             
     with h5py.File(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i)), 'r') as file_handle:
-        n_blocks = file_handle['n_blocks'][()]
-        block_xyz0 = file_handle['block_xyz0'][()]
+        block_valids = file_handle['block_valids'][()]
 
     # first generate lists
     cell_xyz = []
     cell_weights = []
     cell_timeseries = []
-    for ii in range(n_blocks):
+    for ii in np.argwhere(block_valids).T[0]:
         try:
             with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(ii)), 'r') as file_handle:
                 for ci in range(file_handle['n_cells'][()]):
@@ -30,8 +29,7 @@ def collect_blocks(color_i, parameters, lxyz):
         except KeyError:
             print('block %d is empty.' %ii)
         except IOError:
-            if block_xyz0[ii]:
-                print('block %d does not exist.' %ii)
+            print('block %d does not exist.' %ii)
 
     # second convert lists to arrays
     cn = len(cell_xyz)

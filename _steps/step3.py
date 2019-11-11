@@ -47,7 +47,7 @@ def mask_images(parameters):
                 return np.zeros(val0.shape, dtype='float64')
     
             def addInPlace(self, val1, val2):
-                return val1 + val2
+                return np.add(val1, val2, dtype='float64')
                             
         volume_accum = sc.accumulator(np.zeros((lx, ly, lz), dtype='float64'), accum_param())
         volume_nameRDD.foreach(lambda name_i: volume_accum.add(load_volume(name_i)))
@@ -112,6 +112,11 @@ def mask_images(parameters):
         # compute background fluorescence
         background = np.median(volume_mean[volume_mask==0])
         
+        # compute mean timeseries
+        bvolume_mask = sc.broadcast(volume_mask)
+        masked_mean = lambda name_i: np.mean(load_volume(name_i)[bvolume_mask.value], dtype='float64')
+        timeseries_mean = np.array(volume_nameRDD.map(masked_mean).collect())
+        
         # save brain mask figures
         for i in range(lz):
             fig = plt.figure(1, (18, 6))
@@ -134,12 +139,13 @@ def mask_images(parameters):
             plt.close(fig)
             
         with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'w') as file_handle:
-            file_handle['volume_mask']       = volume_mask.T
-            file_handle['volume_mean']       = volume_mean.T
-            file_handle['volume_peak']       = volume_peak.T
-            file_handle['thr_intensity']     = thr_intensity
-            file_handle['thr_probability']   = thr_probability
-            file_handle['background']        = background
+            file_handle['volume_mask']     = volume_mask.T
+            file_handle['volume_mean']     = volume_mean.T
+            file_handle['volume_peak']     = volume_peak.T
+            file_handle['timeseries_mean'] = timeseries_mean
+            file_handle['thr_intensity']   = thr_intensity
+            file_handle['thr_probability'] = thr_probability
+            file_handle['background']      = background
             
         # convert nifti images to hdf5 files
         def nii2hdf(name_volume):

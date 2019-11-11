@@ -8,8 +8,7 @@ def parameter_dictionary():
               'dir_input': '',          # path to image directory
               'dir_output': '',         # path to output directory
               'ds': 2,                  # spatial coarse-graining in x-y dimension
-              'dt': 1,                  # temporal downsampling for cell detection (ignored if 'timepoints' specified)
-              'timepoints': None,       # timepoints to use in cell detection (computed from dt if not specified)
+              'nt': 1000,               # number of timepoints to use for cell detection (use all points if nt = 0)
               'f_hipass': 0,            # frequency (Hz) for high-pass filtering of cell timeseries
               'f_volume': 2.0,          # imaging frequency (Hz)
               'n_cells_block': 100,     # number of cells in block

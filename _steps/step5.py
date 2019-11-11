@@ -3,12 +3,12 @@ def clean_cells(parameters):
     
     import os
     import h5py
+    import shutil
     import numpy as np
-    import pandas as pd
-    from scipy import signal
     from types import SimpleNamespace
     from itertools import combinations
     from pyspark.sql.session import SparkSession
+    from voluseg._tools.clean_signal import clean_signal
 
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
@@ -74,53 +74,16 @@ def clean_cells(parameters):
         cell_w = cell_w[cell_valids]
         ## end get valid version of cells ##
         
-        def baseline(timeseries, poly_ordr=2):
-            '''estimation of dynamic baseline for input timeseries'''
-            
-            # poly_ordr  polynomial order for detrending
-            # p.t_baseline:  timescale constant for baseline estimation (in seconds)
-            # p.f_hipass:   highpass cutoff frequency
-            # p.f_volume:    frequency of imaging a single stack (in Hz)
-            
-            # timeseries mean
-            timeseries_mean = timeseries.mean()
-            
-            # length of interval of dynamic baseline time-scales
-            ltau = (np.round(p.t_baseline * p.f_volume / 2) * 2 + 1).astype(int)
-            
-            # detrend with a low-order polynomial
-            xtime = np.arange(timeseries.shape[0])
-            coefpoly = np.polyfit(xtime, timeseries, poly_ordr)
-            timeseries -= np.polyval(coefpoly, xtime)
-            timeseries = np.concatenate((timeseries[::-1], timeseries, timeseries[::-1]))
-            
-            # highpass filter
-            nyquist = p.f_volume / 2
-            if (p.f_hipass > 1e-10) and (p.f_hipass < nyquist - 1e-10):
-                f_rng = np.array([p.f_hipass, nyquist - 1e-10])
-                krnl = signal.firwin(p.lt, f_rng / nyquist, pass_zero=False)
-                timeseries = signal.filtfilt(krnl, 1, timeseries, padtype=None)
-                
-            # restore mean
-            timeseries = timeseries - timeseries.mean() + timeseries_mean
-            
-            # compute dynamic baseline
-            timeseries_df = pd.DataFrame(timeseries)
-            baseline_df = timeseries_df.rolling(ltau, min_periods=1, center=True).quantile(0.1)
-            baseline_df = baseline_df.rolling(ltau, min_periods=1, center=True).mean()
-            baseline = np.ravel(baseline_df)
-            baseline += np.percentile(timeseries - baseline, 1)
-            assert(np.allclose(np.percentile(timeseries - baseline, 1), 0))
-            
-            return(timeseries[p.lt:2*p.lt], baseline[p.lt:2*p.lt])
-        
+        bparameters = sc.broadcast(parameters)
+        get_timebase = lambda timeseries: clean_signal(bparameters.value, timeseries)
         try:
-            cell_timeseries1, cell_baseline1 = \
-                list(zip(*sc.parallelize(cell_timeseries).map(baseline).collect()))
+            timebase = sc.parallelize(cell_timeseries).map(get_timebase).collect()
         except:
-            print('Failed parallel baseline computation. Proceeding serially.')
-            cell_timeseries1, cell_baseline1 = list(zip(*map(baseline, cell_timeseries)))
-                        
+            print('failed parallel baseline computation, proceeding serially.')
+            timebase = list(zip(*map(get_timebase, cell_timeseries)))
+        
+        cell_timeseries1, cell_baseline1 = list(zip(*timebase))
+        
         n = np.count_nonzero(cell_valids)
         volume_id = -1 + np.zeros((x, y, z))
         volume_weight = np.zeros((x, y, z))
@@ -150,3 +113,13 @@ def clean_cells(parameters):
             file_handle['cell_timeseries'] = np.array(cell_timeseries1).astype('float32')
             file_handle['cell_baseline'] = np.array(cell_baseline1).astype('float32')
             file_handle['background'] = background
+
+    # clean up
+    completion = 1
+    for color_i in range(p.n_colors):        
+        if not os.path.isfile(os.path.join(p.dir_output, 'cells%s_clean.hdf5'%(color_i))):
+            completion= 0
+            
+    if completion:
+        shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
+        shutil.rmtree(os.path.join(p.dir_output, 'cells'))

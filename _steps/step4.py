@@ -4,7 +4,6 @@ def detect_cells(parameters):
     import os
     import h5py
     import time
-    import shutil
     import numpy as np
     from types import SimpleNamespace
     from pyspark.sql.session import SparkSession
@@ -13,6 +12,7 @@ def detect_cells(parameters):
     from voluseg._steps.step4c import initialize_block_cells
     from voluseg._steps.step4d import nnmf_sparse
     from voluseg._steps.step4e import collect_blocks
+    from voluseg._tools.clean_signal import clean_signal
     from voluseg._tools.ball import ball
         
     spark = SparkSession.builder.getOrCreate()
@@ -33,6 +33,7 @@ def detect_cells(parameters):
             volume_mean = file_handle['volume_mean'][()].T
             volume_mask = file_handle['volume_mask'][()].T
             volume_peak = file_handle['volume_peak'][()].T
+            timeseries_mean = file_handle['timeseries_mean'][()]
             if 'n_blocks' in file_handle.keys():
                 flag = 0
                 n_voxels_cell = file_handle['n_voxels_cell'][()]
@@ -40,6 +41,7 @@ def detect_cells(parameters):
                 block_valids = file_handle['block_valids'][()]
                 xyz0 = file_handle['block_xyz0'][()]
                 xyz1 = file_handle['block_xyz1'][()]
+                timepoints = file_handle['timepoints'][()]
             else:
                 flag = 1
 
@@ -70,6 +72,13 @@ def detect_cells(parameters):
             n_blocks, block_valids, xyz0, xyz1 = \
                 define_blocks(lx, ly, lz, p.n_cells_block, n_voxels_cell, volume_mask)
             
+            # get timepoints for cell detection
+            if not p.nt:
+                timepoints = np.range(p.lt)
+            else:
+                timeseries1, baseline1 = clean_signal(parameters, timeseries_mean)
+                timepoints = np.sort(np.argsort((timeseries1 - baseline1) / timeseries1)[::-1][:p.nt])
+            
             # save number and indices of blocks
             with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'r+') as file_handle:
                 file_handle['n_voxels_cell'] = n_voxels_cell
@@ -77,6 +86,7 @@ def detect_cells(parameters):
                 file_handle['block_valids'] = block_valids
                 file_handle['block_xyz0'] = xyz0
                 file_handle['block_xyz1'] = xyz1
+                file_handle['timepoints'] = timepoints
                             
         print('number of blocks, total: %d.'%(block_valids.sum()))
         
@@ -122,7 +132,7 @@ def detect_cells(parameters):
                     tic = time.time()
                     cell_weights_valid, cell_timeseries_valid, d = nnmf_sparse(
                         voxel_timeseries_valid, voxel_xyz_valid, cell_weight_init_valid,
-                        cell_neighborhood_valid, cell_sparseness, timepoints=p.timepoints,
+                        cell_neighborhood_valid, cell_sparseness, timepoints=timepoints,
                         miniter=10, maxiter=100, tolfun=1e-3)
         
                     success = 1
@@ -155,12 +165,3 @@ def detect_cells(parameters):
             
         collect_blocks(color_i, parameters, lxyz)
         
-    # clean up
-    completion = 1
-    for color_i in range(p.n_colors):        
-        if not os.path.isfile(os.path.join(p.dir_output, 'cells%s_raw.hdf5'%(color_i))):
-            completion= 0
-            
-    if completion:
-        shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
-        shutil.rmtree(os.path.join(p.dir_output, 'cells'))
