@@ -1,7 +1,10 @@
 # volumetric segmentation pipeline #
+Reference:
+Mu Y*, Bennett DV*, Rubinov M*, Narayan S, Yang CT, Tanimoto M, Mensh BD, Looger LL, Ahrens MB.
+Glia Accumulate Evidence that Actions Are Futile and Suppress Unsuccessful Behavior
+Cell, 2019 178:27-43. https://doi.org/10.1016/j.cell.2019.05.050
 
 # dependencies
-- Red Hat Enterprise Linux 3.10.0
 - Python 3.5.2 and IPython 5.3.0
 - Apache Spark 1.6.2
 - Advanced Normalization Tools (ANTS) 2.1.0
