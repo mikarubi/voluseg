@@ -32,7 +32,7 @@ import os
 import sys
 import pprint
 
-# add package to path
+# add path to package
 dir_code = 'path/to/package'
 sys.path.append(dir_code)
 
