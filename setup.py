@@ -3,8 +3,8 @@ import setuptools
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-with open('requirements.txt', 'r') as fh:
-    install_requires = fh.read().split('\n')
+# with open('requirements.txt', 'r') as fh:
+#     install_requires = fh.read().split('\n')
 
 setuptools.setup(
     name='voluseg',
@@ -26,6 +26,6 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.5',
-    install_requires=install_requires
+    # install_requires=install_requires
 )
 
