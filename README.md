@@ -1,15 +1,19 @@
 # volumetric segmentation pipeline #
-Reference:
+Reference: Cell, 2019 178:27-43. https://doi.org/10.1016/j.cell.2019.05.050
 Mu Y*, Bennett DV*, Rubinov M*, Narayan S, Yang CT, Tanimoto M, Mensh BD, Looger LL, Ahrens MB.
 Glia accumulate evidence that actions are futile and suppress unsuccessful behavior.
-Cell, 2019 178:27-43. https://doi.org/10.1016/j.cell.2019.05.050
 
 # dependencies
-- Python 3.5.2 and IPython 5.3.0
+- IPython 5.3.0
+
 - Apache Spark 1.6.2
+
 - Advanced Normalization Tools (ANTS) 2.1.0
 
-# general instructions
+# installation
+- use pip to install: `pip install git+https://github.com/mikarubi/voluseg`
+
+# example usage
 - Download an example dataset folder: 
 
 	https://www.dropbox.com/sh/psrj9lusohj7epu/AAAbj8Jbb3o__pyKTTDxPvIKa?dl=0
