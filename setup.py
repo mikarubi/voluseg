@@ -15,7 +15,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/mikarubi/voluseg',
-    packages=setuptools.find_packages(),
+    packages= [
+        'voluseg',
+        'voluseg._steps',
+        'voluseg._tools'
+    ],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
