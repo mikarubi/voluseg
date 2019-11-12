@@ -7,7 +7,7 @@ with open('requirements.txt', 'r') as fh:
     install_requires = fh.read().split('\n')
 
 setuptools.setup(
-    name='volumetric-segmentation',
+    name='voluseg',
     version='2019.11',
     author='Mika Rubinov',
     author_email='mikarubi@gmail.com',
