@@ -6,6 +6,7 @@ def align_images(parameters):
         return
     
     import os
+    import h5py
     import shutil
     import nibabel
     from types import SimpleNamespace
@@ -35,9 +36,20 @@ def align_images(parameters):
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
-            if os.path.isfile(fullname_aligned) or os.path.isfile(fullname_aligned_hdf):
-                return
-            
+            if os.path.isfile(fullname_aligned):
+                try:
+                    volume_aligned = nibabel.load(fullname_aligned).get_data()
+                    return
+                except:
+                    pass
+            if os.path.isfile(fullname_aligned_hdf):
+                try:
+                    with h5py.File(fullname_aligned_hdf) as file_handle:
+                        volume_aligned = file_handle['V3D'][()].T
+                        return
+                except:
+                    pass
+                
             cmd = ants_registration(
                 dir_ants = p.dir_ants,
                 in_nii = fullname_original,
@@ -55,7 +67,10 @@ def align_images(parameters):
                 nibabel.save(nii_image(volume_input, p.affine_mat), fullname_aligned)
                 
             if os.path.isfile(fullname_aligned):
-                os.remove(fullname_original)
+                try:
+                    os.remove(fullname_original)
+                except:
+                    pass
             else:
                 raise Exception('image %s not registered: flag %d.'%(name_volume, flag))
                                 

@@ -121,5 +121,9 @@ def clean_cells(parameters):
             completion= 0
             
     if completion:
-        shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
-        shutil.rmtree(os.path.join(p.dir_output, 'cells'))
+        try:
+            shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
+            shutil.rmtree(os.path.join(p.dir_output, 'cells'))
+        except:
+            pass
+        

@@ -156,6 +156,9 @@ def mask_images(parameters):
                 with h5py.File(fullname_aligned_hdf, 'w') as file_handle:
                     volume_aligned = nibabel.load(fullname_aligned).get_data().T.astype('float32')
                     file_handle.create_dataset('V3D', data=volume_aligned, compression='gzip')
-                os.remove(fullname_aligned)
+                try:
+                    os.remove(fullname_aligned)
+                except:
+                    pass
                 
         volume_nameRDD.foreach(nii2hdf)
