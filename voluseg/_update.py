@@ -1,9 +1,9 @@
 def update():
     '''update package'''
     
-    try:
-        from pip._internal import main
-    except:
-        from pip import main
+    import pip
     
-    main(['install', 'git+https://github.com/mikarubi/voluseg.git', '--upgrade'])
+    try:
+        pip._internal.main(['install', 'git+https://github.com/mikarubi/voluseg.git', '--upgrade'])
+    except:
+        pip.main(['install', 'git+https://github.com/mikarubi/voluseg.git', '--upgrade'])
