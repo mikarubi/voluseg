@@ -11,7 +11,7 @@ Glia accumulate evidence that actions are futile and suppress unsuccessful behav
 - Advanced Normalization Tools (ANTS) 2.1.0
 
 # installation
-- use pip to install: `pip install git+https://github.com/mikarubi/voluseg`
+- use pip to install: `pip install git+https://github.com/mikarubi/voluseg.git`
 
 # example usage
 - Download an example dataset folder: 
