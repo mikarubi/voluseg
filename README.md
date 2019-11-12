@@ -1,5 +1,5 @@
 # volumetric segmentation pipeline #
-Reference: Cell, 2019 178:27-43. https://doi.org/10.1016/j.cell.2019.05.050
+Reference: https://doi.org/10.1016/j.cell.2019.05.050 -- Cell, 2019 178:27-43. 
 Mu Y*, Bennett DV*, Rubinov M*, Narayan S, Yang CT, Tanimoto M, Mensh BD, Looger LL, Ahrens MB.
 Glia accumulate evidence that actions are futile and suppress unsuccessful behavior.
 
