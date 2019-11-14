@@ -30,7 +30,6 @@ Cell 2019 178:27-43.
 - The final output is in the file `cells0_clean.hdf5` in the output directory.
 
 # example code
-
 ```
 # set up
 import os
