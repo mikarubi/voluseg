@@ -26,7 +26,7 @@ def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask):
 
     dim = np.max(ijk, 0)
     XYZ = np.zeros(np.r_[dim+1, 3], dtype=int)
-    XYZ[list(zip(*ijk))] = xyz
+    XYZ[tuple(zip(*ijk))] = xyz
     
     xyz0, xyz1 = [], []
     for i in range(dim[0]):

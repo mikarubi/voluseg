@@ -59,10 +59,10 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
                 
                 # retain largest connected component (mode)
                 L_ci = np.zeros(np.ptp(XYZ_ci, 0) + 1, dtype=bool)
-                L_ci[list(zip(*XYZ_ci))] = W_ci > 0
+                L_ci[tuple(zip(*XYZ_ci))] = W_ci > 0
                 L_ci = measure.label(L_ci, connectivity=3)
                 lci_mode = stats.mode(L_ci[L_ci>0]).mode[0]
-                W_ci[L_ci[list(zip(*XYZ_ci))] != lci_mode] = 0
+                W_ci[L_ci[tuple(zip(*XYZ_ci))] != lci_mode] = 0
 
                 W[B[:, ci], ci] = W_ci
 
