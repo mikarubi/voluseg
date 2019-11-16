@@ -36,12 +36,7 @@ Cell 2019 178:27-43.
 ```
 # set up
 import os
-import sys
 import pprint
-
-# add path to package
-dir_code = 'path/to/package'
-sys.path.append(dir_code)
 
 # check for updates
 from voluseg import update
