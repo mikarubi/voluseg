@@ -37,13 +37,10 @@ Cell 2019 178:27-43.
 # set up
 import os
 import pprint
+import voluseg
 
 # check for updates
-from voluseg import update
-update()
-
-# import package
-import voluseg
+voluseg.update()
 
 # set and save parameters
 parameters0 = voluseg.parameter_dictionary()
