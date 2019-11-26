@@ -6,15 +6,20 @@ def mask_images(parameters):
     import nibabel
     import pyspark
     import numpy as np
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
     from sklearn import mixture
     from skimage import morphology
     from types import SimpleNamespace
     from pyspark.sql.session import SparkSession
     from scipy.ndimage.filters import median_filter
     from voluseg._tools.ball import ball
+    
+    # set up matplotlib
+    import warnings
+    import matplotlib
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
     
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
