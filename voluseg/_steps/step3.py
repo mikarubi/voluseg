@@ -6,6 +6,8 @@ def mask_images(parameters):
     import nibabel
     import pyspark
     import numpy as np
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     from sklearn import mixture
     from skimage import morphology
