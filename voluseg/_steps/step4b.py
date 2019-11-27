@@ -1,4 +1,5 @@
-def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, ball_diam, bvolume_peak):
+def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, 
+                       ball_diam, bvolume_peak, timepoints):
     '''load timeseries in individual blocks, slice-time correct, and find similar timeseries'''
     
     import os
@@ -60,7 +61,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, ball_diam, b
 
     # get voxel connectivity from proximities (distances) and similarities (correlations)
     voxel_xyz_phys_peak = voxel_xyz_peak * rxyz
-    voxel_timeseries_peak_nrm = normalize(voxel_timeseries[peak_idx])
+    voxel_timeseries_peak_nrm = normalize(voxel_timeseries[np.ix_(peak_idx, timepoints)])
 
     # compute voxel peak similarity: combination of high proximity and high correlation
     tic = time.time()
@@ -72,7 +73,6 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, ball_diam, b
         corr_i = np.dot(voxel_timeseries_peak_nrm[i], voxel_timeseries_peak_nrm.T)
         voxel_similarity_peak[i] = neib_i & (corr_i > np.median(corr_i[neib_i]))
         
-    del voxel_timeseries_peak_nrm
     voxel_similarity_peak = voxel_similarity_peak | voxel_similarity_peak.T
     print('voxel similarity: %.1f minutes.\n' %((time.time() - tic) / 60))
     
