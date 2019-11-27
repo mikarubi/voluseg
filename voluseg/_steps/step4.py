@@ -86,7 +86,8 @@ def detect_cells(parameters):
                 file_handle['block_valids'] = block_valids
                 file_handle['block_xyz0'] = xyz0
                 file_handle['block_xyz1'] = xyz1
-                file_handle['timepoints'] = timepoints
+                if not 'timepoints' in file_handle:
+                    file_handle['timepoints'] = timepoints
                             
         print('number of blocks, total: %d.'%(block_valids.sum()))
         
