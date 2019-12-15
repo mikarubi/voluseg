@@ -107,10 +107,10 @@ def detect_cells(parameters):
         block_ixyz01 = list(zip(ix, xyz0[ix], xyz1[ix]))
         
         # detect individual cells with sparse nnmf algorithm
-        def detect_cells_block(i_xyz0_xyz1):
+        def detect_cells_block(tuple_i_xyz0_xyz1):
             os.environ['MKL_NUM_THREADS'] = '1'
             
-            ii, xyz0, xyz1 = i_xyz0_xyz1
+            ii, xyz0, xyz1 = tuple_i_xyz0_xyz1[1]
             
             voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak = \
                 process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, \

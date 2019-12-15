@@ -29,8 +29,9 @@ def align_images(parameters):
             
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
         os.makedirs(dir_transform, exist_ok=True)        
-        def register_volume(name_volume):
+        def register_volume(tuple_name_volume):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
+            name_volume = tuple_name_volume[1]
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')

@@ -25,7 +25,8 @@ def process_images(parameters):
                                                                         
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
         os.makedirs(dir_volume, exist_ok=True)
-        def initial_processing(name_volume):
+        def initial_processing(tuple_name_volume):
+            name_volume = tuple_name_volume[1]
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')

@@ -60,7 +60,10 @@ def mask_images(parameters):
                 return np.add(val1, val2, dtype='float64')
                             
         volume_accum = sc.accumulator(np.zeros((lx, ly, lz), dtype='float64'), accum_param())
-        volume_nameRDD.foreach(lambda name_i: volume_accum.add(load_volume(name_i)))
+        def add_volume(tuple_name_volume):
+            name_volume = tuple_name_volume[1]
+            volume_accum.add(load_volume(name_volume))
+        volume_nameRDD.foreach(add_volume)
         volume_mean = 1.0 * volume_accum.value / p.lt
                 
         # get peaks by comparing to a median-smoothed volume
@@ -124,7 +127,9 @@ def mask_images(parameters):
         
         # compute mean timeseries
         bvolume_mask = sc.broadcast(volume_mask)
-        masked_mean = lambda name_i: np.mean(load_volume(name_i)[bvolume_mask.value], dtype='float64')
+        def masked_mean(tuple_name_volume):
+            name_volume = tuple_name_volume[1]
+            return np.mean(load_volume(name_volume)[bvolume_mask.value], dtype='float64')
         timeseries_mean = np.array(volume_nameRDD.map(masked_mean).collect())
         
         # save brain mask figures
@@ -158,7 +163,8 @@ def mask_images(parameters):
             file_handle['background']      = background
             
         # convert nifti images to hdf5 files
-        def nii2hdf(name_volume):
+        def nii2hdf(tuple_name_volume):
+            name_volume = tuple_name_volume[1]
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
             

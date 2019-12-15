@@ -78,7 +78,9 @@ def clean_cells(parameters):
         ## end get valid version of cells ##
         
         bparameters = sc.broadcast(parameters)
-        get_timebase = lambda timeseries: clean_signal(bparameters.value, timeseries)
+        def get_timebase(timeseries_tuple):
+            timeseries = timeseries_tuple[1]
+            return clean_signal(bparameters.value, timeseries)
         try:
             timebase = evenly_parallelize(cell_timeseries).map(get_timebase).collect()
         except:
