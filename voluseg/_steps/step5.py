@@ -7,11 +7,14 @@ def clean_cells(parameters):
     import numpy as np
     from types import SimpleNamespace
     from itertools import combinations
-    from pyspark.sql.session import SparkSession
     from voluseg._tools.clean_signal import clean_signal
-
+    from voluseg._tools.evenly_parallelize import evenly_parallelize
+    
+    # set up spark
+    from pyspark.sql.session import SparkSession
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
+    
     p = SimpleNamespace(**parameters)
     
     thr_similarity = 0.5
@@ -77,7 +80,7 @@ def clean_cells(parameters):
         bparameters = sc.broadcast(parameters)
         get_timebase = lambda timeseries: clean_signal(bparameters.value, timeseries)
         try:
-            timebase = sc.parallelize(cell_timeseries).map(get_timebase).collect()
+            timebase = evenly_parallelize(cell_timeseries).map(get_timebase).collect()
         except:
             print('failed parallel baseline computation, proceeding serially.')
             timebase = list(zip(*map(get_timebase, cell_timeseries)))

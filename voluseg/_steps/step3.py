@@ -9,9 +9,14 @@ def mask_images(parameters):
     from sklearn import mixture
     from skimage import morphology
     from types import SimpleNamespace
-    from pyspark.sql.session import SparkSession
     from scipy.ndimage.filters import median_filter
+    from voluseg._tools.evenly_parallelize import evenly_parallelize
     from voluseg._tools.ball import ball
+    
+    # set up spark
+    from pyspark.sql.session import SparkSession
+    spark = SparkSession.builder.getOrCreate()
+    sc = spark.sparkContext
     
     # set up matplotlib
     import warnings
@@ -21,11 +26,9 @@ def mask_images(parameters):
         matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
     p = SimpleNamespace(**parameters)
     
-    volume_nameRDD = sc.parallelize(p.volume_names)
+    volume_nameRDD = evenly_parallelize(p.volume_names)
     for color_i in range(p.n_colors):
         if os.path.isfile(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i))):
             continue

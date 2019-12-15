@@ -8,19 +8,17 @@ def process_images(parameters):
     from scipy import interpolate
     from types import SimpleNamespace    
     from skimage.external import tifffile
-    from pyspark.sql.session import SparkSession
     from voluseg._tools.nii_image import nii_image
+    from voluseg._tools.evenly_parallelize import evenly_parallelize
     try:
         import PIL
         import pyklb
     except:
         pass
 
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
     p = SimpleNamespace(**parameters)
-        
-    volume_nameRDD = sc.parallelize(p.volume_names)
+    
+    volume_nameRDD = evenly_parallelize(p.volume_names)
     for color_i in range(p.n_colors):
         if os.path.isfile(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i))):
             continue
