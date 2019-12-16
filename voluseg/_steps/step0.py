@@ -33,10 +33,19 @@ def process_parameters(parameters0=None):
         print('error: missing parameters %s.'%(', '.join(missing_parameters)))
         return
            
+#    # check registration
+#    if not parameters['registration'] in ['rigid', 'translation', None]:
+#        print('error: \'registration\' must be either \'rigid\', \'translation\' or None.')
+#        return
+        
     # check registration
-    if not parameters['registration'] in ['rigid', 'translation', None]:
-        print('error: \'registration\' must be either \'rigid\', \'translation\' or None.')
-        return
+    if parameters['registration']:
+        parameters['registration'] = parameters['registration'].lower()
+        if parameters['registration']=='none':
+            parameters['registration'] = None
+        elif not parameters['registration'] in ['high', 'medium', 'low']:
+            print('Error: \'registration\' must be either \'high\', \'medium\', \'low\', or None.')
+            return
         
     # get image extension, image names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
