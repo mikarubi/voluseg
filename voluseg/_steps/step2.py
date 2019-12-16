@@ -9,21 +9,14 @@ def align_images(parameters):
     import h5py
     import shutil
     import nibabel
-    import numpy as np
     from types import SimpleNamespace
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
-    
-    # set up spark
-    from pyspark.sql.session import SparkSession
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
-    
+
     p = SimpleNamespace(**parameters)
     
-    bvolume_names = sc.broadcast(p.volume_names)
-    volume_name_ixRDD = evenly_parallelize(list(zip(p.volume_names, range(p.lt))))
+    volume_nameRDD = evenly_parallelize(p.volume_names)
     for color_i in range(p.n_colors):
         if os.path.isfile(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i))):
             continue
@@ -36,9 +29,9 @@ def align_images(parameters):
             
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
         os.makedirs(dir_transform, exist_ok=True)        
-        def register_volume(tuple_name_ix_volume):
+        def register_volume(tuple_name_volume):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
-            name_volume, ix_volume = tuple_name_ix_volume[1]
+            name_volume = tuple_name_volume[1]
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
@@ -55,20 +48,12 @@ def align_images(parameters):
                         return
                 except:
                     pass
-            
-            for ni in bvolume_names.value[np.argsort(np.abs(ix_volume - np.arange(p.lt)))]:
-                fullname_tform = os.path.join(dir_transform, ni+'_tform_0GenericAffine.mat')
-                if os.path.isfile(fullname_tform):
-                    break
-            else:
-                fullname_tform = None
-            
+                
             cmd = ants_registration(
                 dir_ants = p.dir_ants,
                 in_nii = fullname_original,
                 ref_nii = fullname_reference,
                 out_nii = fullname_aligned,
-                in_tform = fullname_tform,
                 prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
                 typ = 'r'
             )
@@ -101,5 +86,5 @@ def align_images(parameters):
             else:
                 raise Exception('image %s not registered: flag %d.'%(name_volume, flag))
                                 
-        volume_name_ixRDD.foreach(register_volume)
+        volume_nameRDD.foreach(register_volume)
         
