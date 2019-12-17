@@ -42,6 +42,11 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     del voxel_timeseries_block
     print('data loading: %.1f minutes.\n' %((time.time() - tic) / 60))
     
+    # remove drop-out voxels
+    voxel_valids_peak = voxel_timeseries[peak_idx].min(1) > 0
+    peak_idx = peak_idx[voxel_valids_peak]
+    voxel_xyz_peak = voxel_xyz_peak[voxel_valids_peak]
+    
     # perform slice-time correction, if there is more than one slice
     if lz > 1:
         for i, zi in enumerate(voxel_xyz[:, 2]):
