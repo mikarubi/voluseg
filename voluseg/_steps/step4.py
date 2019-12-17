@@ -114,7 +114,7 @@ def detect_cells(parameters):
             
             voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak = \
                 process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, \
-                                   ball_diam, bvolume_peak, timepoints)
+                                   ball_diam, bvolume_mean, bvolume_peak, timepoints)
                 
             n_voxels_block = len(voxel_xyz)                        # number of voxels in block
             

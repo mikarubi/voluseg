@@ -1,5 +1,5 @@
 def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, 
-                       ball_diam, bvolume_peak, timepoints):
+                       ball_diam, bvolume_mean, bvolume_peak, timepoints):
     '''load timeseries in individual blocks, slice-time correct, and find similar timeseries'''
     
     import os
@@ -20,8 +20,8 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     x1_, y1_, z1_ = xyz1
     voxel_peak = np.zeros_like(bvolume_peak.value)
     voxel_peak[x0_:x1_, y0_:y1_, z0_:z1_] = 1
-    voxel_peak *= bvolume_peak.value
-    voxel_mask = morphology.binary_dilation(voxel_peak, ball_diam)
+    voxel_peak = voxel_peak & bvolume_peak.value & (bvolume_mean > 0)
+    voxel_mask = morphology.binary_dilation(voxel_peak, ball_diam) & (bvolume_mean > 0)
     
     voxel_xyz = np.argwhere(voxel_mask)
     voxel_xyz_peak = np.argwhere(voxel_peak)
@@ -41,11 +41,6 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     voxel_timeseries = voxel_timeseries_block[voxel_mask[x0:x1, y0:y1, z0:z1]]
     del voxel_timeseries_block
     print('data loading: %.1f minutes.\n' %((time.time() - tic) / 60))
-    
-    # remove drop-out voxels
-    voxel_valids_peak = voxel_timeseries[peak_idx].min(1) > 0
-    peak_idx = peak_idx[voxel_valids_peak]
-    voxel_xyz_peak = voxel_xyz_peak[voxel_valids_peak]
     
     # perform slice-time correction, if there is more than one slice
     if lz > 1:

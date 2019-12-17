@@ -7,9 +7,6 @@ def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells,
     from sklearn import cluster
     from voluseg._tools.sparseness import sparseness
     
-    # get initial valid voxels
-    voxel_valids = voxel_timeseries.min(1) > 0
-    
     # get valid voxels of peaks
     peak_idx_valid = peak_idx[peak_valids]
     voxel_xyz_peak_valid = voxel_xyz[peak_idx_valid]
@@ -43,9 +40,6 @@ def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells,
         # find neighborhood voxels
         for voxel_xyz_neib in (cell_xyz0 - ball_diam_xyz0 + np.argwhere(ball_diam)):
             cell_neighborhood[(voxel_xyz == voxel_xyz_neib).all(1), cell_i] = 1
-        
-        # restrict to valid voxels
-        cell_neighborhood[np.logical_not(voxel_valids), cell_i] = 0
         
         # make cell sparseness
         cell_vector = np.zeros(np.count_nonzero(cell_neighborhood[:, cell_i]))

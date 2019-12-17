@@ -58,29 +58,21 @@ def mask_images(parameters):
     
             def addInPlace(self, val1, val2):
                 return np.add(val1, val2, dtype='float64')
-
-        # arithmetic mean                            
+                            
+        # geometric mean
         volume_accum = sc.accumulator(np.zeros((lx, ly, lz), dtype='float64'), accum_param())
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
-            volume_accum.add(load_volume(name_volume))
-        volume_nameRDD.foreach(add_volume)
-        volume_mean = 1.0 * volume_accum.value / p.lt
-        
-        # geometric mean
-        volume_accum = sc.accumulator(np.zeros((lx, ly, lz), dtype='float64'), accum_param())
-        def mult_volume(tuple_name_volume):
-            name_volume = tuple_name_volume[1]
             volume_accum.add(np.log10(load_volume(name_volume)))
-        volume_nameRDD.foreach(mult_volume)
-        volume_geomean = 10 ** (volume_accum.value / p.lt)
-        
+        volume_nameRDD.foreach(add_volume)
+        volume_mean = 10 ** (volume_accum.value / p.lt)
+                
         # get peaks by comparing to a median-smoothed volume
         ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]
         volume_peak = volume_mean > median_filter(volume_mean, footprint=ball_radi)
         
         # compute power and probability
-        voxel_intensity = np.percentile(volume_mean, np.r_[5:95:0.001])[:, None]
+        voxel_intensity = np.percentile(volume_mean[volume_mean>0], np.r_[5:95:0.001])[:, None]
         gmm = mixture.GaussianMixture(n_components=2, max_iter=100, n_init=100).fit(voxel_intensity)
         voxel_probability = gmm.predict_proba(voxel_intensity)
         voxel_probability = voxel_probability[:, np.argmax(voxel_intensity[np.argmax(voxel_probability, 0)])]
@@ -165,7 +157,6 @@ def mask_images(parameters):
         with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'w') as file_handle:
             file_handle['volume_mask']     = volume_mask.T
             file_handle['volume_mean']     = volume_mean.T
-            file_handle['volume_geomean']  = volume_geomean.T
             file_handle['volume_peak']     = volume_peak.T
             file_handle['timeseries_mean'] = timeseries_mean
             file_handle['thr_intensity']   = thr_intensity
