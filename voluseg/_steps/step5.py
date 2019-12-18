@@ -7,6 +7,7 @@ def clean_cells(parameters):
     import numpy as np
     from types import SimpleNamespace
     from itertools import combinations
+    from voluseg._steps.step4e import collect_blocks
     from voluseg._tools.clean_signal import clean_signal
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     
@@ -22,16 +23,18 @@ def clean_cells(parameters):
     for color_i in range(p.n_colors):
         if os.path.isfile(os.path.join(p.dir_output, 'cells%d_clean.hdf5'%(color_i))):
             continue
-                
-        with h5py.File(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)), 'r') as file_handle:
-            cell_xyz = file_handle['cell_xyz'][()]
-            cell_weights = file_handle['cell_weights'][()]
-            cell_timeseries = file_handle['cell_timeseries'][()]
-            cell_lengths = file_handle['cell_lengths'][()]
-            x, y, z, t = file_handle['dimensions'][()]
+        
+        cell_xyz, cell_weights, cell_timeseries, cell_lengths = collect_blocks(color_i, parameters)
+        # with h5py.File(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)), 'r') as file_handle:
+        #     cell_xyz = file_handle['cell_xyz'][()]
+        #     cell_weights = file_handle['cell_weights'][()]
+        #     cell_timeseries = file_handle['cell_timeseries'][()]
+        #     cell_lengths = file_handle['cell_lengths'][()]
+        #     x, y, z, t = file_handle['dimensions'][()]
             
         with h5py.File(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i)), 'r') as file_handle:
             volume_mask = file_handle['volume_mask'][()].T
+            x, y, z = volume_mask.shape
             
         cell_x = cell_xyz[:, :, 0]
         cell_y = cell_xyz[:, :, 1]
@@ -104,7 +107,7 @@ def clean_cells(parameters):
                     
         with h5py.File(os.path.join(p.dir_output, 'cells%d_clean.hdf5'%(color_i)), 'w') as file_handle:
             file_handle['n'] = n
-            file_handle['t'] = t
+            file_handle['t'] = p.lt
             file_handle['x'] = x
             file_handle['y'] = y
             file_handle['z'] = z

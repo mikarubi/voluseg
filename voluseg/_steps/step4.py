@@ -10,7 +10,7 @@ def detect_cells(parameters):
     from voluseg._steps.step4b import process_block_data
     from voluseg._steps.step4c import initialize_block_cells
     from voluseg._steps.step4d import nnmf_sparse
-    from voluseg._steps.step4e import collect_blocks
+    # from voluseg._steps.step4e import collect_blocks
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     from voluseg._tools.clean_signal import clean_signal
     from voluseg._tools.ball import ball
@@ -168,5 +168,4 @@ def detect_cells(parameters):
         if block_valids.any():
             evenly_parallelize(block_ixyz01).foreach(detect_cells_block)
             
-        collect_blocks(color_i, parameters, lxyz)
-        
+        # collect_blocks(color_i, parameters, lxyz)
