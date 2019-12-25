@@ -8,11 +8,9 @@ Glia accumulate evidence that actions are futile and suppress unsuccessful behav
 Cell 2019 178:27-43.
 
 # dependencies
-- IPython 5.3.0
+- Apache Spark
 
-- Apache Spark 1.6.2
-
-- Advanced Normalization Tools (ANTS) 2.1.0
+- Advanced Normalization Tools (ANTs)
 
 # installation
 - use pip to install: `pip install git+https://github.com/mikarubi/voluseg.git`
@@ -47,7 +45,7 @@ parameters0 = voluseg.parameter_dictionary()
 parameters0['dir_ants'] = '/path/to/ants/bin/'
 parameters0['dir_input'] = '/path/to/input/images/'
 parameters0['dir_output'] = '/path/to/output/directory/'
-parameters0['registration'] = 'translation'
+parameters0['registration'] = 'high'
 parameters0['diam_cell'] = 5.0
 parameters0['f_volume'] = 2.0
 voluseg.step0_process_parameters(parameters0)

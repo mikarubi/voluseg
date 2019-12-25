@@ -2,7 +2,7 @@ def parameter_dictionary():
     '''parameter dictionary with specified defaults'''
     
     return  {
-              'registration': 'rigid',  # type of registration: 'rigid', 'translation' or None
+              'registration': 'medium', # registration quality: 'high', 'medium', 'low' ('none or None for no registration)
               'diam_cell': 6.0,         # cell diameter (microns)
               'dir_ants': '',           # path to ANTs directory
               'dir_input': '',          # path to image directory
