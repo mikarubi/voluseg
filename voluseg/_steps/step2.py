@@ -80,6 +80,7 @@ def align_images(parameters):
                 
             if os.path.isfile(fullname_aligned):
                 try:
+                    volume_aligned = nibabel.load(fullname_aligned).get_data()
                     os.remove(fullname_original)
                 except:
                     pass

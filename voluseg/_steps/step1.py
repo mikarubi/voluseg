@@ -30,10 +30,25 @@ def process_images(parameters):
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
-            if  os.path.isfile(fullname_original) or \
-                os.path.isfile(fullname_aligned) or \
-                os.path.isfile(fullname_aligned_hdf):
-                return
+            if os.path.isfile(fullname_original):
+                try:
+                    volume_original = nibabel.load(fullname_original).get_data()
+                    return
+                except:
+                    pass
+            if os.path.isfile(fullname_aligned):
+                try:
+                    volume_aligned = nibabel.load(fullname_aligned).get_data()
+                    return
+                except:
+                    pass
+            if os.path.isfile(fullname_aligned_hdf):
+                try:
+                    with h5py.File(fullname_aligned_hdf) as file_handle:
+                        volume_aligned = file_handle['V3D'][()].T
+                        return
+                except:
+                    pass
             
             try:
                 # load input images
