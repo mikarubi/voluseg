@@ -33,7 +33,7 @@ def align_images(parameters):
             
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
         os.makedirs(dir_transform, exist_ok=True)        
-        def register_volume(tuple_name_volume):
+        def register_volume(tuple_name_volume, misaligned=False):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
             name_volume = tuple_name_volume[1]
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
@@ -61,7 +61,7 @@ def align_images(parameters):
                 prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
                 typ = 'r'
             )
-            if p.registration=='high':
+            if p.registration=='high' or misaligned:
                 pass
             elif p.registration=='medium':
                 cmd = cmd.replace('[1000x500x250x125]','[1000x500x250]')\
@@ -118,7 +118,6 @@ def align_images(parameters):
                 original_parameters = deepcopy(parameters)    
                 parameters['volume_names'] = parameters['volume_names'][idx_misaligned]
                 p = SimpleNamespace(**parameters)
-                p.registration = 'high'
             
                 def remove_aligned(tuple_name_volume):
                     name_volume = tuple_name_volume[1]
