@@ -9,10 +9,14 @@ def align_images(parameters):
     import h5py
     import shutil
     import nibabel
+    import numpy as np
+    from scipy import io
+    from copy import deepcopy
     from types import SimpleNamespace
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
+    from voluseg._steps.step1 import process_images as step1_process_images
 
     p = SimpleNamespace(**parameters)
     
@@ -89,3 +93,43 @@ def align_images(parameters):
                                 
         volume_nameRDD.foreach(register_volume)
         
+        while 1:
+            # check for misregistered images
+            def get_transform(tuple_name_volume):
+                name_volume = tuple_name_volume[1]
+                filename_transform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
+                return io.loadmat(filename_transform)['AffineTransform_float_3_3']
+            
+            # get transforms and ensure all transforms are available
+            volume_transforms = np.array(volume_nameRDD.map(get_transform).collect())[:,:,0]
+            assert(len(volume_transforms) == p.lt)
+            
+            # get normalized (z-score) differences in motin parameters
+            diff_left = np.abs(np.r_[np.zeros((1, 12)), np.diff(volume_transforms, axis=0)])
+            diff_right = np.abs(np.r_[np.diff(volume_transforms[::-1], axis=0)[::-1], np.zeros((1, 12))])
+            diff_mean = np.maximum(diff_left / diff_left.mean(0), diff_right / diff_right.mean(0)).mean(1)
+            diff_zscore = (diff_mean - diff_mean.mean()) / diff_mean.std()
+            
+            # if some volumes are misaligned
+            idx_misaligned = diff_zscore > 10
+            if np.any(idx_misaligned):
+                print('misaligned', np.where(idx_misaligned))
+                # copy and modify original parameters
+                original_parameters = deepcopy(parameters)    
+                parameters['volume_names'] = parameters['volume_names'][idx_misaligned]
+                p = SimpleNamespace(**parameters)
+                p.registration = 'high'
+            
+                def remove_aligned(tuple_name_volume):
+                    name_volume = tuple_name_volume[1]
+                    fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
+                    os.remove(fullname_aligned)
+                
+                volume_misaligned_nameRDD = evenly_parallelize(p.volume_names)
+                volume_misaligned_nameRDD.foreach(remove_aligned)
+                step1_process_images(parameters)
+                volume_misaligned_nameRDD.foreach(register_volume)
+                
+                parameters = deepcopy(original_parameters)
+                p = SimpleNamespace(**parameters)
+    
