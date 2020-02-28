@@ -131,4 +131,6 @@ def align_images(parameters):
                 
                 parameters = deepcopy(original_parameters)
                 p = SimpleNamespace(**parameters)
+            else:
+                break
     
