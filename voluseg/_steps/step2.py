@@ -33,7 +33,7 @@ def align_images(parameters):
             
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
         os.makedirs(dir_transform, exist_ok=True)        
-        def register_volume(tuple_name_volume, misaligned=False):
+        def register_volume(tuple_name_volume):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
             name_volume = tuple_name_volume[1]
             fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
@@ -61,7 +61,7 @@ def align_images(parameters):
                 prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
                 typ = 'r'
             )
-            if p.registration=='high' or misaligned:
+            if p.registration=='high':
                 pass
             elif p.registration=='medium':
                 cmd = cmd.replace('[1000x500x250x125]','[1000x500x250]')\
@@ -93,43 +93,28 @@ def align_images(parameters):
                                 
         volume_nameRDD.foreach(register_volume)
         
-        for i in range(10):
-            # check for misregistered images
-            def get_transform(tuple_name_volume):
+        # erase misaligned volumes
+        def get_transform(tuple_name_volume):
+            name_volume = tuple_name_volume[1]
+            filename_transform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
+            return io.loadmat(filename_transform)['AffineTransform_float_3_3']
+        
+        # get transforms and get normalized (z-score) differences in motion parameters
+        volume_transforms = np.array(volume_nameRDD.map(get_transform).collect())[:,:,0]
+        diff_transform = np.abs(np.diff(volume_transforms, axis=0))
+        diff_transform = diff_transform / diff_transform.mean(0)
+        diff_transform = np.vstack([np.full(12, np.inf), diff_transform, np.full(12, np.inf)])
+        diff_min = np.minimum(diff_transform[:-1], diff_transform[1:])
+        diff_zscore = (diff_min - diff_min.mean()) / diff_min.std()
+        
+        # if some volumes are misaligned
+        idx_misaligned = diff_zscore > 10
+        if np.any(idx_misaligned):
+            def erase_misaligned(tuple_name_volume):
                 name_volume = tuple_name_volume[1]
-                filename_transform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
-                return io.loadmat(filename_transform)['AffineTransform_float_3_3']
+                fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
+                volume_aligned = nibabel.load(fullname_aligned).get_data()
+                volume_aligned[:] = volume_aligned.mean()
+                nibabel.save(nii_image(volume_aligned, p.affine_mat), fullname_aligned)
             
-            # get transforms and ensure all transforms are available
-            volume_transforms = np.array(volume_nameRDD.map(get_transform).collect())[:,:,0]
-            assert(len(volume_transforms) == p.lt)
-            
-            # get normalized (z-score) differences in motin parameters
-            diff_left = np.abs(np.r_[np.zeros((1, 12)), np.diff(volume_transforms, axis=0)])
-            diff_right = np.abs(np.r_[np.diff(volume_transforms[::-1], axis=0)[::-1], np.zeros((1, 12))])
-            diff_mean = np.maximum(diff_left / diff_left.mean(0), diff_right / diff_right.mean(0)).mean(1)
-            diff_zscore = (diff_mean - diff_mean.mean()) / diff_mean.std()
-            
-            # if some volumes are misaligned
-            idx_misaligned = diff_zscore > 10
-            if np.any(idx_misaligned):
-                # copy and modify original parameters
-                original_parameters = deepcopy(parameters)    
-                parameters['volume_names'] = parameters['volume_names'][idx_misaligned]
-                p = SimpleNamespace(**parameters)
-            
-                def remove_aligned(tuple_name_volume):
-                    name_volume = tuple_name_volume[1]
-                    fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
-                    os.remove(fullname_aligned)
-                
-                volume_misaligned_nameRDD = evenly_parallelize(p.volume_names)
-                volume_misaligned_nameRDD.foreach(remove_aligned)
-                step1_process_images(parameters)
-                volume_misaligned_nameRDD.foreach(register_volume)
-                
-                parameters = deepcopy(original_parameters)
-                p = SimpleNamespace(**parameters)
-            else:
-                break
-    
+            evenly_parallelize(p.volume_names[idx_misaligned]).foreach(erase_misaligned)
