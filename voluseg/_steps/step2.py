@@ -93,7 +93,7 @@ def align_images(parameters):
                                 
         volume_nameRDD.foreach(register_volume)
         
-        while 1:
+        for i in range(10):
             # check for misregistered images
             def get_transform(tuple_name_volume):
                 name_volume = tuple_name_volume[1]
@@ -113,7 +113,6 @@ def align_images(parameters):
             # if some volumes are misaligned
             idx_misaligned = diff_zscore > 10
             if np.any(idx_misaligned):
-                print('misaligned', np.where(idx_misaligned))
                 # copy and modify original parameters
                 original_parameters = deepcopy(parameters)    
                 parameters['volume_names'] = parameters['volume_names'][idx_misaligned]
