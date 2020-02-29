@@ -91,7 +91,7 @@ def align_images(parameters):
                                 
         volume_nameRDD.foreach(register_volume)
         
-        # erase misaligned volumes
+        # censor volumes
         def get_transform(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             filename_transform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
@@ -106,14 +106,16 @@ def align_images(parameters):
         diff_zscore = (diff_min - diff_min.mean()) / diff_min.std()
         
         # if some volumes are misaligned
-        idx_misaligned = diff_zscore > 10
-        if np.any(idx_misaligned):
-            def erase_misaligned(tuple_name_volume):
+        idx_censor = diff_zscore > 10
+        if np.any(idx_censor):
+            def censor_volume(tuple_name_volume):
                 name_volume = tuple_name_volume[1]
                 fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
                 volume_aligned = nibabel.load(fullname_aligned).get_data()
                 volume_aligned[:] = volume_aligned.mean()
                 nibabel.save(nii_image(volume_aligned, p.affine_mat), fullname_aligned)
             
-            print('*** MISALIGNED VOLUMES ***\n', p.volume_names[:10][:, None])
-            evenly_parallelize(p.volume_names[idx_misaligned]).foreach(erase_misaligned)
+            print('*** CENSORED VOLUMES ***\n', p.volume_names[idx_censor][:, None])
+            evenly_parallelize(p.volume_names[idx_censor]).foreach(censor_volume)
+        else:
+            print('*** NO CENSORED VOLUMES ***')
