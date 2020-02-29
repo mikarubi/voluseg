@@ -11,12 +11,10 @@ def align_images(parameters):
     import nibabel
     import numpy as np
     from scipy import io
-    from copy import deepcopy
     from types import SimpleNamespace
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
-    from voluseg._steps.step1 import process_images as step1_process_images
 
     p = SimpleNamespace(**parameters)
     
@@ -102,8 +100,8 @@ def align_images(parameters):
         # get transforms and get normalized (z-score) differences in motion parameters
         volume_transforms = np.array(volume_nameRDD.map(get_transform).collect())[:,:,0]
         diff_transform = np.abs(np.diff(volume_transforms, axis=0))
-        diff_transform = diff_transform / diff_transform.mean(0)
-        diff_transform = np.vstack([np.full(12, np.inf), diff_transform, np.full(12, np.inf)])
+        diff_transform = (diff_transform / diff_transform.mean(0)).mean(1)
+        diff_transform = np.r_[np.inf, diff_transform, np.inf]
         diff_min = np.minimum(diff_transform[:-1], diff_transform[1:])
         diff_zscore = (diff_min - diff_min.mean()) / diff_min.std()
         
