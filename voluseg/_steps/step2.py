@@ -15,7 +15,7 @@ def align_images(parameters):
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
-
+    
     p = SimpleNamespace(**parameters)
     
     volume_nameRDD = evenly_parallelize(p.volume_names)
