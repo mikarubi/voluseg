@@ -115,4 +115,5 @@ def align_images(parameters):
                 volume_aligned[:] = volume_aligned.mean()
                 nibabel.save(nii_image(volume_aligned, p.affine_mat), fullname_aligned)
             
+            print('*** MISALIGNED VOLUMES ***\n', p.volume_names[:10][:, None])
             evenly_parallelize(p.volume_names[idx_misaligned]).foreach(erase_misaligned)
