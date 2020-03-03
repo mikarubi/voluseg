@@ -91,31 +91,3 @@ def align_images(parameters):
                                 
         volume_nameRDD.foreach(register_volume)
         
-        # censor volumes
-        def get_transform(tuple_name_volume):
-            name_volume = tuple_name_volume[1]
-            filename_transform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
-            return io.loadmat(filename_transform)['AffineTransform_float_3_3']
-        
-        # get transforms and get normalized (z-score) differences in motion parameters
-        volume_transforms = np.array(volume_nameRDD.map(get_transform).collect())[:,:,0]
-        diff_transform = np.abs(np.diff(volume_transforms, axis=0))
-        diff_transform = (diff_transform / diff_transform.mean(0)).mean(1)
-        diff_transform = np.r_[np.inf, diff_transform, np.inf]
-        diff_min = np.minimum(diff_transform[:-1], diff_transform[1:])
-        diff_zscore = (diff_min - diff_min.mean()) / diff_min.std()
-        
-        # if some volumes are misaligned
-        idx_censor = diff_zscore > 10
-        if np.any(idx_censor):
-            def censor_volume(tuple_name_volume):
-                name_volume = tuple_name_volume[1]
-                fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
-                volume_aligned = nibabel.load(fullname_aligned).get_data()
-                volume_aligned[:] = volume_aligned.mean()
-                nibabel.save(nii_image(volume_aligned, p.affine_mat), fullname_aligned)
-            
-            print('*** CENSORED VOLUMES ***\n', p.volume_names[idx_censor][:, None])
-            evenly_parallelize(p.volume_names[idx_censor]).foreach(censor_volume)
-        else:
-            print('*** NO CENSORED VOLUMES ***')

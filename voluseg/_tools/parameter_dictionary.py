@@ -8,6 +8,7 @@ def parameter_dictionary():
               'dir_input': '',          # path to image directory
               'dir_output': '',         # path to output directory
               'ds': 2,                  # spatial coarse-graining in x-y dimension
+              'pad_planes': 0.0,        # number of planes to pad the volume with (for robust registration)
               'nt': 1000,               # number of timepoints to use for cell detection (use all points if nt = 0)
               'f_hipass': 0,            # frequency (Hz) for high-pass filtering of cell timeseries
               'f_volume': 2.0,          # imaging frequency (Hz)
