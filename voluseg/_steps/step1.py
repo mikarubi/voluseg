@@ -112,7 +112,7 @@ def process_images(parameters):
                     volume_input = volume_input_ds
                     
                 # pad in z if specified
-                if p.pad_planes:
+                if ('pad_planes' in parameters) and (p.pad_planes):
                     volume_input = np.lib.pad(
                         volume_input, ((0, 0), (0, 0), (p.pad_planes, p.pad_planes)),
                         'constant', constant_values=(np.percentile(volume_input, 1),)
