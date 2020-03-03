@@ -9,8 +9,6 @@ def align_images(parameters):
     import h5py
     import shutil
     import nibabel
-    import numpy as np
-    from scipy import io
     from types import SimpleNamespace
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.ants_registration import ants_registration
