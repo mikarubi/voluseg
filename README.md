@@ -12,9 +12,6 @@ Cell 2019 178:27-43.
 
 - Advanced Normalization Tools (ANTs)
 
-- h5py, matplotlib, nibabel, numpy>=1.13, pandas>=0.2, scipy, scikit-image, scikit-learn
-
-
 # installation
 - use pip to install: `pip install git+https://github.com/mikarubi/voluseg.git`
 
