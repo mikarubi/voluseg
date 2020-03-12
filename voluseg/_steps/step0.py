@@ -33,11 +33,6 @@ def process_parameters(parameters0=None):
         print('error: missing parameters %s.'%(', '.join(missing_parameters)))
         return
            
-#    # check registration
-#    if not parameters['registration'] in ['rigid', 'translation', None]:
-#        print('error: \'registration\' must be either \'rigid\', \'translation\' or None.')
-#        return
-        
     # check registration
     if parameters['registration']:
         parameters['registration'] = parameters['registration'].lower()
@@ -46,6 +41,10 @@ def process_parameters(parameters0=None):
         elif not parameters['registration'] in ['high', 'medium', 'low']:
             print('Error: \'registration\' must be either \'high\', \'medium\', \'low\', or None.')
             return
+    
+    # check plane padding
+    if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
+            print('Error: planes_pad must be 0 in the absence of registration.')
         
     # get image extension, image names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
@@ -54,14 +53,6 @@ def process_parameters(parameters0=None):
     volume_names = np.sort([i for i, j in file_names if '.'+j==ext])    
     lt = len(volume_names)
     
-#    # get segmentation segmentation timepoints
-#    if parameters['timepoints']:
-#        if parameters['dt']:
-#            print('timepoints input is non-empty, ignoring value of dt.')
-#        timepoints = parameters['timepoints']
-#    else:
-#        timepoints = np.r_[:lt:np.maximum(parameters['dt'], 1)]
-        
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'], \
                             parameters['res_y'] * parameters['ds'], \
@@ -72,7 +63,6 @@ def process_parameters(parameters0=None):
     parameters['volume_names'] = volume_names
     parameters['ext'] = ext
     parameters['lt'] = lt
-#    parameters['timepoints'] = np.round(timepoints).astype(int)
     parameters['affine_mat'] = affine_mat
         
     try:

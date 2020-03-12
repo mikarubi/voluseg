@@ -47,10 +47,7 @@ def mask_images(parameters):
                     volume_aligned = file_handle['V3D'][()].T
             else:
                 raise Exception('%s or %s do not exist.'%(fullname_aligned, fullname_aligned_hdf))
-                
-            if p.planes_pad:
-                volume_aligned = volume_aligned[:, :, p.planes_pad:-p.planes_pad]
-                
+                                
             return volume_aligned
             
         lx, ly, lz = load_volume(p.volume_names[0]).shape

@@ -77,7 +77,13 @@ def align_images(parameters):
                 os.system(cmd.replace('--dimensionality 3', '--dimensionality 2'))
                 volume_input = nibabel.load(fullname_aligned).get_data()[:, :, None]
                 nibabel.save(nii_image(volume_input, p.affine_mat), fullname_aligned)
-                
+            
+            # remove padding
+            if p.planes_pad:
+                volume_aligned = nibabel.load(fullname_aligned).get_data()
+                volume_aligned = volume_aligned[:, :, p.planes_pad:-p.planes_pad]
+                nibabel.save(nii_image(volume_aligned, p.affine_mat), fullname_aligned)
+            
             if os.path.isfile(fullname_aligned):
                 try:
                     volume_aligned = nibabel.load(fullname_aligned).get_data()
