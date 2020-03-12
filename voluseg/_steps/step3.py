@@ -44,7 +44,7 @@ def mask_images(parameters):
                 return nibabel.load(fullname_aligned).get_data()
             elif os.path.isfile(fullname_aligned_hdf):
                 with h5py.File(fullname_aligned_hdf, 'r') as file_handle:
-                    return file_handle['V3D'][()].T
+                    return (file_handle['V3D'][()].T)
             else:
                 raise Exception('%s or %s do not exist.'%(fullname_aligned, fullname_aligned_hdf))
             
