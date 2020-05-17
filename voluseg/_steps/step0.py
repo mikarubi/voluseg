@@ -9,12 +9,16 @@ def process_parameters(parameters0=None):
     
     parameters = copy.deepcopy(parameters0)
     
+    ## general checks
+    
+    # check that parameter input is a dictionary
     if not type(parameters) == dict:
-        print('error: specify parameter dictionary as input.')
+        print('Error: specify parameter dictionary as input.')
         return
-        
+    
+    # check that input and output directories are specified
     if not ('dir_input' in parameters) or not ('dir_output' in parameters):
-        print('error: specify dir_input and dir_output dictionary keys.')
+        print('Error: specify dir_input and dir_output dictionary keys.')
         return
     
     # get input and output directories, and parameter filename
@@ -30,9 +34,31 @@ def process_parameters(parameters0=None):
     # check if any parameters are missing
     missing_parameters = set(parameter_dictionary()) - set(parameters)    
     if missing_parameters:
-        print('error: missing parameters %s.'%(', '.join(missing_parameters)))
+        print('Error: missing parameters %s.'%(', '.join(missing_parameters)))
         return
-           
+    
+    ## specific checks
+    
+    # check directory names
+    for i in ['dir_ants', 'dir_input', 'dir_output']:
+        pi = parameters[i]
+        if not (isinstance(pi, str) or (not ' ' in pi)):
+            print('Error: directory %s must be a string without spaces.', pi)
+            return
+    
+    # check integers
+    for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
+        pi = parameters[i]
+        if not (np.isscalar(pi) or (pi >= 0) or (pi == np.round(pi))):
+            print('Error: parameter %s must be a nonnegative or positive integer.', pi)
+    
+    # check non-negative real numbers:
+    for i in ['diam_cell', 'f_hipass', 'f_volume', 'res_x', 'res_y',
+              'res_z', 't_baseline', 't_section', 'thr_mask']:
+        pi = parameters[i]
+        if not (np.isscalar(pi) or (pi >= 0) or np.isreal(pi)):
+            print('Error: parameter %s must be a nonnegative or positive real number.', pi)
+                       
     # check registration
     if parameters['registration']:
         parameters['registration'] = parameters['registration'].lower()
@@ -44,7 +70,7 @@ def process_parameters(parameters0=None):
     
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
-            print('Error: planes_pad must be 0 in the absence of registration.')
+            print('Error: planes_pad must be 0 if registration is None.')
         
     # get image extension, image names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
