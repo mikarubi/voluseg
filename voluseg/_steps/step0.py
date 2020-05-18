@@ -19,7 +19,7 @@ def process_parameters(parameters0=None):
     # check if any parameters are missing
     missing_parameters = set(parameter_dictionary()) - set(parameters)    
     if missing_parameters:
-        print('error: missing parameters %s.'%(', '.join(missing_parameters)))
+        print('error: missing parameters \'%s\'.'%('\', \''.join(missing_parameters)))
         return
     
     # get input and output directories, and parameter filename
@@ -38,14 +38,14 @@ def process_parameters(parameters0=None):
     for i in ['dir_ants', 'dir_input', 'dir_output', 'registration']:
         pi = parameters[i]
         if not (isinstance(pi, str) and (not ' ' in pi)):
-            print('error: parameter %s must be a string without spaces.'%(i))
+            print('error: \'%s\' must be a string without spaces.'%(i))
             return
     
     # check integers
     for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and (pi == np.round(pi))):
-            print('error: parameter %s must be a nonnegative or positive integer.'%(i))
+            print('error: \'%s\' must be a nonnegative or positive integer.'%(i))
             return
     
     # check non-negative real numbers:
@@ -53,7 +53,7 @@ def process_parameters(parameters0=None):
               'res_z', 't_baseline', 't_section', 'thr_mask']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
-            print('error: parameter %s must be a nonnegative or positive real number.'%(i))
+            print('error: \'%s\' must be a nonnegative or positive real number.'%(i))
             return
                        
     # check registration
@@ -62,12 +62,12 @@ def process_parameters(parameters0=None):
         if parameters['registration']=='none':
             parameters['registration'] = None
         elif not parameters['registration'] in ['high', 'medium', 'low']:
-            print('error: \'registration\' must be either \'high\', \'medium\', \'low\', or \'none\'.')
+            print('error: \'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
             return
     
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
-            print('error: planes_pad must be 0 if registration is None.')
+            print('error: \'planes_pad\' must be 0 if \'registration\' is None.')
             return
         
     # get image extension, image names and number of segmentation timepoints
