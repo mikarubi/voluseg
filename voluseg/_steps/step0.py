@@ -38,14 +38,14 @@ def process_parameters(parameters0=None):
     for i in ['dir_ants', 'dir_input', 'dir_output', 'registration']:
         pi = parameters[i]
         if not (isinstance(pi, str) and (not ' ' in pi)):
-            print('error: parameter %s must be a string without spaces.', pi)
+            print('error: parameter %s must be a string without spaces.'%(pi))
             return
     
     # check integers
     for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and (pi == np.round(pi))):
-            print('error: parameter %s must be a nonnegative or positive integer.', pi)
+            print('error: parameter %s must be a nonnegative or positive integer.'%(pi))
             return
     
     # check non-negative real numbers:
@@ -53,7 +53,7 @@ def process_parameters(parameters0=None):
               'res_z', 't_baseline', 't_section', 'thr_mask']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
-            print('error: parameter %s must be a nonnegative or positive real number.', pi)
+            print('error: parameter %s must be a nonnegative or positive real number.'%(pi))
             return
                        
     # check registration
