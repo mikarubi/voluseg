@@ -13,12 +13,13 @@ def process_parameters(parameters0=None):
     
     # check that parameter input is a dictionary
     if not type(parameters) == dict:
-        print('Error: specify parameter dictionary as input.')
+        print('error: specify parameter dictionary as input.')
         return
     
-    # check that input and output directories are specified
-    if not ('dir_input' in parameters) or not ('dir_output' in parameters):
-        print('Error: specify dir_input and dir_output dictionary keys.')
+    # check if any parameters are missing
+    missing_parameters = set(parameter_dictionary()) - set(parameters)    
+    if missing_parameters:
+        print('error: missing parameters %s.'%(', '.join(missing_parameters)))
         return
     
     # get input and output directories, and parameter filename
@@ -26,38 +27,34 @@ def process_parameters(parameters0=None):
     dir_output = parameters['dir_output']
     filename_parameters = os.path.join(dir_output, 'parameters.pickle')
     
-    # load parameteres from file, if it already exists
+    # load parameters from file, if it already exists
     if os.path.isfile(filename_parameters):
         print('exiting, parameter file exists: %s.'%(filename_parameters))
-        return
-    
-    # check if any parameters are missing
-    missing_parameters = set(parameter_dictionary()) - set(parameters)    
-    if missing_parameters:
-        print('Error: missing parameters %s.'%(', '.join(missing_parameters)))
         return
     
     ## specific checks
     
     # check directory names
-    for i in ['dir_ants', 'dir_input', 'dir_output']:
+    for i in ['dir_ants', 'dir_input', 'dir_output', 'registration']:
         pi = parameters[i]
-        if not (isinstance(pi, str) or (not ' ' in pi)):
-            print('Error: directory %s must be a string without spaces.', pi)
+        if not (isinstance(pi, str) and (not ' ' in pi)):
+            print('error: parameter %s must be a string without spaces.', pi)
             return
     
     # check integers
     for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
         pi = parameters[i]
-        if not (np.isscalar(pi) or (pi >= 0) or (pi == np.round(pi))):
-            print('Error: parameter %s must be a nonnegative or positive integer.', pi)
+        if not (np.isscalar(pi) and (pi >= 0) and (pi == np.round(pi))):
+            print('error: parameter %s must be a nonnegative or positive integer.', pi)
+            return
     
     # check non-negative real numbers:
     for i in ['diam_cell', 'f_hipass', 'f_volume', 'res_x', 'res_y',
               'res_z', 't_baseline', 't_section', 'thr_mask']:
         pi = parameters[i]
-        if not (np.isscalar(pi) or (pi >= 0) or np.isreal(pi)):
-            print('Error: parameter %s must be a nonnegative or positive real number.', pi)
+        if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
+            print('error: parameter %s must be a nonnegative or positive real number.', pi)
+            return
                        
     # check registration
     if parameters['registration']:
@@ -65,12 +62,13 @@ def process_parameters(parameters0=None):
         if parameters['registration']=='none':
             parameters['registration'] = None
         elif not parameters['registration'] in ['high', 'medium', 'low']:
-            print('Error: \'registration\' must be either \'high\', \'medium\', \'low\', or None.')
+            print('error: \'registration\' must be either \'high\', \'medium\', \'low\', or \'none\'.')
             return
     
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
-            print('Error: planes_pad must be 0 if registration is None.')
+            print('error: planes_pad must be 0 if registration is None.')
+            return
         
     # get image extension, image names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
