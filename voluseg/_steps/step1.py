@@ -7,9 +7,12 @@ def process_images(parameters):
     import numpy as np
     from scipy import interpolate
     from types import SimpleNamespace    
-    from skimage.external import tifffile
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.evenly_parallelize import evenly_parallelize
+    try:
+        from skimage.external import tifffile
+    except:
+        import tifffile
     try:
         import PIL
         import pyklb
