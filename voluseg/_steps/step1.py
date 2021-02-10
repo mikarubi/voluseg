@@ -84,7 +84,7 @@ def process_images(parameters):
                 if p.n_colors == 2:
                     # ensure that two-frames have even number of y-dim voxels
                     assert(ly % 2 == 0)
-                    ly /= 2
+                    ly //= 2
                     if color_i == 0:
                         volume_input = volume_input[:, :ly, :]
                     elif color_i == 1:
