@@ -169,7 +169,11 @@ def mask_images(parameters):
             fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
             fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
             
-            if not os.path.isfile(fullname_aligned_hdf):
+            try:
+                with h5py.File(fullname_aligned_hdf) as file_handle:
+                    volume_aligned = file_handle['V3D'][()].T
+                    return
+            except:
                 with h5py.File(fullname_aligned_hdf, 'w') as file_handle:
                     volume_aligned = nibabel.load(fullname_aligned).get_data().T.astype('float32')
                     file_handle.create_dataset('V3D', data=volume_aligned, compression='gzip')
