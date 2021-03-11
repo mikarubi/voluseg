@@ -3,7 +3,7 @@ def parameter_dictionary():
     
     return  {
               'registration': 'medium', # quality of registration: 'high', 'medium', 'low' or 'none'
-              'baseline_parallel': True, # computation of baseline in parallel (True is fast but memory intensive)
+              'parallel_clean': True,   # parallelization of final cleaning (True is fast but memory intensive)
               'diam_cell': 6.0,         # cell diameter (microns)
               'dir_ants': '',           # path to ANTs directory
               'dir_input': '',          # path to image directory

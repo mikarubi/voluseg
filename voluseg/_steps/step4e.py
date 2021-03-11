@@ -30,7 +30,8 @@ def collect_blocks(color_i, parameters):
             return [val1[i] + val2[i] for i in range(3)]
                         
     # cumulate collected cells
-    cell_data = sc.accumulator([[]] * 3, accum_data())
+    if p.parallel_clean:
+        cell_data = sc.accumulator([[]] * 3, accum_data())
     def add_data(tuple_ii):
         ii = tuple_ii[1]
         try:
@@ -43,15 +44,27 @@ def collect_blocks(color_i, parameters):
                     cell_xyz.append(file_handle['/cell/%05d/xyz'%(ci)][()])
                     cell_weights.append(file_handle['/cell/%05d/weights'%(ci)][()])
                     cell_timeseries.append(file_handle['/cell/%05d/timeseries'%(ci)][()])
-                    
-            cell_data.add([cell_xyz, cell_weights, cell_timeseries])
+            
+            if p.parallel_clean:
+                cell_data.add([cell_xyz, cell_weights, cell_timeseries])
+            else:
+                return [cell_xyz, cell_weights, cell_timeseries]
+                
         except KeyError:
             print('block %d is empty.' %ii)
         except IOError:
             print('block %d does not exist.' %ii)
-            
-    evenly_parallelize(np.argwhere(block_valids).T[0]).foreach(add_data)
-    cell_xyz, cell_weights, cell_timeseries = cell_data.value
+    
+    if p.parallel_clean:
+        evenly_parallelize(np.argwhere(block_valids).T[0]).foreach(add_data)
+        cell_xyz, cell_weights, cell_timeseries = cell_data.value
+    else:
+        idx_block_valids = np.argwhere(block_valids).T[0]
+        valids_tuple = zip([[]]*len(idx_block_valids), idx_block_valids)
+        cell_data = map(add_data, valids_tuple)
+        cell_xyz = [xyzi for ci in cell_data for xyzi in ci[0]]
+        cell_weights = [wi for ci in cell_data for wi in ci[1]]
+        cell_timeseries = [ti for ci in cell_data for ti in ci[2]]
 
     # convert lists to arrays
     cn = len(cell_xyz)

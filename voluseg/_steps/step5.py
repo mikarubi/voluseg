@@ -84,12 +84,13 @@ def clean_cells(parameters):
         def get_timebase(timeseries_tuple):
             timeseries = timeseries_tuple[1]
             return clean_signal(bparameters.value, timeseries)
-        if p.baseline_parallel:
+        if p.parallel_clean:
             print('Computing baseline in parallel mode.')
             timebase = evenly_parallelize(cell_timeseries).map(get_timebase).collect()
         else:
             print('Computing baseline in serial mode.')
-            timebase = list(zip(*map(get_timebase, cell_timeseries)))
+            timeseries_tuple = zip([[]]*len(cell_timeseries), cell_timeseries)
+            timebase = map(get_timebase, timeseries_tuple)
         
         cell_timeseries1, cell_baseline1 = list(zip(*timebase))
         
