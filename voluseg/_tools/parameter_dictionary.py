@@ -2,7 +2,8 @@ def parameter_dictionary():
     '''parameter dictionary with specified defaults'''
     
     return  {
-              'registration': 'medium', # registration quality: 'high', 'medium', 'low' ('none or None for no registration)
+              'registration': 'medium', # quality of registration: 'high', 'medium', 'low' or 'none'
+              'baseline_parallel': True, # computation of baseline in parallel (True is fast but memory intensive)
               'diam_cell': 6.0,         # cell diameter (microns)
               'dir_ants': '',           # path to ANTs directory
               'dir_input': '',          # path to image directory
