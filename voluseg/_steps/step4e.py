@@ -61,10 +61,10 @@ def collect_blocks(color_i, parameters):
     else:
         idx_block_valids = np.argwhere(block_valids).T[0]
         valids_tuple = zip([[]]*len(idx_block_valids), idx_block_valids)
-        cell_data = map(add_data, valids_tuple)
-        cell_xyz = [xyzi for ci in cell_data for xyzi in ci[0]]
-        cell_weights = [wi for ci in cell_data for wi in ci[1]]
-        cell_timeseries = [ti for ci in cell_data for ti in ci[2]]
+        cell_xyz, cell_weights, cell_timeseries = list(zip(*map(add_data, valids_tuple)))
+        cell_xyz = [xyzi for ci in cell_xyz for xyzi in ci]
+        cell_weights = [wi for ci in cell_weights for wi in ci]
+        cell_timeseries = [ti for ci in cell_timeseries for ti in ci]
 
     # convert lists to arrays
     cn = len(cell_xyz)
