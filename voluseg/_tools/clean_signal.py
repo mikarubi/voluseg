@@ -13,6 +13,9 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
     # p.f_hipass:   highpass cutoff frequency
     # p.f_volume:    frequency of imaging a single stack (in Hz)
     
+    # convert to double precision
+    timeseries = timeseries.astype('float64')
+    
     # timeseries mean
     timeseries_mean = timeseries.mean()
     
@@ -43,4 +46,8 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
     baseline += np.percentile(timeseries - baseline, 1)
     assert(np.allclose(np.percentile(timeseries - baseline, 1), 0))
     
-    return(timeseries[p.lt:2*p.lt], baseline[p.lt:2*p.lt])
+    # slice and convert to single precision
+    timeseries = timeseries[p.lt:2*p.lt].astype('float32')
+    baseline = baseline[p.lt:2*p.lt].astype('float32')
+    
+    return(timeseries, baseline)

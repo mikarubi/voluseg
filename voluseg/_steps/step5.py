@@ -71,8 +71,8 @@ def clean_cells(parameters):
                 cell_valids[pi[np.argmin(cell_w[pi])]] = 0
         
         ## get valid version of cells ##
-        cell_weights = cell_weights[cell_valids]
-        cell_timeseries = cell_timeseries[cell_valids] 
+        cell_weights = cell_weights[cell_valids].astype('float32')
+        cell_timeseries = cell_timeseries[cell_valids].astype('float32')
         cell_lengths = cell_lengths[cell_valids]
         cell_x = cell_x[cell_valids]
         cell_y = cell_y[cell_valids]
@@ -93,6 +93,12 @@ def clean_cells(parameters):
             timebase = map(get_timebase, timeseries_tuple)
         
         cell_timeseries1, cell_baseline1 = list(zip(*timebase))
+        
+        # check that all series are in single precision
+        assert(cell_weights.dtype=='float32')
+        assert(cell_timeseries.dtype=='float32')
+        assert(cell_timeseries1.dtype=='float32')
+        assert(cell_baseline1.dtype=='float32')
         
         n = np.count_nonzero(cell_valids)
         volume_id = -1 + np.zeros((x, y, z))
@@ -118,10 +124,10 @@ def clean_cells(parameters):
             file_handle['cell_z'] = cell_z
             file_handle['volume_id'] = volume_id
             file_handle['volume_weight'] = volume_weight
-            file_handle['cell_weights'] = cell_weights.astype('float32')
-            file_handle['cell_timeseries_raw'] = cell_timeseries.astype('float32')
-            file_handle['cell_timeseries'] = np.array(cell_timeseries1).astype('float32')
-            file_handle['cell_baseline'] = np.array(cell_baseline1).astype('float32')
+            file_handle['cell_weights'] = cell_weights
+            file_handle['cell_timeseries_raw'] = cell_timeseries
+            file_handle['cell_timeseries'] = np.array(cell_timeseries1)
+            file_handle['cell_baseline'] = np.array(cell_baseline1)
             file_handle['background'] = background
 
     # clean up
