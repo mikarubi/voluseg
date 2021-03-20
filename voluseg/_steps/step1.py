@@ -2,6 +2,7 @@ def process_images(parameters):
     '''process original images and save into nifti format'''
     
     import os
+    import copy
     import h5py
     import nibabel
     import numpy as np
@@ -9,11 +10,12 @@ def process_images(parameters):
     from types import SimpleNamespace    
     from voluseg._tools.nii_image import nii_image
     from voluseg._tools.load_image import load_image
+    from voluseg._tools.plane_name import plane_name
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     
     p = SimpleNamespace(**parameters)
     
-    volume_nameRDD = evenly_parallelize(p.volume_names0 if p.planes_unpack else p.volume_names)
+    volume_nameRDD = evenly_parallelize(p.volume_names0 if p.planes_packed else p.volume_names)
     for color_i in range(p.n_colors):
         if os.path.isfile(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i))):
             continue
@@ -28,14 +30,18 @@ def process_images(parameters):
             volume_input = load_image(fullname_input, p.ext)
             
             # get number of planes
-            if p.planes_unpack:
+            if p.planes_packed:
+                name_volume0 = copy.deepcopy(name_volume)
                 volume_input0 = copy.deepcopy(volume_input)
                 lp = len(volume_input0)
             else:
                 lp = 1
             
             for pi in range(lp):
-                name_volume_i = plane_name(name_volume, pi) if p.planes_unpack else name_volume
+                if p.planes_packed:
+                    name_volume = plane_name(name_volume0, pi)
+                    volume_input = volume_input0[pi]
+                    
                 fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
                 fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
                 fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
@@ -55,12 +61,9 @@ def process_images(parameters):
                     try:
                         with h5py.File(fullname_aligned_hdf) as file_handle:
                             file_handle['V3D'][()].T
-                            continue
+                        continue
                     except:
                         pass
-                
-                if p.planes_unpack:
-                    volume_input = volume_input0[pi]
                 
                 if volume_input.ndim == 2:
                     volume_input = volume_input[None, :, :]

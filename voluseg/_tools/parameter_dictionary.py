@@ -9,7 +9,7 @@ def parameter_dictionary():
               'dir_output': '',         # path to output directory
               'ds': 2,                  # spatial coarse-graining in x-y dimension
               'planes_pad': 0,          # number of planes to pad the volume with (for robust registration)
-              'planes_unpack': False,   # unpack planes in each volume (for single plane imaging with packed planes)
+              'planes_packed': False,   # packed planes in each volume (for single plane imaging with packed planes)
               'parallel_clean': True,   # parallelization of final cleaning (True is fast but memory intensive)
               'nt': 1000,               # number of timepoints to use for cell detection (use all points if nt = 0)
               'f_hipass': 0,            # frequency (Hz) for high-pass filtering of cell timeseries
