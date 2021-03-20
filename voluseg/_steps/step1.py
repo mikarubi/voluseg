@@ -22,6 +22,8 @@ def process_images(parameters):
                                                                         
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
         os.makedirs(dir_volume, exist_ok=True)
+        volume_nameRDD.foreach(initial_processing)
+        
         def initial_processing(tuple_name_volume):
             name_volume = tuple_name_volume[1]
         # try:
@@ -121,5 +123,4 @@ def process_images(parameters):
                 
         # except Exception as msg:
         #     raise Exception('image %s not processed: %s.'%(name_volume, msg))
-                
-        volume_nameRDD.foreach(initial_processing)
+        
