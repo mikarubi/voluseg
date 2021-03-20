@@ -64,7 +64,7 @@ def process_parameters(parameters0=None):
         if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
             print('error: \'%s\' must be a nonnegative or positive real number.'%(i))
             return
-                       
+        
     # check registration
     if parameters['registration']:
         parameters['registration'] = parameters['registration'].lower()
@@ -92,12 +92,13 @@ def process_parameters(parameters0=None):
         def get_plane_names(name_volume):
             fullname_input = os.path.join(dir_input, name_volume+ext)
             lp = len(load_image(fullname_input, ext))
-            return [plane_name(name_volume, pi)+'.h5' for pi in range(lp)]:
+            return [plane_name(name_volume, pi)+'.h5' for pi in range(lp)]
         
         volume_names0 = copy.deepcopy(volume_names)
         volume_names = evenly_parallelize(volume_names0).map(get_plane_names).collect()
         volume_names = np.sort(volume_names)
         lt = len(volume_names)
+        res_z = diam_cell
     
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'], \
