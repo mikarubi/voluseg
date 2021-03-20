@@ -5,7 +5,7 @@ def process_parameters(parameters0=None):
     import copy
     import pickle
     import numpy as np
-    from voluseg._tools.load_image import load_image
+    from voluseg._tools.load_volume import load_volume
     from voluseg._tools.plane_name import plane_name
     from voluseg._tools.parameter_dictionary import parameter_dictionary
     from voluseg._tools.evenly_parallelize import evenly_parallelize
@@ -80,7 +80,7 @@ def process_parameters(parameters0=None):
             print('error: \'planes_pad\' must be 0 if \'registration\' is None.')
             return
     
-    # get image extension, image names and number of segmentation timepoints
+    # get volume extension, volume names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
     file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
     ext = '.'+file_exts[np.argmax(counts)]
@@ -94,8 +94,8 @@ def process_parameters(parameters0=None):
         parameters['res_z'] = parameters['diam_cell']
         def volume_plane_names(tuple_name_volume):
             name_volume = tuple_name_volume[1]
-            fullname_input = os.path.join(dir_input, name_volume+ext)
-            lp = len(load_image(fullname_input, ext))
+            fullname_input = os.path.join(dir_input, name_volume)
+            lp = len(load_volume(fullname_input+ext))
             return [plane_name(name_volume, pi) for pi in range(lp)]
         
         volume_names = evenly_parallelize(volume_names0).map(volume_plane_names).collect()

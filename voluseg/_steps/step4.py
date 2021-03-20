@@ -1,5 +1,5 @@
 def detect_cells(parameters):
-    '''detect cells in images'''
+    '''detect cells in volumes'''
     
     import os
     import h5py
@@ -48,7 +48,7 @@ def detect_cells(parameters):
             else:
                 flag = 1
 
-        # broadcast image peaks (for initialization) and volume_mean (for renormalization)
+        # broadcast volume peaks (for initialization) and volume_mean (for renormalization)
         bvolume_peak = sc.broadcast(volume_peak)
         bvolume_mean = sc.broadcast(volume_mean)
 

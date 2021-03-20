@@ -5,7 +5,7 @@ def parameter_dictionary():
               'registration': 'medium', # quality of registration: 'high', 'medium', 'low' or 'none'
               'diam_cell': 6.0,         # cell diameter (microns)
               'dir_ants': '',           # path to ANTs directory
-              'dir_input': '',          # path to image directory
+              'dir_input': '',          # path to volume directory
               'dir_output': '',         # path to output directory
               'ds': 2,                  # spatial coarse-graining in x-y dimension
               'planes_pad': 0,          # number of planes to pad the volume with (for robust registration)
@@ -15,7 +15,7 @@ def parameter_dictionary():
               'f_hipass': 0,            # frequency (Hz) for high-pass filtering of cell timeseries
               'f_volume': 2.0,          # imaging frequency (Hz)
               'n_cells_block': 100,     # number of cells in block
-              'n_colors': 1,            # number of brain colors (2 in two-color images)
+              'n_colors': 1,            # number of brain colors (2 in two-color volumes)
               'res_x': 0.40625,         # x resolution (microns)
               'res_y': 0.40625,         # y resolution (microns)
               'res_z': 5.0,             # z resolution (microns)

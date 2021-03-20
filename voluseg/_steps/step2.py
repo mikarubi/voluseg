@@ -1,5 +1,5 @@
-def align_images(parameters):
-    '''register images to a single middle image'''
+def align_volumes(parameters):
+    '''register volumes to a single middle volume'''
     
     # do not run if registration is set to none
     if not parameters['registration']:
@@ -8,52 +8,50 @@ def align_images(parameters):
     import os
     import h5py
     import shutil
-    import nibabel
     from types import SimpleNamespace
-    from voluseg._tools.nii_image import nii_image
+    from voluseg._tools.load_volume import load_volume
+    from voluseg._tools.save_volume import save_volume
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     
     p = SimpleNamespace(**parameters)
     
+    # regs and exts
+    ori = '_original'
+    ali = '_aligned'
+    nii = '.nii.gz'
+    hdf = '.hdf5'
+    
     volume_nameRDD = evenly_parallelize(p.volume_names)
     for color_i in range(p.n_colors):
-        if os.path.isfile(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i))):
+        fullname_volume = os.path.join(p.dir_output, 'volume%d'%(color_i))
+        if load_volume(fullname_volume+hdf):
             continue
                             
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
-        fullname_reference = os.path.join(dir_volume, 'reference_original.nii.gz')
-        if not os.path.isfile(fullname_reference):
-            fullname_lt_2 = os.path.join(dir_volume, p.volume_names[p.lt//2]+'_original.nii.gz')
-            shutil.copyfile(fullname_lt_2, fullname_reference)
+        fullname_reference = os.path.join(dir_volume, 'reference')
+        if not load_volume(fullname_reference+nii):
+            fullname_median = os.path.join(dir_volume, p.volume_names[p.lt//2])
+            shutil.copyfile(fullname_median+ori+nii, fullname_reference+nii)
             
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
-        os.makedirs(dir_transform, exist_ok=True)        
+        os.makedirs(dir_transform, exist_ok=True)
+        volume_nameRDD.foreach(register_volume)
+        
         def register_volume(tuple_name_volume):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
             name_volume = tuple_name_volume[1]
-            fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
-            fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
-            fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
-            if os.path.isfile(fullname_aligned):
-                try:
-                    volume_aligned = nibabel.load(fullname_aligned).get_data()
-                    return
-                except:
-                    pass
-            if os.path.isfile(fullname_aligned_hdf):
-                try:
-                    with h5py.File(fullname_aligned_hdf) as file_handle:
-                        volume_aligned = file_handle['V3D'][()].T
-                        return
-                except:
-                    pass
-                
+            fullname_output = os.path.join(dir_volume, name_volume)
+            # skip processing if aligned volume exists
+            if load_volume(fullname_output+ali+hdf):
+                continue
+            
+            # setup registration
             cmd = ants_registration(
                 dir_ants = p.dir_ants,
-                in_nii = fullname_original,
-                ref_nii = fullname_reference,
-                out_nii = fullname_aligned,
+                in_nii = fullname_output+ori+nii,
+                ref_nii = fullname_reference+nii,
+                out_nii = fullname_output+ali+nii,
                 prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
                 typ = 'r'
             )
@@ -67,31 +65,35 @@ def align_images(parameters):
                 cmd = cmd.replace('[1000x500x250x125]','[1000x500]')\
                          .replace('12x8x4x2', '12x8')\
                          .replace('4x3x2x1vox', '4x3vox')
-            else:
-                raise Exception('unknown registration type.')
-         
+            
+            # run registration
             flag = os.system(cmd)
             if flag:
-                flag = os.system(cmd.replace('.nii.gz,1]', '.nii.gz,0]'))
-            if flag and nibabel.load(fullname_original).shape[2]==1:
+                # if breaks change initialization
+                flag = os.system(cmd.replace(nii+',1]', nii+',0]'))
+            if flag and load_volume(fullname_output+ori+nii).shape[2]==1:
+                # if breaks change dimensionality
                 os.system(cmd.replace('--dimensionality 3', '--dimensionality 2'))
-                volume_input = nibabel.load(fullname_aligned).get_data()[:, :, None]
-                nibabel.save(nii_image(volume_input, p.affine_mat), fullname_aligned)
+                volume = load_volume(fullname_output+ali+nii)[:, :, None]
+                save_volume(fullname_output+ali+nii, nii_volume(volume, p.affine_mat))
+            if flag:
+                raise Exception('volume %s not registered: flag %d.'%(name_volume, flag))
+            
+            # load aligned volume
+            volume = load_volume(fullname_output+ali+nii)
             
             # remove padding
             if p.planes_pad:
-                volume_aligned = nibabel.load(fullname_aligned).get_data()
-                volume_aligned = volume_aligned[:, :, p.planes_pad:-p.planes_pad]
-                nibabel.save(nii_image(volume_aligned, p.affine_mat), fullname_aligned)
+                volume = volume[:, :, p.planes_pad:-p.planes_pad]
             
-            if os.path.isfile(fullname_aligned):
+            # save as hdf5
+            volume = volume.T
+            save_volume(fullname_output+ali+hdf, volume)
+            
+            # remove nifti files
+            if load_volume(fullname_output+ali+hdf):
                 try:
-                    volume_aligned = nibabel.load(fullname_aligned).get_data()
-                    os.remove(fullname_original)
+                    os.remove(fullname_output+ori+nii)
+                    os.remove(fullname_output+ali+nii)
                 except:
                     pass
-            else:
-                raise Exception('image %s not registered: flag %d.'%(name_volume, flag))
-                                
-        volume_nameRDD.foreach(register_volume)
-        
