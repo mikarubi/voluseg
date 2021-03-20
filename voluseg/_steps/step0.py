@@ -5,7 +5,9 @@ def process_parameters(parameters0=None):
     import copy
     import pickle
     import numpy as np
+    from voluseg._tools.load_image import load_image
     from voluseg._tools.parameter_dictionary import parameter_dictionary
+    from voluseg._tools.evenly_parallelize import evenly_parallelize
     
     parameters = copy.deepcopy(parameters0)
     
@@ -41,6 +43,13 @@ def process_parameters(parameters0=None):
             print('error: \'%s\' must be a string without spaces.'%(i))
             return
     
+    # check booleans
+    for i in ['parallel_clean', 'planes_unpack']:
+        pi = parameters[i]
+        if not isinstance(pi, bool):
+            print('error: \'%s\' must be a boolean.'%(i))
+            return
+    
     # check integers
     for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
         pi = parameters[i]
@@ -69,13 +78,26 @@ def process_parameters(parameters0=None):
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
             print('error: \'planes_pad\' must be 0 if \'registration\' is None.')
             return
-        
+    
     # get image extension, image names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
     file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
     ext = '.'+file_exts[np.argmax(counts)]
     volume_names = np.sort([i for i, j in file_names if '.'+j==ext])    
     lt = len(volume_names)
+        
+    # get plane names if packed planes
+    if parameters['planes_unpack']:
+        plane_name = lambda name_volume, pi: name_volume+'_PLANE'+str(pi).zfill(3)
+        def get_plane_names(name_volume):
+            fullname_input = os.path.join(dir_input, name_volume+ext)
+            lp = len(load_image(fullname_input, ext))
+            return [plane_name(name_volume, pi)+'.h5' for pi in range(lp)]:
+        
+        volume_names0 = copy.deepcopy(volume_names)
+        volume_names = evenly_parallelize(volume_names0).map(get_plane_names).collect()
+        volume_names = np.sort(volume_names)
+        lt = len(volume_names)
     
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'], \
@@ -83,7 +105,10 @@ def process_parameters(parameters0=None):
                             parameters['res_z'], \
                             1])
     
-    # save parameters    
+    # save parameters
+    if parameters['planes_unpack']:
+        parameters['plane_name'] = plane_name
+        parameters['volume_names0'] = volume_names0
     parameters['volume_names'] = volume_names
     parameters['ext'] = ext
     parameters['lt'] = lt

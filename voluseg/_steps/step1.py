@@ -8,20 +8,12 @@ def process_images(parameters):
     from scipy import interpolate
     from types import SimpleNamespace    
     from voluseg._tools.nii_image import nii_image
+    from voluseg._tools.load_image import load_image
     from voluseg._tools.evenly_parallelize import evenly_parallelize
-    try:
-        from skimage.external import tifffile
-    except:
-        import tifffile
-    try:
-        import PIL
-        import pyklb
-    except:
-        pass
-
+    
     p = SimpleNamespace(**parameters)
     
-    volume_nameRDD = evenly_parallelize(p.volume_names)
+    volume_nameRDD = evenly_parallelize(p.volume_names0 if p.planes_unpack else p.volume_names)
     for color_i in range(p.n_colors):
         if os.path.isfile(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i))):
             continue
@@ -30,56 +22,53 @@ def process_images(parameters):
         os.makedirs(dir_volume, exist_ok=True)
         def initial_processing(tuple_name_volume):
             name_volume = tuple_name_volume[1]
-            fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
-            fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
-            fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
-            if os.path.isfile(fullname_original):
-                try:
-                    volume_original = nibabel.load(fullname_original).get_data()
-                    return
-                except:
-                    pass
-            if os.path.isfile(fullname_aligned):
-                try:
-                    volume_aligned = nibabel.load(fullname_aligned).get_data()
-                    return
-                except:
-                    pass
-            if os.path.isfile(fullname_aligned_hdf):
-                try:
-                    with h5py.File(fullname_aligned_hdf) as file_handle:
-                        volume_aligned = file_handle['V3D'][()].T
-                        return
-                except:
-                    pass
+        # try:
+            # load input images
+            fullname_input = os.path.join(p.dir_input, name_volume+p.ext)
+            volume_input = load_image(fullname_input, p.ext)
             
-            try:
-                # load input images
-                fullname_input = os.path.join(p.dir_input, name_volume+p.ext)
-                if ('.tif' in p.ext) or ('.tiff' in p.ext):
+            # get number of planes
+            if p.planes_unpack:
+                volume_input0 = copy.deepcopy(volume_input)
+                lp = len(volume_input0)
+            else:
+                lp = 1
+            
+            for pi in range(lp):
+                name_volume_i = plane_name(name_volume, pi) if p.planes_unpack else name_volume
+                fullname_original = os.path.join(dir_volume, name_volume+'_original.nii.gz')
+                fullname_aligned = os.path.join(dir_volume, name_volume+'_aligned.nii.gz')
+                fullname_aligned_hdf = fullname_aligned.replace('.nii.gz', '.hdf5')
+                if os.path.isfile(fullname_original):
                     try:
-                        volume_input = tifffile.imread(fullname_input)
+                        nibabel.load(fullname_original).get_data()
+                        continue
                     except:
-                        img = PIL.Image.open(fullname_input)
-                        volume_input = []
-                        for i in range(img.n_frames):
-                            img.seek(i)
-                            volume_input.append(np.array(img).T)
-                        volume_input = np.array(volume_input)
-                elif ('.h5' in p.ext) or ('.hdf5' in p.ext):
-                    with h5py.File(fullname_input, 'r') as file_handle:
-                        volume_input = file_handle[list(file_handle.keys())[0]][()]
-                elif ('.klb' in p.ext):
-                    volume_input = pyklb.readfull(fullname_input)
-                    volume_input = volume_input.transpose(0, 2, 1)
-            
+                        pass
+                if os.path.isfile(fullname_aligned):
+                    try:
+                        nibabel.load(fullname_aligned).get_data()
+                        continue
+                    except:
+                        pass
+                if os.path.isfile(fullname_aligned_hdf):
+                    try:
+                        with h5py.File(fullname_aligned_hdf) as file_handle:
+                            file_handle['V3D'][()].T
+                            continue
+                    except:
+                        pass
+                
+                if p.planes_unpack:
+                    volume_input = volume_input0[pi]
+                
                 if volume_input.ndim == 2:
                     volume_input = volume_input[None, :, :]
                 volume_input = volume_input.transpose(2, 1, 0)
-            
+                
                 # get dimensions
                 lx, ly, lz = volume_input.shape
-                                
+                
                 # split two-color images into two halves        
                 if p.n_colors == 2:
                     # ensure that two-frames have even number of y-dim voxels
@@ -89,7 +78,7 @@ def process_images(parameters):
                         volume_input = volume_input[:, :ly, :]
                     elif color_i == 1:
                         volume_input = volume_input[:, ly:, :]
-                    
+                
                 # downsample in the x-y if specified
                 if p.ds > 1:
                     if (lx % p.ds) or (ly % p.ds):
@@ -126,8 +115,8 @@ def process_images(parameters):
                     nii_image(volume_input.astype('float32'), p.affine_mat),
                     (fullname_original if p.registration else fullname_aligned)
                 )
-                                
-            except Exception as msg:
-                raise Exception('image %s not processed: %s.'%(name_volume, msg))
+                
+        # except Exception as msg:
+        #     raise Exception('image %s not processed: %s.'%(name_volume, msg))
                 
         volume_nameRDD.foreach(initial_processing)

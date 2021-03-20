@@ -145,7 +145,7 @@ def clean_cells(parameters):
         try:
             shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
             shutil.rmtree(os.path.join(p.dir_output, 'cells'))
-            os.remove(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)))
+            # os.remove(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)))
         except:
             pass
         
