@@ -150,7 +150,7 @@ def detect_cells(parameters):
                         ix = cell_weights_valid[:, ci] > 0
                         xyzi = voxel_xyz_valid[ix]
                         wi = cell_weights_valid[ix, ci]
-                        bi = np.sum(wi * bvolume_mean.value[list(zip(*xyzi))]) / np.sum(wi)
+                        bi = np.sum(wi * bvolume_mean.value[tuple(zip(*xyzi))]) / np.sum(wi)
                         ti = bi * cell_timeseries_valid[ci] / np.mean(cell_timeseries_valid[ci])
 
                         file_handle['/cell/%05d/xyz'%(ci)] = xyzi
