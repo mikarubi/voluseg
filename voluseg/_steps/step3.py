@@ -95,7 +95,7 @@ def mask_volumes(parameters):
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
-            volume_accum.add(np.log10(load_volume(fullname_volume+hdf).T))
+            volume_accum.add(np.log10(load_volume(fullname_volume+ali+hdf).T))
         evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
         volume_mean = 10 ** (volume_accum.value / p.lt)
 
