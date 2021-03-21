@@ -26,7 +26,7 @@ def clean_cells(parameters):
         if os.path.isfile(fullname_cells+hdf):
             continue
 
-        cell_xyz, cell_weights, cell_timeseries, cell_lengths = collect_blocks(color_i, parameters)
+        block_id, cell_xyz, cell_weights, cell_timeseries, cell_lengths = collect_blocks(color_i, parameters)
 
         fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
         with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
@@ -125,6 +125,7 @@ def clean_cells(parameters):
             file_handle['cell_x'] = cell_x
             file_handle['cell_y'] = cell_y
             file_handle['cell_z'] = cell_z
+            file_handle['block_id'] = block_id
             file_handle['volume_id'] = volume_id
             file_handle['volume_weight'] = volume_weight
             file_handle['cell_weights'] = cell_weights
