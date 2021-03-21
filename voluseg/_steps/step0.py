@@ -122,4 +122,3 @@ def process_parameters(parameters0=None):
 
     except Exception as msg:
         print('parameter file not saved: %s.'%(msg))
-

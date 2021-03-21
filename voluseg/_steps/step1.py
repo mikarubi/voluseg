@@ -45,7 +45,8 @@ def process_volumes(parameters):
 
                 fullname_volume = os.path.join(dir_volume, name_volume)
                 # skip processing if volume exists
-                if load_volume(fullname_volume+ori+nii) or load_volume(fullname_volume+ali+hdf):
+                if load_volume(fullname_volume+ori+nii) is not None \
+                    or load_volume(fullname_volume+ali+hdf):
                     continue
 
                 if volume.ndim == 2:

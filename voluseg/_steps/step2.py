@@ -24,7 +24,7 @@ def align_volumes(parameters):
 
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
         fullname_reference = os.path.join(dir_volume, 'reference')
-        if not load_volume(fullname_reference+nii):
+        if load_volume(fullname_reference+nii) is None:
             fullname_median = os.path.join(dir_volume, p.volume_names[p.lt//2])
             shutil.copyfile(fullname_median+ori+nii, fullname_reference+nii)
 
@@ -36,7 +36,7 @@ def align_volumes(parameters):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
             # skip processing if aligned volume exists
-            if load_volume(fullname_volume+ali+hdf):
+            if load_volume(fullname_volume+ali+hdf) is not None:
                 return
 
             # setup registration
@@ -68,7 +68,7 @@ def align_volumes(parameters):
                 # if breaks change dimensionality
                 os.system(cmd.replace('--dimensionality 3', '--dimensionality 2'))
                 volume = load_volume(fullname_volume+ali+nii)[:, :, None]
-                save_volume(fullname_volume+ali+nii, p.affine_mat)
+                save_volume(fullname_volume+ali+nii, volume, p.affine_mat)
             if flag:
                 raise Exception('volume %s not registered: flag %d.'%(name_volume, flag))
 
@@ -84,7 +84,7 @@ def align_volumes(parameters):
             save_volume(fullname_volume+ali+hdf, volume)
 
             # remove nifti files
-            if load_volume(fullname_volume+ali+hdf):
+            if load_volume(fullname_volume+ali+hdf) is not None:
                 try:
                     os.remove(fullname_volume+ori+nii)
                     os.remove(fullname_volume+ali+nii)
