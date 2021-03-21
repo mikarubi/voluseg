@@ -26,7 +26,7 @@ def detect_cells(parameters):
     # load timepoints
     fullname_timemean = os.path.join(p.dir_output, 'mean_timeseries')
     with h5py.File(fullname_timemean+hdf, 'r') as file_handle:
-        timepoints = file_handle['timepoints']
+        timepoints = file_handle['timepoints'][()]
 
     # load plane filename
     for color_i in range(p.n_colors):
@@ -38,7 +38,7 @@ def detect_cells(parameters):
         os.makedirs(dir_cell, exist_ok=True)
 
         fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
-        with h5py.File(os.path.join(fullname_volmean+hdf, 'r')) as file_handle:
+        with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
             volume_mean = file_handle['volume_mean'][()].T
             volume_mask = file_handle['volume_mask'][()].T
             volume_peak = file_handle['volume_peak'][()].T

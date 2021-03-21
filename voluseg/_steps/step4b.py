@@ -36,7 +36,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     for ti, name_volume in enumerate(p.volume_names):
         fullname_volume = os.path.join(dir_volume, name_volume)
         with h5py.File(fullname_volume+ali+hdf, 'r') as file_handle:
-            voxel_timeseries_block[ti] = file_handle['V3D'][z0:z1, y0:y1, x0:x1].T
+            voxel_timeseries_block[ti] = file_handle['volume'][z0:z1, y0:y1, x0:x1].T
 
     voxel_timeseries_block = np.transpose(voxel_timeseries_block, (1, 2, 3, 0))
     voxel_timeseries = voxel_timeseries_block[voxel_mask[x0:x1, y0:y1, z0:z1]]
