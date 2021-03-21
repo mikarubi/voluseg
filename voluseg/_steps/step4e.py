@@ -33,7 +33,7 @@ def collect_blocks(color_i, parameters):
 
     # cumulate collected cells
     if p.parallel_clean:
-        cell_data = sc.accumulator([[]] * 3, accum_data())
+        cell_data = sc.accumulator([[]] * 4, accum_data())
 
     def add_data(tuple_ii):
         ii = tuple_ii[1]
