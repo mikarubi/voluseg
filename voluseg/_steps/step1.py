@@ -9,25 +9,19 @@ def process_volumes(parameters):
     from voluseg._tools.load_volume import load_volume
     from voluseg._tools.save_volume import save_volume
     from voluseg._tools.plane_name import plane_name
+    from voluseg._tools.constants import ori, ali, nii, hdf
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     
     p = SimpleNamespace(**parameters)
     
-    # regs and exts
-    ori = '_original'
-    ali = '_aligned'
-    nii = '.nii.gz'
-    hdf = '.hdf5'
-    
     volume_nameRDD = evenly_parallelize(p.volume_names0 if p.planes_packed else p.volume_names)
     for color_i in range(p.n_colors):
-        fullname_volume = os.path.join(p.dir_output, 'volume%d'%(color_i))
-        if load_volume(fullname_volume+hdf):
+        fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
+        if os.path.isfile(fullname_volmean+hdf):
             continue
         
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
         os.makedirs(dir_volume, exist_ok=True)
-        volume_nameRDD.foreach(initial_processing)
         
         def initial_processing(tuple_name_volume):
             name_volume = tuple_name_volume[1]
@@ -49,9 +43,9 @@ def process_volumes(parameters):
                     name_volume = plane_name(name_volume0, pi)
                     volume = volume0[pi]
                     
-                fullname_output = os.path.join(dir_volume, name_volume)
+                fullname_volume = os.path.join(dir_volume, name_volume)
                 # skip processing if volume exists
-                if load_volume(fullname_output+ori+nii) or load_volume(fullname_output+ali+hdf):
+                if load_volume(fullname_volume+ori+nii) or load_volume(fullname_volume+ali+hdf):
                     continue
                 
                 if volume.ndim == 2:
@@ -104,10 +98,12 @@ def process_volumes(parameters):
                     
                 # save volume in output directory
                 if p.registration:
-                    save_volume(fullname_output+ori+nii, volume, p.affine_mat)
+                    save_volume(fullname_volume+ori+nii, volume, p.affine_mat)
                 else:
                     volume = volume.T
-                    save_volume(fullname_output+ali+hdf, volume)
-                
+                    save_volume(fullname_volume+ali+hdf, volume)
+        
+        volume_nameRDD.foreach(initial_processing)
+        
         # except Exception as msg:
         #     raise Exception('volume %s not processed: %s.'%(name_volume, msg))

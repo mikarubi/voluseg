@@ -9,6 +9,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     from scipy import interpolate
     from skimage import morphology
     from types import SimpleNamespace
+    from voluseg._tools.constants import ali, hdf
             
     os.environ['MKL_NUM_THREADS'] = '1'
         
@@ -33,8 +34,8 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     x1, y1, z1 = voxel_xyz.max(0) + 1
     voxel_timeseries_block = [None] * p.lt
     for ti, name_volume in enumerate(p.volume_names):
-        fullname_aligned_hdf = os.path.join(dir_volume, name_volume+'_aligned.hdf5')
-        with h5py.File(fullname_aligned_hdf, 'r') as file_handle:
+        fullname_volume = os.path.join(dir_volume, name_volume)
+        with h5py.File(fullname_volume+ali+hdf, 'r') as file_handle:
             voxel_timeseries_block[ti] = file_handle['V3D'][z0:z1, y0:y1, x0:x1].T
 
     voxel_timeseries_block = np.transpose(voxel_timeseries_block, (1, 2, 3, 0))

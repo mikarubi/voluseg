@@ -3,9 +3,10 @@ def save_volume(fullname_ext, volume, affine_mat=None):
     
     import h5py
     import nibabel
+    from voluseg._tools.constants import dtype
     
     try:
-        volume = volume.astype('float32')
+        volume = volume.astype(dtype)
         ext = '.'+fullname_ext.split('.', 1)[1]
         
         if ('.h5' in ext) or ('.hdf5' in ext):

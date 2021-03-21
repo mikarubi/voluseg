@@ -5,6 +5,7 @@ def collect_blocks(color_i, parameters):
     import h5py
     import numpy as np
     from types import SimpleNamespace
+    from voluseg._tools.constants import hdf
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     
     # set up spark
@@ -17,7 +18,8 @@ def collect_blocks(color_i, parameters):
     
     dir_cell = os.path.join(p.dir_output, 'cells', str(color_i))
     
-    with h5py.File(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i)), 'r') as file_handle:
+    fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
+    with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
         block_valids = file_handle['block_valids'][()]
 
     class accum_data(pyspark.accumulators.AccumulatorParam):
@@ -39,7 +41,8 @@ def collect_blocks(color_i, parameters):
             cell_weights = []
             cell_timeseries = []
             
-            with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(ii)), 'r') as file_handle:
+            fullname_block = os.path.join(dir_cell, 'block%05d'%(ii))
+            with h5py.File(fullname_block+hdf, 'r') as file_handle:
                 for ci in range(file_handle['n_cells'][()]):
                     cell_xyz.append(file_handle['/cell/%05d/xyz'%(ci)][()])
                     cell_weights.append(file_handle['/cell/%05d/weights'%(ci)][()])
@@ -77,10 +80,4 @@ def collect_blocks(color_i, parameters):
     cell_timeseries_array = np.array(cell_timeseries)
 
     return cell_xyz_array, cell_weights_array, cell_timeseries_array, cell_lengths
-    #    with h5py.File(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)), 'w') as file_handle:
-    #        file_handle['cell_xyz'] = cell_xyz_array
-    #        file_handle['cell_weights'] = cell_weights_array
-    #        file_handle['cell_timeseries'] = cell_timeseries_array
-    #        file_handle['cell_lengths'] = np.r_[cell_lengths]
-    #        file_handle['dimensions'] = np.r_[lxyz, p.lt]
     

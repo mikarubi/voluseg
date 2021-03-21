@@ -94,8 +94,8 @@ def process_parameters(parameters0=None):
         parameters['res_z'] = parameters['diam_cell']
         def volume_plane_names(tuple_name_volume):
             name_volume = tuple_name_volume[1]
-            fullname_input = os.path.join(dir_input, name_volume)
-            lp = len(load_volume(fullname_input+ext))
+            fullname_volume = os.path.join(dir_input, name_volume)
+            lp = len(load_volume(fullname_volume+ext))
             return [plane_name(name_volume, pi) for pi in range(lp)]
         
         volume_names = evenly_parallelize(volume_names0).map(volume_plane_names).collect()

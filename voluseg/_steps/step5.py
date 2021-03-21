@@ -8,6 +8,7 @@ def clean_cells(parameters):
     from types import SimpleNamespace
     from itertools import combinations
     from voluseg._steps.step4e import collect_blocks
+    from voluseg._tools.constants import hdf, dtype
     from voluseg._tools.clean_signal import clean_signal
     from voluseg._tools.evenly_parallelize import evenly_parallelize
     
@@ -21,18 +22,14 @@ def clean_cells(parameters):
     thr_similarity = 0.5
     
     for color_i in range(p.n_colors):
-        if os.path.isfile(os.path.join(p.dir_output, 'cells%d_clean.hdf5'%(color_i))):
+        fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i)
+        if os.path.isfile(fullname_cells+hdf)):
             continue
         
         cell_xyz, cell_weights, cell_timeseries, cell_lengths = collect_blocks(color_i, parameters)
-        # with h5py.File(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)), 'r') as file_handle:
-        #     cell_xyz = file_handle['cell_xyz'][()]
-        #     cell_weights = file_handle['cell_weights'][()]
-        #     cell_timeseries = file_handle['cell_timeseries'][()]
-        #     cell_lengths = file_handle['cell_lengths'][()]
-        #     x, y, z, t = file_handle['dimensions'][()]
-            
-        with h5py.File(os.path.join(p.dir_output, 'volume%d.hdf5'%(color_i)), 'r') as file_handle:
+        
+        fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
+        with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
             volume_mask = file_handle['volume_mask'][()].T
             x, y, z = volume_mask.shape
             
@@ -71,8 +68,8 @@ def clean_cells(parameters):
                 cell_valids[pi[np.argmin(cell_w[pi])]] = 0
         
         ## get valid version of cells ##
-        cell_weights = cell_weights[cell_valids].astype('float32')
-        cell_timeseries = cell_timeseries[cell_valids].astype('float32')
+        cell_weights = cell_weights[cell_valids].astype(dtype)
+        cell_timeseries = cell_timeseries[cell_valids].astype(dtype)
         cell_lengths = cell_lengths[cell_valids]
         cell_x = cell_x[cell_valids]
         cell_y = cell_y[cell_valids]
@@ -100,10 +97,10 @@ def clean_cells(parameters):
         cell_baseline1 = np.array(cell_baseline1)
         
         # check that all series are in single precision
-        assert(cell_weights.dtype=='float32')
-        assert(cell_timeseries.dtype=='float32')
-        assert(cell_timeseries1.dtype=='float32')
-        assert(cell_baseline1.dtype=='float32')
+        assert(cell_weights.dtype==dtype)
+        assert(cell_timeseries.dtype==dtype)
+        assert(cell_timeseries1.dtype==dtype)
+        assert(cell_baseline1.dtype==dtype)
         
         n = np.count_nonzero(cell_valids)
         volume_id = -1 + np.zeros((x, y, z))
@@ -115,10 +112,10 @@ def clean_cells(parameters):
                     volume_id[xij, yij, zij] = i;
                     volume_weight[xij, yij, zij] = cell_weights[i, j]
                     
-        with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'r') as file_handle:
+        with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
             background = file_handle['background'][()]
                     
-        with h5py.File(os.path.join(p.dir_output, 'cells%d_clean.hdf5'%(color_i)), 'w') as file_handle:
+        with h5py.File(fullname_cells+hdf, 'w') as file_handle:
             file_handle['n'] = n
             file_handle['t'] = p.lt
             file_handle['x'] = x
@@ -138,14 +135,14 @@ def clean_cells(parameters):
     # clean up
     completion = 1
     for color_i in range(p.n_colors):        
-        if not os.path.isfile(os.path.join(p.dir_output, 'cells%s_clean.hdf5'%(color_i))):
+        fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i)
+        if os.path.isfile(fullname_cells+hdf)):
             completion= 0
             
     if completion:
         try:
             shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
             shutil.rmtree(os.path.join(p.dir_output, 'cells'))
-            # os.remove(os.path.join(p.dir_output, 'cells%d_raw.hdf5'%(color_i)))
         except:
             pass
         

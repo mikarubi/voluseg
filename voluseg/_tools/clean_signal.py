@@ -5,7 +5,8 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
     import pandas as pd
     from scipy import signal
     from types import SimpleNamespace
-
+    from voluseg._tools.constants import dtype
+    
     p = SimpleNamespace(**parameters)
 
     # poly_ordr  polynomial order for detrending
@@ -47,7 +48,7 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
     assert(np.allclose(np.percentile(timeseries - baseline, 1), 0))
     
     # slice and convert to single precision
-    timeseries = timeseries[p.lt:2*p.lt].astype('float32')
-    baseline = baseline[p.lt:2*p.lt].astype('float32')
+    timeseries = timeseries[p.lt:2*p.lt].astype(dtype)
+    baseline = baseline[p.lt:2*p.lt].astype(dtype)
     
     return(timeseries, baseline)

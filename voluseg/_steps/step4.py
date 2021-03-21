@@ -10,29 +10,34 @@ def detect_cells(parameters):
     from voluseg._steps.step4b import process_block_data
     from voluseg._steps.step4c import initialize_block_cells
     from voluseg._steps.step4d import nnmf_sparse
-    # from voluseg._steps.step4e import collect_blocks
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
-    from voluseg._tools.clean_signal import clean_signal
     from voluseg._tools.ball import ball
+    from voluseg._tools.constants import hdf
+    from voluseg._tools.evenly_parallelize import evenly_parallelize
     
     # set up spark
     from pyspark.sql.session import SparkSession
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
-        
+    
     p = SimpleNamespace(**parameters)
     
     ball_diam, ball_diam_xyz0 = ball(1.0 * p.diam_cell, p.affine_mat)
-        
+    
+    # load timepoints
+    with h5py.File(fullname_meantime+hdf, 'r') as file_handle:
+        timepoints = file_handle['timepoints']
+    
     # load plane filename
-    for color_i in range(p.n_colors):        
-        if os.path.isfile(os.path.join(p.dir_output, 'cells%s_raw.hdf5'%(color_i))):
+    for color_i in range(p.n_colors):
+        fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i)
+        if os.path.isfile(fullname_cells+hdf)):
             continue
-                                                                        
+        
         dir_cell = os.path.join(p.dir_output, 'cells', str(color_i))
         os.makedirs(dir_cell, exist_ok=True)
         
-        with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'r') as file_handle:
+        fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
+        with h5py.File(os.path.join(fullname_volmean+hdf, 'r') as file_handle:
             volume_mean = file_handle['volume_mean'][()].T
             volume_mask = file_handle['volume_mask'][()].T
             volume_peak = file_handle['volume_peak'][()].T
@@ -75,28 +80,20 @@ def detect_cells(parameters):
             n_blocks, block_valids, xyz0, xyz1 = \
                 define_blocks(lx, ly, lz, p.n_cells_block, n_voxels_cell, volume_mask)
             
-            # get timepoints for cell detection
-            if not p.nt:
-                timepoints = np.range(p.lt)
-            else:
-                timeseries1, baseline1 = clean_signal(parameters, timeseries_mean)
-                timepoints = np.sort(np.argsort((timeseries1 - baseline1) / timeseries1)[::-1][:p.nt])
-            
             # save number and indices of blocks
-            with h5py.File(os.path.join(p.dir_output, 'volume%s.hdf5'%(color_i)), 'r+') as file_handle:
+            with h5py.File(fullname_volmean+hdf, 'r+') as file_handle:
                 file_handle['n_voxels_cell'] = n_voxels_cell
                 file_handle['n_blocks'] = n_blocks
                 file_handle['block_valids'] = block_valids
                 file_handle['block_xyz0'] = xyz0
                 file_handle['block_xyz1'] = xyz1
-                if not 'timepoints' in file_handle:
-                    file_handle['timepoints'] = timepoints
-                            
+                                    
         print('number of blocks, total: %d.'%(block_valids.sum()))
         
         for ii in np.where(block_valids)[0]:
             try:
-                with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(ii)), 'r') as file_handle:
+                fullname_block = os.path.join(dir_cell, 'block%05d'%(ii))
+                with h5py.File(fullname_block+hdf, 'r') as file_handle:
                     if ('completion' in file_handle.keys()) and file_handle['completion'][()]:
                         block_valids[ii] = 0
             except (NameError, OSError):
@@ -148,7 +145,8 @@ def detect_cells(parameters):
                     success = 0
                     
             # get cell positions and timeseries, and save cell data
-            with h5py.File(os.path.join(dir_cell, 'block%05d.hdf5'%(ii)), 'w') as file_handle:
+            fullname_block = os.path.join(dir_cell, 'block%05d'%(ii))
+            with h5py.File(fullname_block+hdf, 'w') as file_handle:
                 if success:
                     for ci in range(n_cells):
                         ix = cell_weights_valid[:, ci] > 0
