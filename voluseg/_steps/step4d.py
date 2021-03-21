@@ -8,14 +8,14 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
     B0 = cell_neighborhood_valid
     S0 = cell_sparseness    
     '''
-    
+
     import os
     import numpy as np
     from scipy import stats
     from scipy import linalg
     from skimage import measure
     from voluseg._tools.sparseness_projection import sparseness_projection
-    
+
     os.environ['MKL_NUM_THREADS'] = '1'
 
     # CAUTION: variable is modified in-place to save memory
@@ -25,7 +25,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
         V = V0[:, timepoints].astype(float)                   # copy input signal
     else:
         V = V0.astype(float)                                  # copy input signal
-        
+
     XYZ = XYZ0.astype(int)
     W = W0.astype(float)
     B = B0.astype(bool)
@@ -56,7 +56,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
 
                 # enforce component sparseness and percentile threshold
                 W_ci = sparseness_projection(W_ci, S[ci], at_least_as_sparse=True)
-                
+
                 # retain largest connected component (mode)
                 L_ci = np.zeros(np.ptp(XYZ_ci, 0) + 1, dtype=bool)
                 L_ci[tuple(zip(*XYZ_ci))] = W_ci > 0

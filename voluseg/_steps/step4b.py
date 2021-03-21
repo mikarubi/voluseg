@@ -1,7 +1,7 @@
 def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, 
                        ball_diam, bvolume_mean, bvolume_peak, timepoints):
     '''load timeseries in individual blocks, slice-time correct, and find similar timeseries'''
-    
+
     import os
     import h5py
     import time
@@ -10,12 +10,12 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     from skimage import morphology
     from types import SimpleNamespace
     from voluseg._tools.constants import ali, hdf
-            
+
     os.environ['MKL_NUM_THREADS'] = '1'
-        
+
     p = SimpleNamespace(**parameters)
     lz = lxyz[2]
-        
+
     # load and dilate initial voxel peak positions
     x0_, y0_, z0_ = xyz0
     x1_, y1_, z1_ = xyz1
@@ -23,11 +23,11 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     voxel_peak[x0_:x1_, y0_:y1_, z0_:z1_] = 1
     voxel_peak = voxel_peak & bvolume_peak.value & (bvolume_mean.value > 0)
     voxel_mask = morphology.binary_dilation(voxel_peak, ball_diam) & (bvolume_mean.value > 0)
-    
+
     voxel_xyz = np.argwhere(voxel_mask)
     voxel_xyz_peak = np.argwhere(voxel_peak)
     peak_idx = np.argwhere(voxel_peak[voxel_mask]).T[0]
-        
+
     tic = time.time()
     dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
     x0, y0, z0 = voxel_xyz.min(0)
@@ -42,7 +42,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     voxel_timeseries = voxel_timeseries_block[voxel_mask[x0:x1, y0:y1, z0:z1]]
     del voxel_timeseries_block
     print('data loading: %.1f minutes.\n' %((time.time() - tic) / 60))
-    
+
     # perform slice-time correction, if there is more than one slice
     if lz > 1:
         for i, zi in enumerate(voxel_xyz[:, 2]):
@@ -73,8 +73,8 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
         neib_i = dist_i < p.diam_cell
         corr_i = np.dot(voxel_timeseries_peak_nrm[i], voxel_timeseries_peak_nrm.T)
         voxel_similarity_peak[i] = neib_i & (corr_i > np.median(corr_i[neib_i]))
-        
+
     voxel_similarity_peak = voxel_similarity_peak | voxel_similarity_peak.T
     print('voxel similarity: %.1f minutes.\n' %((time.time() - tic) / 60))
-    
+
     return (voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak)

@@ -3,13 +3,13 @@ def load_metadata(parameters, filename_channel, filename_stack):
 
     import numpy as np
     from xml.etree import ElementTree
-    
+
 #    try:
     with open(filename_channel, 'r') as file_handle:
         xml_str = file_handle.read()
 #    except:
 #        print('error: cannot load %s.'%(filename_channel))
-    
+
     try:
         xml_tree = ElementTree.fromstring(xml_str)
     except ElementTree.ParseError:
@@ -32,7 +32,7 @@ def load_metadata(parameters, filename_channel, filename_stack):
         with open(filename_stack, 'r') as file_handle:
             times_stack = np.array(file_handle.read().split('\t'))[1:-1]
             f_volume = 1.0 / np.mean(np.diff(times_stack.astype(float)))
-            
+
     parameters['f_volume'] = f_volume
     print('fetched f_volume.')
 #    except:

@@ -1,6 +1,6 @@
 def ants_transformation(dir_ants, in_nii, ref_nii, out_nii, in_tform, interpolation='Linear'):
     '''application of ants transform'''
-    
+
     antsTransformation_call = ' '.join([
         dir_ants + '/antsApplyTransforms',
         '--dimensionality 3',
@@ -11,5 +11,5 @@ def ants_transformation(dir_ants, in_nii, ref_nii, out_nii, in_tform, interpolat
         '--transform', in_tform,
         '--float'
     ])
-    
+
     return(antsTransformation_call)

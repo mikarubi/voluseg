@@ -1,6 +1,6 @@
 def ants_registration(dir_ants, in_nii, ref_nii, out_nii, prefix_out_tform, typ, in_tform=None, restrict=None):
     '''ants registration'''
-    
+
     import os
 
     lin_tform_params = ' '.join([

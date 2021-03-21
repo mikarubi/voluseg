@@ -1,6 +1,6 @@
 def parameter_dictionary():
     '''parameter dictionary with specified defaults'''
-    
+
     return  {
               'registration': 'medium', # quality of registration: 'high', 'medium', 'low' or 'none'
               'diam_cell': 6.0,         # cell diameter (microns)

@@ -1,8 +1,8 @@
 def sparseness_projection(Si, s, at_least_as_sparse=False):
     '''Hoyer sparseness projection'''
-    
+
     import numpy as np
-    
+
     assert(Si.ndim == 1)
     S = np.copy(Si)                                           # copy input signal
 

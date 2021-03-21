@@ -1,14 +1,14 @@
 def save_volume(fullname_ext, volume, affine_mat=None):
     '''save volume in hdf5 or nifti format'''
-    
+
     import h5py
     import nibabel
     from voluseg._tools.constants import dtype
-    
+
     try:
         volume = volume.astype(dtype)
         ext = '.'+fullname_ext.split('.', 1)[1]
-        
+
         if ('.h5' in ext) or ('.hdf5' in ext):
             with h5py.File(fullname_ext, 'w') as file_handle:
                 file_handle.create_dataset('volume', data=volume, compression='gzip')
@@ -19,8 +19,8 @@ def save_volume(fullname_ext, volume, affine_mat=None):
             nibabel.save(nii, fullname_ext)
         else:
             raise Exception('unknown extension.')
-        
+
         return True
-    
+
     except:
         return None

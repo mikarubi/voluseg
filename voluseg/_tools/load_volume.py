@@ -1,6 +1,6 @@
 def load_volume(fullname_ext):
     '''load volume based on input name and extension'''
-    
+
     import h5py
     import nibabel
     import numpy as np
@@ -13,10 +13,10 @@ def load_volume(fullname_ext):
         import pyklb
     except:
         pass
-        
+
     try:
         ext = '.'+fullname_ext.split('.', 1)[1]
-        
+
         if ('.tif' in ext) or ('.tiff' in ext):
             try:
                 volume = tifffile.imread(fullname_ext)
@@ -37,8 +37,8 @@ def load_volume(fullname_ext):
             volume = nibabel.load(fullname_ext).get_data()
         else:
             raise Exception('unknown extension.')
-        
+
         return volume
-    
+
     except:
         return None

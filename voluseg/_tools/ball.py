@@ -1,8 +1,8 @@
 def ball(radi, affine_mat):
     '''morphological cell balls and midpoints'''
-    
+
     import numpy as np
-    
+
     rx, ry, rz, _ = np.diag(affine_mat)
     ball = np.ones((
             np.maximum(1, np.round(radi / rx).astype(int) * 2 + 1),

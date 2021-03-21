@@ -1,10 +1,10 @@
 def align_volumes(parameters):
     '''register volumes to a single middle volume'''
-    
+
     # do not run if registration is set to none
     if not parameters['registration']:
         return
-    
+
     import os
     import shutil
     from types import SimpleNamespace
@@ -13,24 +13,24 @@ def align_volumes(parameters):
     from voluseg._tools.constants import ori, ali, nii, hdf
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
-    
+
     p = SimpleNamespace(**parameters)
-    
+
     volume_nameRDD = evenly_parallelize(p.volume_names)
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
         if os.path.isfile(fullname_volmean+hdf):
             continue
-        
+
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
         fullname_reference = os.path.join(dir_volume, 'reference')
         if not load_volume(fullname_reference+nii):
             fullname_median = os.path.join(dir_volume, p.volume_names[p.lt//2])
             shutil.copyfile(fullname_median+ori+nii, fullname_reference+nii)
-        
+
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
         os.makedirs(dir_transform, exist_ok=True)
-        
+
         def register_volume(tuple_name_volume):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
             name_volume = tuple_name_volume[1]
@@ -38,7 +38,7 @@ def align_volumes(parameters):
             # skip processing if aligned volume exists
             if load_volume(fullname_volume+ali+hdf):
                 return
-            
+
             # setup registration
             cmd = ants_registration(
                 dir_ants = p.dir_ants,
@@ -58,7 +58,7 @@ def align_volumes(parameters):
                 cmd = cmd.replace('[1000x500x250x125]','[1000x500]')\
                          .replace('12x8x4x2', '12x8')\
                          .replace('4x3x2x1vox', '4x3vox')
-            
+
             # run registration
             flag = os.system(cmd)
             if flag:
@@ -68,21 +68,21 @@ def align_volumes(parameters):
                 # if breaks change dimensionality
                 os.system(cmd.replace('--dimensionality 3', '--dimensionality 2'))
                 volume = load_volume(fullname_volume+ali+nii)[:, :, None]
-                save_volume(fullname_volume+ali+nii, nii_volume(volume, p.affine_mat))
+                save_volume(fullname_volume+ali+nii, p.affine_mat)
             if flag:
                 raise Exception('volume %s not registered: flag %d.'%(name_volume, flag))
-            
+
             # load aligned volume
             volume = load_volume(fullname_volume+ali+nii)
-            
+
             # remove padding
             if p.planes_pad:
                 volume = volume[:, :, p.planes_pad:-p.planes_pad]
-            
+
             # save as hdf5
             volume = volume.T
             save_volume(fullname_volume+ali+hdf, volume)
-            
+
             # remove nifti files
             if load_volume(fullname_volume+ali+hdf):
                 try:
@@ -90,5 +90,5 @@ def align_volumes(parameters):
                     os.remove(fullname_volume+ali+nii)
                 except:
                     pass
-        
+
         volume_nameRDD.foreach(register_volume)
