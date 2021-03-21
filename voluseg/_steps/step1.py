@@ -5,7 +5,7 @@ def process_volumes(parameters):
     import copy
     import numpy as np
     from scipy import interpolate
-    from types import SimpleNamespace    
+    from types import SimpleNamespace
     from voluseg._tools.load_volume import load_volume
     from voluseg._tools.save_volume import save_volume
     from voluseg._tools.plane_name import plane_name
@@ -46,7 +46,7 @@ def process_volumes(parameters):
                 fullname_volume = os.path.join(dir_volume, name_volume)
                 # skip processing if volume exists
                 if load_volume(fullname_volume+ori+nii) is not None \
-                    or load_volume(fullname_volume+ali+hdf):
+                        or load_volume(fullname_volume+ali+hdf):
                     continue
 
                 if volume.ndim == 2:
@@ -56,7 +56,7 @@ def process_volumes(parameters):
                 # get dimensions
                 lx, ly, lz = volume.shape
 
-                # split two-color volumes into two halves        
+                # split two-color volumes into two halves
                 if p.n_colors == 2:
                     # ensure that two-frames have even number of y-dim voxels
                     assert(ly % 2 == 0)

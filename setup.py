@@ -15,7 +15,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/mikarubi/voluseg',
-    packages= [
+    packages=[
         'voluseg',
         'voluseg._steps',
         'voluseg._tools'
@@ -28,4 +28,3 @@ setuptools.setup(
     python_requires='>=3.5',
     # install_requires=install_requires
 )
-

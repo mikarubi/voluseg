@@ -6,7 +6,7 @@ def evenly_parallelize(input_list):
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
 
-    n_input= len(input_list)
+    n_input = len(input_list)
     n_parts = sc.parallelize(input_list).getNumPartitions()
     partitions = np.floor(np.linspace(0, n_parts, n_input, endpoint=False)).astype(int)
 

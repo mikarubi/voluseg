@@ -24,7 +24,7 @@ def detect_cells(parameters):
     ball_diam, ball_diam_xyz0 = ball(1.0 * p.diam_cell, p.affine_mat)
 
     # load timepoints
-    fullname_timemean = os.path.join(p.dir_output, 'mean_timeseries') 
+    fullname_timemean = os.path.join(p.dir_output, 'mean_timeseries')
     with h5py.File(fullname_timemean+hdf, 'r') as file_handle:
         timepoints = file_handle['timepoints']
 
@@ -56,11 +56,11 @@ def detect_cells(parameters):
         bvolume_peak = sc.broadcast(volume_peak)
         bvolume_mean = sc.broadcast(volume_mean)
 
-        # dimensions and resolution        
+        # dimensions and resolution
         lxyz = volume_mean.shape
         rxyz = np.diag(p.affine_mat)[:3]
 
-        # compute number of blocks (do only once)                 
+        # compute number of blocks (do only once)
         if flag:
             lx, ly, lz = lxyz
             rx, ry, rz = rxyz
@@ -109,7 +109,7 @@ def detect_cells(parameters):
             ii, xyz0, xyz1 = tuple_i_xyz0_xyz1[1]
 
             voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak = \
-                process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, \
+                process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
                                    ball_diam, bvolume_mean, bvolume_peak, timepoints)
 
             n_voxels_block = len(voxel_xyz)                        # number of voxels in block
@@ -124,11 +124,10 @@ def detect_cells(parameters):
 
                     tic = time.time()
                     voxel_timeseries_valid, voxel_xyz_valid, cell_weight_init_valid, \
-                    cell_neighborhood_valid, cell_sparseness = \
-                        initialize_block_cells( n_voxels_cell, n_voxels_block, n_cells, \
-                        voxel_xyz, voxel_timeseries, peak_idx, peak_valids, voxel_similarity_peak, \
-                        lxyz, rxyz, ball_diam, ball_diam_xyz0)
-                    print('cell initialization: %.1f minutes.\n' %((time.time() - tic) / 60))
+                        cell_neighborhood_valid, cell_sparseness = initialize_block_cells(
+                            n_voxels_cell, n_voxels_block, n_cells, voxel_xyz, voxel_timeseries, peak_idx,
+                            peak_valids, voxel_similarity_peak, lxyz, rxyz, ball_diam, ball_diam_xyz0)
+                    print('cell initialization: %.1f minutes.\n'%((time.time() - tic) / 60))
 
                     tic = time.time()
                     cell_weights_valid, cell_timeseries_valid, d = nnmf_sparse(
@@ -137,7 +136,7 @@ def detect_cells(parameters):
                         miniter=10, maxiter=100, tolfun=1e-3)
 
                     success = 1
-                    print('cell factorization: %.1f minutes.\n' %((time.time() - tic) / 60))
+                    print('cell factorization: %.1f minutes.\n'%((time.time() - tic) / 60))
                     break
                 except ValueError as msg:
                     print('retrying factorization of block %d: %s'%(ii, msg))
@@ -160,7 +159,6 @@ def detect_cells(parameters):
 
                 file_handle['n_cells'] = n_cells
                 file_handle['completion'] = 1
-
 
         if block_valids.any():
             evenly_parallelize(block_ixyz01).foreach(detect_cells_block)

@@ -34,6 +34,7 @@ def collect_blocks(color_i, parameters):
     # cumulate collected cells
     if p.parallel_clean:
         cell_data = sc.accumulator([[]] * 3, accum_data())
+
     def add_data(tuple_ii):
         ii = tuple_ii[1]
         try:
@@ -54,9 +55,9 @@ def collect_blocks(color_i, parameters):
                 return [cell_xyz, cell_weights, cell_timeseries]
 
         except KeyError:
-            print('block %d is empty.' %ii)
+            print('block %d is empty.'%ii)
         except IOError:
-            print('block %d does not exist.' %ii)
+            print('block %d does not exist.'%ii)
 
     if p.parallel_clean:
         evenly_parallelize(np.argwhere(block_valids).T[0]).foreach(add_data)

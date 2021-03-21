@@ -1,4 +1,4 @@
-def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100, 
+def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
                 timeseries_mean=1.0, timepoints=None, verbosity=1):
     '''
     cell detection via nonnegative matrix factorization with sparseness projection
@@ -6,7 +6,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
     XYZ0 = voxel_xyz_valid
     W0 = cell_weight_init_valid
     B0 = cell_neighborhood_valid
-    S0 = cell_sparseness    
+    S0 = cell_sparseness
     '''
 
     import os
@@ -21,7 +21,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
     # CAUTION: variable is modified in-place to save memory
     V0 *= (timeseries_mean / V0.mean(1)[:, None])             # normalize voxel timeseries
 
-    if not timepoints is None:
+    if timepoints is not None:
         V = V0[:, timepoints].astype(float)                   # copy input signal
     else:
         V = V0.astype(float)                                  # copy input signal

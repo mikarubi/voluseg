@@ -1,6 +1,6 @@
-def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells, 
-    voxel_xyz, voxel_timeseries, peak_idx, peak_valids, voxel_similarity_peak, 
-    lxyz, rxyz, ball_diam, ball_diam_xyz0):
+def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells, voxel_xyz,
+                           voxel_timeseries, peak_idx, peak_valids, voxel_similarity_peak,
+                           lxyz, rxyz, ball_diam, ball_diam_xyz0):
     '''initialize cell positions in individual blocks'''
 
     import numpy as np

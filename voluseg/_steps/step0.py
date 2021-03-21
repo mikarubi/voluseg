@@ -20,7 +20,7 @@ def process_parameters(parameters0=None):
         return
 
     # check if any parameters are missing
-    missing_parameters = set(parameter_dictionary()) - set(parameters)    
+    missing_parameters = set(parameter_dictionary()) - set(parameters)
     if missing_parameters:
         print('error: missing parameters \'%s\'.'%('\', \''.join(missing_parameters)))
         return
@@ -40,7 +40,7 @@ def process_parameters(parameters0=None):
     # check directory names
     for i in ['dir_ants', 'dir_input', 'dir_output', 'registration']:
         pi = parameters[i]
-        if not (isinstance(pi, str) and (not ' ' in pi)):
+        if not (isinstance(pi, str) and (' ' not in pi)):
             print('error: \'%s\' must be a string without spaces.'%(i))
             return
 
@@ -69,7 +69,7 @@ def process_parameters(parameters0=None):
     # check registration
     if parameters['registration']:
         parameters['registration'] = parameters['registration'].lower()
-        if parameters['registration']=='none':
+        if parameters['registration'] == 'none':
             parameters['registration'] = None
         elif not parameters['registration'] in ['high', 'medium', 'low']:
             print('error: \'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
@@ -77,14 +77,14 @@ def process_parameters(parameters0=None):
 
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
-            print('error: \'planes_pad\' must be 0 if \'registration\' is None.')
-            return
+        print('error: \'planes_pad\' must be 0 if \'registration\' is None.')
+        return
 
     # get volume extension, volume names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
     file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
     ext = '.'+file_exts[np.argmax(counts)]
-    volume_names = np.sort([i for i, j in file_names if '.'+j==ext])    
+    volume_names = np.sort([i for i, j in file_names if '.'+j == ext])
     lt = len(volume_names)
 
     # adjust parameters for packed planes data
@@ -92,6 +92,7 @@ def process_parameters(parameters0=None):
         volume_names0 = copy.deepcopy(volume_names)
         parameters['volume_names0'] = volume_names0
         parameters['res_z'] = parameters['diam_cell']
+
         def volume_plane_names(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_input, name_volume)
@@ -103,9 +104,9 @@ def process_parameters(parameters0=None):
         lt = len(volume_names)
 
     # affine matrix
-    affine_mat = np.diag([  parameters['res_x'] * parameters['ds'], \
-                            parameters['res_y'] * parameters['ds'], \
-                            parameters['res_z'], \
+    affine_mat = np.diag([  parameters['res_x'] * parameters['ds'],
+                            parameters['res_y'] * parameters['ds'],
+                            parameters['res_z'],
                             1])
 
     # save parameters
@@ -117,7 +118,7 @@ def process_parameters(parameters0=None):
     try:
         os.makedirs(dir_output, exist_ok=True)
         with open(filename_parameters, 'wb') as file_handle:
-            pickle.dump(parameters, file_handle)        
+            pickle.dump(parameters, file_handle)
             print('parameter file successfully saved.')
 
     except Exception as msg:

@@ -32,15 +32,16 @@ def mask_volumes(parameters):
     p = SimpleNamespace(**parameters)
 
     # compute mean timeseries and ranked dff
-    fullname_timemean = os.path.join(p.dir_output, 'mean_timeseries') 
+    fullname_timemean = os.path.join(p.dir_output, 'mean_timeseries')
     volume_nameRDD = evenly_parallelize(p.volume_names)
     if not os.path.isfile(fullname_timemean+hdf):
         dff_rank = np.zeros(p.lt)
         mean_timeseries_raw = np.zeros((p.n_colors, p.lt))
         mean_timeseries = np.zeros((p.n_colors, p.lt))
         mean_baseline = np.zeros((p.n_colors, p.lt))
-        for color_i in range(p.n_colors):            
+        for color_i in range(p.n_colors):
             dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
+
             def mean_volume(tuple_name_volume):
                 name_volume = tuple_name_volume[1]
                 fullname_volume = os.path.join(dir_volume, name_volume)
@@ -90,6 +91,7 @@ def mask_volumes(parameters):
 
         # geometric mean
         volume_accum = sc.accumulator(np.zeros((lx, ly, lz), dtype='float64'), accum_param())
+
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
@@ -178,9 +180,9 @@ def mask_volumes(parameters):
             plt.close(fig)
 
         with h5py.File(fullname_volmean+hdf, 'w') as file_handle:
-            file_handle['volume_mask']     = volume_mask.T
-            file_handle['volume_mean']     = volume_mean.T
-            file_handle['volume_peak']     = volume_peak.T
-            file_handle['thr_intensity']   = thr_intensity
+            file_handle['volume_mask'] = volume_mask.T
+            file_handle['volume_mean'] = volume_mean.T
+            file_handle['volume_peak'] = volume_peak.T
+            file_handle['thr_intensity'] = thr_intensity
             file_handle['thr_probability'] = thr_probability
-            file_handle['background']      = background
+            file_handle['background'] = background

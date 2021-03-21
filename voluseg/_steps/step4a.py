@@ -35,12 +35,11 @@ def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask):
                 xyz0.append(XYZ[i  , j  ,   k])
                 xyz1.append(XYZ[i+1, j+1, k+1])
 
-
     # get final block number and coordinates
     xyz0 = np.array(xyz0)
     xyz1 = np.array(xyz1)
 
-    # get coordinates and number of blocks            
+    # get coordinates and number of blocks
     x0, y0, z0 = xyz0[:, 0], xyz0[:, 1], xyz0[:, 2]
     x1, y1, z1 = xyz1[:, 0], xyz1[:, 1], xyz1[:, 2]
     n_blocks = x0.size
@@ -51,4 +50,3 @@ def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask):
         block_valids[i] = np.any(volume_mask[x0[i]:x1[i], y0[i]:y1[i], z0[i]:z1[i]])
 
     return n_blocks, block_valids, xyz0, xyz1
-

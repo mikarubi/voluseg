@@ -1,4 +1,4 @@
-def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz, 
+def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
                        ball_diam, bvolume_mean, bvolume_peak, timepoints):
     '''load timeseries in individual blocks, slice-time correct, and find similar timeseries'''
 
@@ -41,7 +41,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     voxel_timeseries_block = np.transpose(voxel_timeseries_block, (1, 2, 3, 0))
     voxel_timeseries = voxel_timeseries_block[voxel_mask[x0:x1, y0:y1, z0:z1]]
     del voxel_timeseries_block
-    print('data loading: %.1f minutes.\n' %((time.time() - tic) / 60))
+    print('data loading: %.1f minutes.\n'%((time.time() - tic) / 60))
 
     # perform slice-time correction, if there is more than one slice
     if lz > 1:
@@ -75,6 +75,6 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
         voxel_similarity_peak[i] = neib_i & (corr_i > np.median(corr_i[neib_i]))
 
     voxel_similarity_peak = voxel_similarity_peak | voxel_similarity_peak.T
-    print('voxel similarity: %.1f minutes.\n' %((time.time() - tic) / 60))
+    print('voxel similarity: %.1f minutes.\n'%((time.time() - tic) / 60))
 
     return (voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak)

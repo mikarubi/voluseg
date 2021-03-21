@@ -15,7 +15,7 @@ def sparseness_projection(Si, s, at_least_as_sparse=False):
     L1 = L2 * (np.sqrt(d) * (1 - s) + s)                      # desired l1-norm
 
     # quit if at_least_sparse=True and original exceeds target sparseness
-    if at_least_as_sparse:                                    
+    if at_least_as_sparse:
         if L1 >= np.sum(np.abs(S)):
             return S
 

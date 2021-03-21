@@ -48,14 +48,14 @@ def align_volumes(parameters):
                 prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
                 typ = 'r'
             )
-            if p.registration=='high':
+            if p.registration == 'high':
                 pass
-            elif p.registration=='medium':
-                cmd = cmd.replace('[1000x500x250x125]','[1000x500x250]')\
+            elif p.registration == 'medium':
+                cmd = cmd.replace('[1000x500x250x125]', '[1000x500x250]')\
                          .replace('12x8x4x2', '12x8x4')\
                          .replace('4x3x2x1vox', '4x3x2vox')
-            elif p.registration=='low':
-                cmd = cmd.replace('[1000x500x250x125]','[1000x500]')\
+            elif p.registration == 'low':
+                cmd = cmd.replace('[1000x500x250x125]', '[1000x500]')\
                          .replace('12x8x4x2', '12x8')\
                          .replace('4x3x2x1vox', '4x3vox')
 
@@ -64,11 +64,12 @@ def align_volumes(parameters):
             if flag:
                 # if breaks change initialization
                 flag = os.system(cmd.replace(nii+',1]', nii+',0]'))
-            if flag and load_volume(fullname_volume+ori+nii).shape[2]==1:
+            if flag and load_volume(fullname_volume+ori+nii).shape[2] == 1:
                 # if breaks change dimensionality
-                os.system(cmd.replace('--dimensionality 3', '--dimensionality 2'))
-                volume = load_volume(fullname_volume+ali+nii)[:, :, None]
-                save_volume(fullname_volume+ali+nii, volume, p.affine_mat)
+                flag = os.system(cmd.replace('--dimensionality 3', '--dimensionality 2'))
+                if not flag:
+                    volume = load_volume(fullname_volume+ali+nii)[:, :, None]
+                    save_volume(fullname_volume+ali+nii, volume, p.affine_mat)
             if flag:
                 raise Exception('volume %s not registered: flag %d.'%(name_volume, flag))
 

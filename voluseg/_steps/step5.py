@@ -40,7 +40,7 @@ def clean_cells(parameters):
 
         ix = np.any(np.isnan(cell_timeseries), 1)
         if np.any(ix):
-            print('nans (to be removed): %d' %np.count_nonzero(ix))
+            print('nans (to be removed): %d'%np.count_nonzero(ix))
             cell_timeseries[ix] = 0
 
         cell_valids = np.zeros(len(cell_w), dtype=bool)
@@ -67,7 +67,7 @@ def clean_cells(parameters):
             if (pair_overlap and pair_correlation):
                 cell_valids[pi[np.argmin(cell_w[pi])]] = 0
 
-        ## get valid version of cells ##
+        ## get valid version of cells
         cell_weights = cell_weights[cell_valids].astype(dtype)
         cell_timeseries = cell_timeseries[cell_valids].astype(dtype)
         cell_lengths = cell_lengths[cell_valids]
@@ -75,9 +75,10 @@ def clean_cells(parameters):
         cell_y = cell_y[cell_valids]
         cell_z = cell_z[cell_valids]
         cell_w = cell_w[cell_valids]
-        ## end get valid version of cells ##
+        ## end get valid version of cells
 
         bparameters = sc.broadcast(parameters)
+
         def get_timebase(timeseries_tuple):
             timeseries = timeseries_tuple[1]
             return clean_signal(bparameters.value, timeseries)
@@ -97,10 +98,10 @@ def clean_cells(parameters):
         cell_baseline1 = np.array(cell_baseline1)
 
         # check that all series are in single precision
-        assert(cell_weights.dtype==dtype)
-        assert(cell_timeseries.dtype==dtype)
-        assert(cell_timeseries1.dtype==dtype)
-        assert(cell_baseline1.dtype==dtype)
+        assert(cell_weights.dtype == dtype)
+        assert(cell_timeseries.dtype == dtype)
+        assert(cell_timeseries1.dtype == dtype)
+        assert(cell_baseline1.dtype == dtype)
 
         n = np.count_nonzero(cell_valids)
         volume_id = -1 + np.zeros((x, y, z))
@@ -134,10 +135,10 @@ def clean_cells(parameters):
 
     # clean up
     completion = 1
-    for color_i in range(p.n_colors):        
+    for color_i in range(p.n_colors):
         fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i))
         if os.path.isfile(fullname_cells+hdf):
-            completion= 0
+            completion = 0
 
     if completion:
         try:
