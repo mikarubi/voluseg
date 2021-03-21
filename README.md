@@ -45,7 +45,7 @@ voluseg.update()
 # set and save parameters
 parameters0 = voluseg.parameter_dictionary()
 parameters0['dir_ants'] = '/path/to/ants/bin/'
-parameters0['dir_input'] = '/path/to/input/images/'
+parameters0['dir_input'] = '/path/to/input/volumes/'
 parameters0['dir_output'] = '/path/to/output/directory/'
 parameters0['registration'] = 'high'
 parameters0['diam_cell'] = 5.0
@@ -57,14 +57,14 @@ filename_parameters = os.path.join(parameters0['dir_output'], 'parameters.pickle
 parameters = voluseg.load_parameters(filename_parameters)
 pprint.pprint(parameters)
 
-print("process images.")
-voluseg.step1_process_images(parameters)
+print("process volumes.")
+voluseg.step1_process_volumes(parameters)
 
-print("align images.")
-voluseg.step2_align_images(parameters)
+print("align volumes.")
+voluseg.step2_align_volumes(parameters)
 
-print("mask images.")
-voluseg.step3_mask_images(parameters)
+print("mask volumes.")
+voluseg.step3_mask_volumes(parameters)
 
 print("detect cells.")
 voluseg.step4_detect_cells(parameters)
