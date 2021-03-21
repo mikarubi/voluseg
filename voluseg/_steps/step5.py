@@ -137,7 +137,7 @@ def clean_cells(parameters):
     completion = 1
     for color_i in range(p.n_colors):
         fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i))
-        if os.path.isfile(fullname_cells+hdf):
+        if not os.path.isfile(fullname_cells+hdf):
             completion = 0
 
     if completion:
