@@ -66,7 +66,7 @@ def mask_volumes(parameters):
 
     # load timepoints
     with h5py.File(fullname_timemean+hdf, 'r') as file_handle:
-        timepoints = file_handle['timepoints']
+        timepoints = file_handle['timepoints'][()]
 
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
