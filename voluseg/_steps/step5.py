@@ -68,6 +68,7 @@ def clean_cells(parameters):
                 cell_valids[pi[np.argmin(cell_w[pi])]] = 0
 
         ## get valid version of cells
+        block_id = block_id[cell_valids]
         cell_weights = cell_weights[cell_valids].astype(dtype)
         cell_timeseries = cell_timeseries[cell_valids].astype(dtype)
         cell_lengths = cell_lengths[cell_valids]
