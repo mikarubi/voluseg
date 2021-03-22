@@ -54,7 +54,7 @@ def mask_volumes(parameters):
 
         # get high delta-f/f timepoints
         if not p.nt:
-            timepoints = np.range(p.lt)
+            timepoints = np.arange(p.lt)
         else:
             timepoints = np.sort(np.argsort(dff_rank)[::-1][:p.nt])
 
