@@ -13,6 +13,7 @@ def load_volume(fullname_ext):
         import pyklb
     except:
         pass
+    from voluseg._tools.constants import dtype
 
     try:
         ext = '.'+fullname_ext.split('.', 1)[1]
@@ -38,7 +39,7 @@ def load_volume(fullname_ext):
         else:
             raise Exception('unknown extension.')
 
-        return volume
+        return volume.astype(dtype)
 
     except:
         return None
