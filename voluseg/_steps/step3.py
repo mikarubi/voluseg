@@ -95,13 +95,13 @@ def mask_volumes(parameters):
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
-            volume_accum.add(np.log10(load_volume(fullname_volume+ali+hdf).T))
+            volume_accum.add(load_volume(fullname_volume+ali+hdf).T)    # for geometric: np.log10()
         evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
-        volume_mean = 10 ** (volume_accum.value / p.lt)
+        volume_mean = volume_accum.value / p.lt                         # for geometric: 10 ** 
 
         # get peaks by comparing to a median-smoothed volume
         ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]
-        volume_peak = volume_mean > median_filter(volume_mean, footprint=ball_radi)
+        volume_peak = volume_mean >= median_filter(volume_mean, footprint=ball_radi)
 
         # compute power and probability
         voxel_intensity = np.percentile(volume_mean[volume_mean>0], np.r_[5:95:0.001])[:, None]
