@@ -9,7 +9,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     from scipy import interpolate
     from skimage import morphology
     from types import SimpleNamespace
-    from voluseg._tools.constants import ali, hdf
+    from voluseg._tools.constants import ali, hdf, dtype
 
     os.environ['MKL_NUM_THREADS'] = '1'
 
@@ -40,6 +40,7 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
 
     voxel_timeseries_block = np.transpose(voxel_timeseries_block, (1, 2, 3, 0))
     voxel_timeseries = voxel_timeseries_block[voxel_mask[x0:x1, y0:y1, z0:z1]]
+    voxel_timeseries = voxel_timeseries.astype(dtype)
     del voxel_timeseries_block
     print('data loading: %.1f minutes.\n'%((time.time() - tic) / 60))
 
