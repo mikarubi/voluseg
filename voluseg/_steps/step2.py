@@ -112,10 +112,13 @@ def align_volumes(parameters):
 
         transforms = volume_nameRDD.map(register_volume).collect()
         transforms = np.array(transforms).astype(dtype)
-        
-        fullname_tforms = os.path.join(p.dir_output, 'transforms%d'%(color_i))
-        if os.path.isfile(fullname_tforms+hdf):
-            continue
-        else:
+
+        fullname_tforms = os.path.join(p.dir_output, 'transforms', 'transforms%d'%(color_i))
+        if not os.path.isfile(fullname_tforms+hdf):
             with h5py.File(fullname_tforms+hdf, 'w') as file_handle:
                 file_handle['transforms'] = transforms
+
+            try:
+                shutil.rmtree(dir_transform)
+            except:
+                pass
