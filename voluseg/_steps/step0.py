@@ -45,7 +45,7 @@ def process_parameters(parameters0=None):
             return
 
     # check booleans
-    for i in ['parallel_clean', 'planes_packed']:
+    for i in ['parallel_clean', 'parallel_volume', 'planes_packed']:
         pi = parameters[i]
         if not isinstance(pi, bool):
             print('error: \'%s\' must be a boolean.'%(i))
@@ -75,6 +75,12 @@ def process_parameters(parameters0=None):
             print('error: \'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
             return
 
+    # check registration
+    parameters['timepoints_type'] = parameters['timepoints_type'].lower()
+    if not parameters['timepoints_type'] in ['dff', 'periodic']:
+        print('error: \'timepoints_type\' must be \'dff\' or \'periodic\'')
+        return
+    
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
         print('error: \'planes_pad\' must be 0 if \'registration\' is None.')

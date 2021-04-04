@@ -56,7 +56,10 @@ def mask_volumes(parameters):
         if not p.nt:
             timepoints = np.arange(p.lt)
         else:
-            timepoints = np.sort(np.argsort(dff_rank)[::-1][:p.nt])
+            if p.timepoints_type == 'dff':
+                timepoints = np.sort(np.argsort(dff_rank)[::-1][:p.nt])
+            elif p.timepoints_type == 'periodic':
+                timepoints = np.linspace(0, p.lt, nt)
 
         with h5py.File(fullname_timemean+hdf, 'w') as file_handle:
             file_handle['mean_timeseries_raw'] = mean_timeseries_raw
@@ -96,7 +99,11 @@ def mask_volumes(parameters):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
             volume_accum.add(load_volume(fullname_volume+ali+hdf).T)    # for geometric: np.log10()
-        evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
+        
+        if p.parallel_volume:
+            evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
+        else:
+            map(add_volume, p.volume_names[timepoints])
         volume_mean = volume_accum.value / p.lt                         # for geometric: 10 ** 
 
         # get peaks by comparing to a median-smoothed volume

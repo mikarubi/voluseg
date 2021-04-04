@@ -7,10 +7,12 @@ def align_volumes(parameters):
 
     import os
     import shutil
+    import numpy as np
+    from scipy import io
     from types import SimpleNamespace
     from voluseg._tools.load_volume import load_volume
     from voluseg._tools.save_volume import save_volume
-    from voluseg._tools.constants import ori, ali, nii, hdf
+    from voluseg._tools.constants import ori, ali, nii, hdf, dtype
     from voluseg._tools.ants_registration import ants_registration
     from voluseg._tools.evenly_parallelize import evenly_parallelize
 
@@ -31,13 +33,24 @@ def align_volumes(parameters):
         dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
         os.makedirs(dir_transform, exist_ok=True)
 
+        def load_transform(name_volume):
+            try:
+                fullname_tform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine'
+                tform = io.loadmat(fullname_tform+'.mat')
+                tform_vector = np.hstack([tform[list(tform.keys())[i]].T[0] for i in [0, 1]])
+                assert(tform_vector.size==12)
+                return tform_vector
+            except:
+                return np.full(12, np.nan)
+
         def register_volume(tuple_name_volume):
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
             # skip processing if aligned volume exists
             if load_volume(fullname_volume+ali+hdf) is not None:
-                return
+                tform_vector = load_transform(name_volume)
+                return tform_vector
 
             # setup registration
             cmd = ants_registration(
@@ -92,4 +105,16 @@ def align_volumes(parameters):
                 except:
                     pass
 
-        volume_nameRDD.foreach(register_volume)
+            # return transform            
+            tform_vector = load_transform(name_volume)
+            return tform_vector
+
+        transforms = volume_nameRDD.map(register_volume).collect()
+        transforms = np.array(transforms).astype(dtype)
+        
+        fullname_tforms = os.path.join(p.dir_output, 'transforms%d'%(color_i))
+        if os.path.isfile(fullname_tforms+hdf):
+            continue
+        else:
+            with h5py.File(fullname_tforms+hdf, 'w') as file_handle:
+                file_handle['transforms'] = transforms
