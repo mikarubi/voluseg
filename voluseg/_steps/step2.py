@@ -6,6 +6,7 @@ def align_volumes(parameters):
         return
 
     import os
+    import h5py
     import shutil
     import numpy as np
     from scipy import io
