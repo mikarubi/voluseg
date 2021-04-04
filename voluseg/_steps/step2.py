@@ -35,9 +35,9 @@ def align_volumes(parameters):
 
         def load_transform(name_volume):
             try:
-                fullname_tform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine'
+                fullname_tform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine')
                 tform = io.loadmat(fullname_tform+'.mat')
-                tform_vector = np.hstack([tform[list(tform.keys())[i]].T[0] for i in [0, 1]])
+                tform_vector = tform[list(tform.keys())[0]].T[0]
                 assert(tform_vector.size==12)
                 return tform_vector
             except:
