@@ -59,7 +59,7 @@ def mask_volumes(parameters):
             if p.timepoints_type == 'dff':
                 timepoints = np.sort(np.argsort(dff_rank)[::-1][:p.nt])
             elif p.timepoints_type == 'periodic':
-                timepoints = np.linspace(0, p.lt, p.nt)
+                timepoints = np.linspace(0, p.lt, p.nt, dtype='int')
 
         with h5py.File(fullname_timemean+hdf, 'w') as file_handle:
             file_handle['mean_timeseries_raw'] = mean_timeseries_raw
