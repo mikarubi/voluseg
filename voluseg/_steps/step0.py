@@ -16,14 +16,12 @@ def process_parameters(parameters0=None):
 
     # check that parameter input is a dictionary
     if not type(parameters) == dict:
-        print('error: specify parameter dictionary as input.')
-        return
+        raise Exception('specify parameter dictionary as input.')
 
     # check if any parameters are missing
     missing_parameters = set(parameter_dictionary()) - set(parameters)
     if missing_parameters:
-        print('error: missing parameters \'%s\'.'%('\', \''.join(missing_parameters)))
-        return
+        raise Exception('missing parameters \'%s\'.'%('\', \''.join(missing_parameters)))
 
     # get input and output directories, and parameter filename
     dir_input = parameters['dir_input']
@@ -41,30 +39,26 @@ def process_parameters(parameters0=None):
     for i in ['dir_ants', 'dir_input', 'dir_output', 'registration']:
         pi = parameters[i]
         if not (isinstance(pi, str) and (' ' not in pi)):
-            print('error: \'%s\' must be a string without spaces.'%(i))
-            return
+            raise Exception('\'%s\' must be a string without spaces.'%(i))
 
     # check booleans
     for i in ['parallel_clean', 'parallel_volume', 'planes_packed']:
         pi = parameters[i]
         if not isinstance(pi, bool):
-            print('error: \'%s\' must be a boolean.'%(i))
-            return
+            raise Exception('\'%s\' must be a boolean.'%(i))
 
     # check integers
     for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and (pi == np.round(pi))):
-            print('error: \'%s\' must be a nonnegative or positive integer.'%(i))
-            return
+            raise Exception('\'%s\' must be a nonnegative or positive integer.'%(i))
 
     # check non-negative real numbers:
     for i in ['diam_cell', 'f_hipass', 'f_volume', 'res_x', 'res_y',
               'res_z', 't_baseline', 't_section', 'thr_mask']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
-            print('error: \'%s\' must be a nonnegative or positive real number.'%(i))
-            return
+            raise Exception('\'%s\' must be a nonnegative or positive real number.'%(i))
 
     # check registration
     if parameters['registration']:
@@ -72,19 +66,16 @@ def process_parameters(parameters0=None):
         if parameters['registration'] == 'none':
             parameters['registration'] = None
         elif not parameters['registration'] in ['high', 'medium', 'low']:
-            print('error: \'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
-            return
+            raise Exception('\'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
 
-    # check registration
+    # check timepoints type
     parameters['timepoints_type'] = parameters['timepoints_type'].lower()
     if not parameters['timepoints_type'] in ['dff', 'periodic']:
-        print('error: \'timepoints_type\' must be \'dff\' or \'periodic\'')
-        return
+        raise Exception('\'timepoints_type\' must be \'dff\' or \'periodic\'')
     
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
-        print('error: \'planes_pad\' must be 0 if \'registration\' is None.')
-        return
+        raise Exception('\'planes_pad\' must be 0 if \'registration\' is None.')
 
     # get volume extension, volume names and number of segmentation timepoints
     file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
@@ -120,6 +111,10 @@ def process_parameters(parameters0=None):
     parameters['ext'] = ext
     parameters['lt'] = lt
     parameters['affine_mat'] = affine_mat
+
+    # check that nt <= lt
+    if parameters['nt'] > parameters['lt']:
+        raise Exception('\'nt\' must be less than or equal to \'lt\'.')
 
     try:
         os.makedirs(dir_output, exist_ok=True)
