@@ -45,7 +45,7 @@ def mask_volumes(parameters):
             def mean_volume(tuple_name_volume):
                 name_volume = tuple_name_volume[1]
                 fullname_volume = os.path.join(dir_volume, name_volume)
-                return np.mean(load_volume(fullname_volume+ali+hdf), dtype='float64')
+                return np.mean(load_volume(fullname_volume+ali+hdf), dtype='float')
 
             mean_timeseries_raw[color_i] = volume_nameRDD.map(mean_volume).collect()
             time, base = clean_signal(parameters, mean_timeseries_raw[color_i])
@@ -87,25 +87,25 @@ def mask_volumes(parameters):
             '''define accumulator class'''
 
             def zero(self, val0):
-                return np.zeros(val0.shape, dtype='float64')
+                return np.zeros(val0.shape, dtype='float')
 
             def addInPlace(self, val1, val2):
-                return np.add(val1, val2, dtype='float64')
+                return np.maximum(val1, val2, dtype='float')
 
         # geometric mean
-        volume_accum = sc.accumulator(np.zeros((lx, ly, lz), dtype='float64'), accum_param())
+        volume_accum = sc.accumulator(np.zeros((lx, ly, lz)), accum_param())
 
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
-            volume_accum.add(np.log10(load_volume(fullname_volume+ali+hdf).T))
+            volume_accum.add(load_volume(fullname_volume+ali+hdf).T)
 
         if p.parallel_volume:
             evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
         else:
             for name_volume in p.volume_names[timepoints]:
                 add_volume(([], name_volume))
-        volume_mean = 10 ** (volume_accum.value / len(timepoints))
+        volume_mean = volume_accum.value
 
         # get peaks by comparing to a median-smoothed volume
         ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]
