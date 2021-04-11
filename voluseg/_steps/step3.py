@@ -105,7 +105,7 @@ def mask_volumes(parameters):
         else:
             for name_volume in p.volume_names[timepoints]:
                 add_volume(([], name_volume))
-        volume_mean = 10 ** volume_accum.value / len(timepoints)
+        volume_mean = 10 ** (volume_accum.value / len(timepoints))
 
         # get peaks by comparing to a median-smoothed volume
         ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]
