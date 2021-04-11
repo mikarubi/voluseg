@@ -98,14 +98,14 @@ def mask_volumes(parameters):
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
-            volume_accum.add(load_volume(fullname_volume+ali+hdf).T)    # for geometric: np.log10()
+            volume_accum.add(np.log10(load_volume(fullname_volume+ali+hdf).T))
 
         if p.parallel_volume:
             evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
         else:
             for name_volume in p.volume_names[timepoints]:
                 add_volume(([], name_volume))
-        volume_mean = volume_accum.value / len(timepoints)              # for geometric: 10 ** 
+        volume_mean = 10 ** volume_accum.value / len(timepoints)
 
         # get peaks by comparing to a median-smoothed volume
         ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]
