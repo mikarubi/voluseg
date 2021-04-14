@@ -122,11 +122,12 @@ def process_parameters(parameters0=None):
                 tp = 0
         elif parameters['type_timepoints'] in ['custom']:
             tp = np.unique(tp)
-            if not ((np.ndim(tp) != 1) and np.all(tp >= 0) and np.all(tp == np.round(tp))):
+            if not ((np.ndim(tp) == 1) and np.all(tp >= 0) and np.all(tp == np.round(tp))):
                 raise Exception('\'timepoints\' must be a one-dimensional vector of nonnegative integers.')
             elif np.any(tp >= lt):
                 warn('discarding timepoints that exceed the number of volumes.')
                 tp = tp[tp < lt]
+            tp = tp.astype(int)
 
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'],

@@ -173,7 +173,7 @@ def mask_volumes(parameters):
 
         # remove all disconnected components less than 5000 cubic microliters in size
         rx, ry, rz, _ = np.diag(p.affine_mat)
-        volume_mask = (volume_mean > thr_intensity).astype('bool')
+        volume_mask = (volume_mean > thr_intensity).astype(bool)
         thr_size = np.round(5000 * rx * ry * rz).astype(int)
         volume_mask = morphology.remove_small_objects(volume_mask, thr_size)
 
