@@ -53,13 +53,17 @@ def mask_volumes(parameters):
             dff_rank += stats.rankdata((time - base) / time)
 
         # get high delta-f/f timepoints
-        if not p.nt:
-            timepoints = np.arange(p.lt)
+        if p.type_timepoints == 'custom':
+            timepoints = p.timepoints
         else:
-            if p.timepoints_type == 'dff':
-                timepoints = np.sort(np.argsort(dff_rank)[::-1][:p.nt])
-            elif p.timepoints_type == 'periodic':
-                timepoints = np.linspace(0, p.lt, p.nt, dtype='int', endpoint=False)
+            nt = p.timepoints
+            if not nt:
+                timepoints = np.arange(p.lt)
+            else:
+                if p.type_timepoints == 'dff':
+                    timepoints = np.sort(np.argsort(dff_rank)[::-1][:nt])
+                elif p.type_timepoints == 'periodic':
+                    timepoints = np.linspace(0, p.lt, nt, dtype='int', endpoint=False)
 
         with h5py.File(fullname_timemean+hdf, 'w') as file_handle:
             file_handle['mean_timeseries_raw'] = mean_timeseries_raw
@@ -90,7 +94,10 @@ def mask_volumes(parameters):
                 return np.zeros(val0.shape, dtype='float')
 
             def addInPlace(self, val1, val2):
-                return np.maximum(val1, val2, dtype='float')
+                if p.type_mask == 'max':
+                    return np.maximum(val1, val2, dtype='float')
+                else:
+                    return np.add(val1, val2, dtype='float')
 
         # geometric mean
         volume_accum = sc.accumulator(np.zeros((lx, ly, lz)), accum_param())
@@ -98,7 +105,10 @@ def mask_volumes(parameters):
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
-            volume_accum.add(load_volume(fullname_volume+ali+hdf).T)
+            volume = load_volume(fullname_volume+ali+hdf).T
+            if p.type_mask == 'geomean':
+                volume = np.log10(volume)
+            volume_accum.add(volume)
 
         if p.parallel_volume:
             evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
@@ -106,6 +116,10 @@ def mask_volumes(parameters):
             for name_volume in p.volume_names[timepoints]:
                 add_volume(([], name_volume))
         volume_mean = volume_accum.value
+        if p.type_mask != 'max':
+            volume_mean = volume_mean / len(timepoints)
+        if p.type_mask == 'geomean':
+            volume_mean = 10 ** volume_mean
 
         # get peaks by comparing to a median-smoothed volume
         ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]

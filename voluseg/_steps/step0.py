@@ -5,6 +5,7 @@ def process_parameters(parameters0=None):
     import copy
     import pickle
     import numpy as np
+    from warnings import warn
     from voluseg._tools.load_volume import load_volume
     from voluseg._tools.plane_name import plane_name
     from voluseg._tools.parameter_dictionary import parameter_dictionary
@@ -33,6 +34,12 @@ def process_parameters(parameters0=None):
         print('exiting, parameter file exists: %s.'%(filename_parameters))
         return
 
+    ## backward compatibility
+    if 'nt' in parameters:
+        warn("\'nt\' is deprecated, use \'timepoints\' instead.",
+             DeprecationWarning, stacklevel=2)
+        parameters['timepoints'] = parameters['nt']
+
     ## specific checks
 
     # check directory names
@@ -48,7 +55,7 @@ def process_parameters(parameters0=None):
             raise Exception('\'%s\' must be a boolean.'%(i))
 
     # check integers
-    for i in ['ds', 'n_cells_block', 'n_colors', 'nt', 'planes_pad']:
+    for i in ['ds', 'n_cells_block', 'n_colors', 'planes_pad']:
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and (pi == np.round(pi))):
             raise Exception('\'%s\' must be a nonnegative or positive integer.'%(i))
@@ -68,11 +75,11 @@ def process_parameters(parameters0=None):
         elif not parameters['registration'] in ['high', 'medium', 'low']:
             raise Exception('\'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
 
-    # check timepoints type
-    parameters['timepoints_type'] = parameters['timepoints_type'].lower()
-    if not parameters['timepoints_type'] in ['dff', 'periodic']:
-        raise Exception('\'timepoints_type\' must be \'dff\' or \'periodic\'')
-    
+    # check type of mask
+    parameters['type_mask'] = parameters['type_mask'].lower()
+    if not parameters['type_mask'] in ['mean', 'geomean', 'max']:
+        raise Exception('\'type_mask\' must be \'mean\', \'geomean\', or \'max\'.')
+
     # check plane padding
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
         raise Exception('\'planes_pad\' must be 0 if \'registration\' is None.')
@@ -100,6 +107,27 @@ def process_parameters(parameters0=None):
         volume_names = np.sort([pi for ni in volume_names for pi in ni])
         lt = len(volume_names)
 
+    # check timepoints
+    parameters['type_timepoints'] = parameters['type_timepoints'].lower()
+    if not parameters['type_timepoints'] in ['dff', 'periodic', 'custom']:
+        raise Exception('\'type_timepoints\' must be \'dff\', \'periodic\' or \'custom\'.')
+    else:
+        print('Checking \'timepoints\' for \'type_timepoints\'=\'%s\'.'%parameters['type_timepoints'])
+        tp = parameters['timepoints']
+        if parameters['type_timepoints'] in ['dff', 'periodic']:
+            if not (np.isscalar(tp) and (tp >= 0) and (tp == np.round(tp))):
+                raise Exception('\'timepoints\' must be a nonnegative integer.')
+            elif tp >= lt:
+                warn('specified number of timepoints is greater than the number of volumes, overriding.')
+                tp = 0
+        elif parameters['type_timepoints'] in ['custom']:
+            tp = np.unique(tp)
+            if not ((np.ndim(tp) != 1) and np.all(tp >= 0) and np.all(tp == np.round(tp))):
+                raise Exception('\'timepoints\' must be a one-dimensional vector of nonnegative integers.')
+            elif np.any(tp >= lt):
+                warn('discarding timepoints that exceed the number of volumes.')
+                tp = tp[tp < lt]
+
     # affine matrix
     affine_mat = np.diag([  parameters['res_x'] * parameters['ds'],
                             parameters['res_y'] * parameters['ds'],
@@ -111,10 +139,7 @@ def process_parameters(parameters0=None):
     parameters['ext'] = ext
     parameters['lt'] = lt
     parameters['affine_mat'] = affine_mat
-
-    # check that nt <= lt
-    if parameters['nt'] > parameters['lt']:
-        raise Exception('\'nt\' must be less than or equal to \'lt\'.')
+    parameters['timepoints'] = tp
 
     try:
         os.makedirs(dir_output, exist_ok=True)

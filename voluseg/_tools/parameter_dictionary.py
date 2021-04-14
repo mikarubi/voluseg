@@ -12,8 +12,9 @@ def parameter_dictionary():
               'planes_packed': False,   # packed planes in each volume (for single plane imaging with packed planes)
               'parallel_clean': True,   # parallelization of final cleaning (True is fast but memory intensive)
               'parallel_volume': True,  # parallelization of mean-volume computation (True is fast but memory intensive)
-              'timepoints_type': 'dff', # type of timepoints to use for cell detection: 'dff', 'periodic'
-              'nt': 1000,               # number of timepoints to use for cell detection (use all points if nt = 0)
+              'type_timepoints': 'dff', # type of timepoints to use for cell detection: 'dff', 'periodic' or 'custom'
+              'type_mask': 'geomean',   # type of volume averaging for mask: 'mean', 'geomean' or 'max'
+              'timepoints': 1000,       # number ('dff'/'periodic') or vector ('custom') of timepoints for segmentation
               'f_hipass': 0,            # frequency (Hz) for high-pass filtering of cell timeseries
               'f_volume': 2.0,          # imaging frequency (Hz)
               'n_cells_block': 100,     # number of cells in block
