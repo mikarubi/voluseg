@@ -118,7 +118,3 @@ def align_volumes(parameters):
             with h5py.File(fullname_tforms+hdf, 'w') as file_handle:
                 file_handle['transforms'] = transforms
 
-            try:
-                shutil.rmtree(dir_transform)
-            except:
-                pass
