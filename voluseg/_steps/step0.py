@@ -49,7 +49,7 @@ def process_parameters(parameters0=None):
             raise Exception('\'%s\' must be a string without spaces.'%(i))
 
     # check booleans
-    for i in ['parallel_clean', 'parallel_volume', 'planes_packed']:
+    for i in ['parallel_clean', 'parallel_volume', 'planes_packed', 'save_volume']:
         pi = parameters[i]
         if not isinstance(pi, bool):
             raise Exception('\'%s\' must be a boolean.'%(i))
@@ -66,7 +66,15 @@ def process_parameters(parameters0=None):
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
             raise Exception('\'%s\' must be a nonnegative or positive real number.'%(i))
-
+            
+    # check detrending
+    if parameters['detrending']:
+        parameters['detrending'] = parameters['detrending'].lower()
+        if parameters['detrending'] == 'none':
+            parameters['detrending'] = None
+        elif not parameters['detrending'] in ['standard', 'robust']:
+            raise Exception('\'detrending\' must be \'standard\', \'robust\', or \'none\'.')
+            
     # check registration
     if parameters['registration']:
         parameters['registration'] = parameters['registration'].lower()

@@ -1,4 +1,4 @@
-def clean_signal(parameters, timeseries, poly_ordr=2):
+def clean_signal(parameters, timeseries):
     '''detrend, filter, and estimate dynamic baseline for input timeseries'''
 
     import numpy as np
@@ -9,10 +9,19 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
 
     p = SimpleNamespace(**parameters)
 
-    # poly_ordr  polynomial order for detrending
     # p.t_baseline:  timescale constant for baseline estimation (in seconds)
     # p.f_hipass:   highpass cutoff frequency
     # p.f_volume:    frequency of imaging a single stack (in Hz)
+    
+    # compute dynamic baseline
+    def compute_baseline(timeseries):
+        timeseries_df = pd.DataFrame(timeseries)
+        baseline_df = timeseries_df.rolling(ltau, min_periods=1, center=True).quantile(0.1)
+        baseline_df = baseline_df.rolling(ltau, min_periods=1, center=True).mean()
+        baseline = np.ravel(baseline_df)
+        baseline += np.percentile(timeseries - baseline, 1)
+        assert(np.allclose(np.percentile(timeseries - baseline, 1), 0))
+        return baseline
 
     # convert to double precision
     timeseries = timeseries.astype('float64')
@@ -25,10 +34,15 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
 
     # detrend with a low-order polynomial
     xtime = np.arange(timeseries.shape[0])
-    coefpoly = np.polyfit(xtime, timeseries, poly_ordr)
+    if p.detrending == 'standard':
+        coefpoly = np.polyfit(xtime, timeseries, 2)
+    elif p.detrending == 'robust':
+        baseline = compute_baseline(timeseries)
+        coefpoly = np.polyfit(xtime, baseline, 2)        
+    
     timeseries -= np.polyval(coefpoly, xtime)
     timeseries = np.concatenate((timeseries[::-1], timeseries, timeseries[::-1]))
-
+    
     # highpass filter
     nyquist = p.f_volume / 2
     if (p.f_hipass > 1e-10) and (p.f_hipass < nyquist - 1e-10):
@@ -38,14 +52,8 @@ def clean_signal(parameters, timeseries, poly_ordr=2):
 
     # restore mean
     timeseries = timeseries - timeseries.mean() + timeseries_mean
-
-    # compute dynamic baseline
-    timeseries_df = pd.DataFrame(timeseries)
-    baseline_df = timeseries_df.rolling(ltau, min_periods=1, center=True).quantile(0.1)
-    baseline_df = baseline_df.rolling(ltau, min_periods=1, center=True).mean()
-    baseline = np.ravel(baseline_df)
-    baseline += np.percentile(timeseries - baseline, 1)
-    assert(np.allclose(np.percentile(timeseries - baseline, 1), 0))
+        
+    baseline = compute_baseline(timeseries)
 
     # slice and convert to single precision
     timeseries = timeseries[p.lt:2*p.lt].astype(dtype)

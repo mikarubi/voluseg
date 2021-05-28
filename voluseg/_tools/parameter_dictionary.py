@@ -2,6 +2,7 @@ def parameter_dictionary():
     '''parameter dictionary with specified defaults'''
 
     return  {
+              'detrending': 'standard', # type of detrending: 'standard', 'robust', or 'none'
               'registration': 'medium', # quality of registration: 'high', 'medium', 'low' or 'none'
               'diam_cell': 6.0,         # cell diameter (microns)
               'dir_ants': '',           # path to ANTs directory
@@ -12,6 +13,7 @@ def parameter_dictionary():
               'planes_packed': False,   # packed planes in each volume (for single plane imaging with packed planes)
               'parallel_clean': True,   # parallelization of final cleaning (True is fast but memory intensive)
               'parallel_volume': True,  # parallelization of mean-volume computation (True is fast but memory intensive)
+              'save_volume': False,     # save registered volumes after segmentation (True keeps a copy of the volumes)
               'type_timepoints': 'dff', # type of timepoints to use for cell detection: 'dff', 'periodic' or 'custom'
               'type_mask': 'geomean',   # type of volume averaging for mask: 'mean', 'geomean' or 'max'
               'timepoints': 1000,       # number ('dff'/'periodic') or vector ('custom') of timepoints for segmentation
