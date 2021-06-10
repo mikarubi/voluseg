@@ -143,10 +143,10 @@ def clean_cells(parameters):
         if not os.path.isfile(fullname_cells+hdf):
             completion = 0
 
-    if completion:
-        try:
-            shutil.rmtree(os.path.join(p.dir_output, 'cells'))
-            if not p.save_volume:
+    if not p.save_volume:
+        if completion:
+            try:    
+                shutil.rmtree(os.path.join(p.dir_output, 'cells'))
                 shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
-        except:
-            pass
+            except:
+                pass

@@ -4,8 +4,9 @@ def clean_signal(parameters, timeseries):
     import numpy as np
     import pandas as pd
     from scipy import signal
-    from types import SimpleNamespace
+    from scipy.stats.mstats import winsorize
     from voluseg._tools.constants import dtype
+    from types import SimpleNamespace
 
     p = SimpleNamespace(**parameters)
 
@@ -37,8 +38,7 @@ def clean_signal(parameters, timeseries):
     if p.detrending == 'standard':
         coefpoly = np.polyfit(xtime, timeseries, 2)
     elif p.detrending == 'robust':
-        baseline = compute_baseline(timeseries)
-        coefpoly = np.polyfit(xtime, baseline, 2)        
+        coefpoly = np.polyfit(xtime, winsorize(timeseries, [0.01, 0.01]), 2)
     
     timeseries -= np.polyval(coefpoly, xtime)
     timeseries = np.concatenate((timeseries[::-1], timeseries, timeseries[::-1]))
@@ -52,8 +52,11 @@ def clean_signal(parameters, timeseries):
 
     # restore mean
     timeseries = timeseries - timeseries.mean() + timeseries_mean
-        
-    baseline = compute_baseline(timeseries)
+    
+    if p.detrending == 'standard':
+        baseline = compute_baseline(timeseries)
+    elif p.detrending == 'robust':
+        baseline = compute_baseline(winsorize(timeseries, [0.01, 0.01]))
 
     # slice and convert to single precision
     timeseries = timeseries[p.lt:2*p.lt].astype(dtype)
