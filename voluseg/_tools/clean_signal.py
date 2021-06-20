@@ -14,6 +14,11 @@ def clean_signal(parameters, timeseries):
     # p.f_hipass:   highpass cutoff frequency
     # p.f_volume:    frequency of imaging a single stack (in Hz)
     
+    if p.detrending == 'standard':
+        robustify = lambda timeseries: timeseries
+    elif p.detrending == 'robust':
+        robustify = lambda timeseries: winsorize(timeseries, [0.1, 0.1])
+    
     # compute dynamic baseline
     def compute_baseline(timeseries):
         timeseries_df = pd.DataFrame(timeseries)
@@ -35,11 +40,7 @@ def clean_signal(parameters, timeseries):
 
     # detrend with a low-order polynomial
     xtime = np.arange(timeseries.shape[0])
-    if p.detrending == 'standard':
-        coefpoly = np.polyfit(xtime, timeseries, 2)
-    elif p.detrending == 'robust':
-        coefpoly = np.polyfit(xtime, winsorize(timeseries, [0.1, 0.1]), 2)
-    
+    coefpoly = np.polyfit(xtime, robustify(timeseries), 2)
     timeseries -= np.polyval(coefpoly, xtime)
     timeseries = np.concatenate((timeseries[::-1], timeseries, timeseries[::-1]))
     
@@ -52,12 +53,8 @@ def clean_signal(parameters, timeseries):
 
     # restore mean
     timeseries = timeseries - timeseries.mean() + timeseries_mean
+    baseline = compute_baseline(robustify(timeseries))
     
-    if p.detrending == 'standard':
-        baseline = compute_baseline(timeseries)
-    elif p.detrending == 'robust':
-        baseline = compute_baseline(winsorize(timeseries, [0.01, 0.01]))
-
     # slice and convert to single precision
     timeseries = timeseries[p.lt:2*p.lt].astype(dtype)
     baseline = baseline[p.lt:2*p.lt].astype(dtype)
