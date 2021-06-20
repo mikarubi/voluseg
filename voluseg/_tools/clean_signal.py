@@ -38,7 +38,7 @@ def clean_signal(parameters, timeseries):
     if p.detrending == 'standard':
         coefpoly = np.polyfit(xtime, timeseries, 2)
     elif p.detrending == 'robust':
-        coefpoly = np.polyfit(xtime, winsorize(timeseries, [0.01, 0.01]), 1)
+        coefpoly = np.polyfit(xtime, winsorize(timeseries, [0.1, 0.1]), 2)
     
     timeseries -= np.polyval(coefpoly, xtime)
     timeseries = np.concatenate((timeseries[::-1], timeseries, timeseries[::-1]))
