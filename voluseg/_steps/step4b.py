@@ -44,8 +44,8 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     del voxel_timeseries_block
     print('data loading: %.1f minutes.\n'%((time.time() - tic) / 60))
 
-    # perform slice-time correction, if there is more than one slice
-    if lz > 1:
+    # slice-time correct if more than one slice and t_section is positive
+    if (lz > 1) and (p.t_section > 0):
         for i, zi in enumerate(voxel_xyz[:, 2]):
             # get timepoints of midpoint and zi plane for interpolation
             timepoints_zi = np.arange(p.lt) / p.f_volume +  zi      * p.t_section
