@@ -43,7 +43,7 @@ def process_parameters(parameters0=None):
     ## specific checks
 
     # check directory names
-    for i in ['dir_ants', 'dir_input', 'dir_output', 'registration']:
+    for i in ['dir_ants', 'dir_input', 'dir_output', 'dir_transform', 'registration']:
         pi = parameters[i]
         if not (isinstance(pi, str) and (' ' not in pi)):
             raise Exception('\'%s\' must be a string without spaces.'%(i))

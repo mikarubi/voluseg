@@ -15,6 +15,7 @@ def align_volumes(parameters):
     from voluseg._tools.save_volume import save_volume
     from voluseg._tools.constants import ori, ali, nii, hdf, dtype
     from voluseg._tools.ants_registration import ants_registration
+    from voluseg._tools.ants_transformation import ants_transformation
     from voluseg._tools.evenly_parallelize import evenly_parallelize
 
     p = SimpleNamespace(**parameters)
@@ -31,13 +32,18 @@ def align_volumes(parameters):
             fullname_median = os.path.join(dir_volume, p.volume_names[p.lt//2])
             shutil.copyfile(fullname_median+ori+nii, fullname_reference+nii)
 
-        dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
-        os.makedirs(dir_transform, exist_ok=True)
+        if p.dir_transform:
+            dir_transform = os.path.join(p.dir_transform, str(color_i))
+        else:
+            dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
+            os.makedirs(dir_transform, exist_ok=True)
+            
+        def get_fullname_tform(name_volume):
+            return os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
 
         def load_transform(name_volume):
             try:
-                fullname_tform = os.path.join(dir_transform, name_volume+'_tform_0GenericAffine')
-                tform = io.loadmat(fullname_tform+'.mat')
+                tform = io.loadmat(get_fullname_tform(name_volume))
                 tform_vector = tform[list(tform.keys())[0]].T[0]
                 assert(tform_vector.size==12)
                 return tform_vector
@@ -53,25 +59,35 @@ def align_volumes(parameters):
                 tform_vector = load_transform(name_volume)
                 return tform_vector
 
-            # setup registration
-            cmd = ants_registration(
-                dir_ants = p.dir_ants,
-                in_nii = fullname_volume+ori+nii,
-                ref_nii = fullname_reference+nii,
-                out_nii = fullname_volume+ali+nii,
-                prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
-                typ = 'r'
-            )
-            if p.registration == 'high':
-                pass
-            elif p.registration == 'medium':
-                cmd = cmd.replace('[1000x500x250x125]', '[1000x500x250]')\
-                         .replace('12x8x4x2', '12x8x4')\
-                         .replace('4x3x2x1vox', '4x3x2vox')
-            elif p.registration == 'low':
-                cmd = cmd.replace('[1000x500x250x125]', '[1000x500]')\
-                         .replace('12x8x4x2', '12x8')\
-                         .replace('4x3x2x1vox', '4x3vox')
+            # setup registration\
+            if p.registration == 'transform':
+                cmd = ants_transformation(
+                    dir_ants = p.dir_ants,
+                    in_nii = fullname_volume+ori+nii,
+                    ref_nii = fullname_reference+nii,
+                    out_nii = fullname_volume+ali+nii,
+                    in_tform = get_fullname_tform(name_volume),
+                    interpolation='Linear'
+                    )
+            else:
+                cmd = ants_registration(
+                    dir_ants = p.dir_ants,
+                    in_nii = fullname_volume+ori+nii,
+                    ref_nii = fullname_reference+nii,
+                    out_nii = fullname_volume+ali+nii,
+                    prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
+                    typ = 'r'
+                )
+                if p.registration == 'high':
+                    pass
+                elif p.registration == 'medium':
+                    cmd = cmd.replace('[1000x500x250x125]', '[1000x500x250]')\
+                             .replace('12x8x4x2', '12x8x4')\
+                             .replace('4x3x2x1vox', '4x3x2vox')
+                elif p.registration == 'low':
+                    cmd = cmd.replace('[1000x500x250x125]', '[1000x500]')\
+                             .replace('12x8x4x2', '12x8')\
+                             .replace('4x3x2x1vox', '4x3vox')
 
             # run registration
             flag = os.system(cmd)

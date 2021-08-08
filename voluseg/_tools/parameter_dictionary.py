@@ -8,6 +8,7 @@ def parameter_dictionary():
               'dir_ants': '',           # path to ANTs directory
               'dir_input': '',          # path to volume directory
               'dir_output': '',         # path to output directory
+              'dir_transform': '',      # path to transform directory (optional)
               'ds': 2,                  # spatial coarse-graining in x-y dimension
               'planes_pad': 0,          # number of planes to pad the volume with (for robust registration)
               'planes_packed': False,   # packed planes in each volume (for single plane imaging with packed planes)
