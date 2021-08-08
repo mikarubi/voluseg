@@ -80,8 +80,8 @@ def process_parameters(parameters0=None):
         parameters['registration'] = parameters['registration'].lower()
         if parameters['registration'] == 'none':
             parameters['registration'] = None
-        elif not parameters['registration'] in ['high', 'medium', 'low']:
-            raise Exception('\'registration\' must be \'high\', \'medium\', \'low\', or \'none\'.')
+        elif not parameters['registration'] in ['high', 'medium', 'low', 'transform']:
+            raise Exception('\'registration\' must be \'high\', \'medium\', \'low\', \'none\' or \'transform\'.')
 
     # check type of mask
     parameters['type_mask'] = parameters['type_mask'].lower()
