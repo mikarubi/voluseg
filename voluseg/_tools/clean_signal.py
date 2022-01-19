@@ -1,7 +1,15 @@
 def clean_signal(parameters, timeseries):
     '''detrend, filter, and estimate dynamic baseline for input timeseries'''
 
+    import os
+    # disable numpy multithreading
+    os.environ['OMP_NUM_THREADS'] = '1'
+    os.environ['MKL_NUM_THREADS'] = '1'
+    os.environ['NUMEXPR_NUM_THREADS'] = '1'
+    os.environ['OPENBLAS_NUM_THREADS'] = '1'
+    os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
     import numpy as np
+
     import pandas as pd
     from scipy import signal
     from scipy.stats.mstats import winsorize

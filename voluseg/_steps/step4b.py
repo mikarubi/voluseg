@@ -3,15 +3,20 @@ def process_block_data(xyz0, xyz1, parameters, color_i, lxyz, rxyz,
     '''load timeseries in individual blocks, slice-time correct, and find similar timeseries'''
 
     import os
+    # disable numpy multithreading
+    os.environ['OMP_NUM_THREADS'] = '1'
+    os.environ['MKL_NUM_THREADS'] = '1'
+    os.environ['NUMEXPR_NUM_THREADS'] = '1'
+    os.environ['OPENBLAS_NUM_THREADS'] = '1'
+    os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+    import numpy as np
+
     import h5py
     import time
-    import numpy as np
     from scipy import interpolate
     from skimage import morphology
     from types import SimpleNamespace
     from voluseg._tools.constants import ali, hdf, dtype
-
-    os.environ['MKL_NUM_THREADS'] = '1'
 
     p = SimpleNamespace(**parameters)
     lz = lxyz[2]

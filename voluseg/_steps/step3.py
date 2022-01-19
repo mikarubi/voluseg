@@ -43,6 +43,15 @@ def mask_volumes(parameters):
             dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
 
             def mean_volume(tuple_name_volume):
+                import os
+                # disable numpy multithreading
+                os.environ['OMP_NUM_THREADS'] = '1'
+                os.environ['MKL_NUM_THREADS'] = '1'
+                os.environ['NUMEXPR_NUM_THREADS'] = '1'
+                os.environ['OPENBLAS_NUM_THREADS'] = '1'
+                os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+                import numpy as np
+
                 name_volume = tuple_name_volume[1]
                 fullname_volume = os.path.join(dir_volume, name_volume)
                 return np.mean(load_volume(fullname_volume+ali+hdf), dtype='float')
@@ -90,10 +99,28 @@ def mask_volumes(parameters):
         class accum_param(pyspark.accumulators.AccumulatorParam):
             '''define accumulator class'''
 
-            def zero(self, val0):
+            def zero(self, val0):                
+                import os
+                # disable numpy multithreading
+                os.environ['OMP_NUM_THREADS'] = '1'
+                os.environ['MKL_NUM_THREADS'] = '1'
+                os.environ['NUMEXPR_NUM_THREADS'] = '1'
+                os.environ['OPENBLAS_NUM_THREADS'] = '1'
+                os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+                import numpy as np
+
                 return np.zeros(val0.shape, dtype='float')
 
             def addInPlace(self, val1, val2):
+                import os
+                # disable numpy multithreading
+                os.environ['OMP_NUM_THREADS'] = '1'
+                os.environ['MKL_NUM_THREADS'] = '1'
+                os.environ['NUMEXPR_NUM_THREADS'] = '1'
+                os.environ['OPENBLAS_NUM_THREADS'] = '1'
+                os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+                import numpy as np
+
                 if p.type_mask == 'max':
                     return np.maximum(val1, val2, dtype='float')
                 else:

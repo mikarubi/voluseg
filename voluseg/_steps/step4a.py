@@ -1,6 +1,13 @@
 def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask):
     '''get coordinates of individual blocks'''
 
+    import os
+    # disable numpy multithreading
+    os.environ['OMP_NUM_THREADS'] = '1'
+    os.environ['MKL_NUM_THREADS'] = '1'
+    os.environ['NUMEXPR_NUM_THREADS'] = '1'
+    os.environ['OPENBLAS_NUM_THREADS'] = '1'
+    os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
     import numpy as np
 
     # get initial estimate for the number of blocks

@@ -3,7 +3,6 @@ def process_volumes(parameters):
 
     import os
     import copy
-    import numpy as np
     from scipy import interpolate
     from types import SimpleNamespace
     from voluseg._tools.load_volume import load_volume
@@ -24,6 +23,15 @@ def process_volumes(parameters):
         os.makedirs(dir_volume, exist_ok=True)
 
         def initial_processing(tuple_name_volume):
+            import os
+            # disable numpy multithreading
+            os.environ['OMP_NUM_THREADS'] = '1'
+            os.environ['MKL_NUM_THREADS'] = '1'
+            os.environ['NUMEXPR_NUM_THREADS'] = '1'
+            os.environ['OPENBLAS_NUM_THREADS'] = '1'
+            os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+            import numpy as np
+
             name_volume = tuple_name_volume[1]
         # try:
             # load input volumes

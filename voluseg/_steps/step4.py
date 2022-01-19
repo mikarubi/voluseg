@@ -104,7 +104,14 @@ def detect_cells(parameters):
 
         # detect individual cells with sparse nnmf algorithm
         def detect_cells_block(tuple_i_xyz0_xyz1):
+            import os
+            # disable numpy multithreading
+            os.environ['OMP_NUM_THREADS'] = '1'
             os.environ['MKL_NUM_THREADS'] = '1'
+            os.environ['NUMEXPR_NUM_THREADS'] = '1'
+            os.environ['OPENBLAS_NUM_THREADS'] = '1'
+            os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+            import numpy as np
 
             ii, xyz0, xyz1 = tuple_i_xyz0_xyz1[1]
 

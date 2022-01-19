@@ -10,13 +10,18 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
     '''
 
     import os
+    # disable numpy multithreading
+    os.environ['OMP_NUM_THREADS'] = '1'
+    os.environ['MKL_NUM_THREADS'] = '1'
+    os.environ['NUMEXPR_NUM_THREADS'] = '1'
+    os.environ['OPENBLAS_NUM_THREADS'] = '1'
+    os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
     import numpy as np
+
     from scipy import stats
     from scipy import linalg
     from skimage import measure
     from voluseg._tools.sparseness_projection import sparseness_projection
-
-    os.environ['MKL_NUM_THREADS'] = '1'
 
     # CAUTION: variable is modified in-place to save memory
     V0 *= (timeseries_mean / V0.mean(1)[:, None])             # normalize voxel timeseries

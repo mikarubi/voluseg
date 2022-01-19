@@ -3,7 +3,15 @@ def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells, voxel_xyz,
                            lxyz, rxyz, ball_diam, ball_diam_xyz0):
     '''initialize cell positions in individual blocks'''
 
+    import os
+    # disable numpy multithreading
+    os.environ['OMP_NUM_THREADS'] = '1'
+    os.environ['MKL_NUM_THREADS'] = '1'
+    os.environ['NUMEXPR_NUM_THREADS'] = '1'
+    os.environ['OPENBLAS_NUM_THREADS'] = '1'
+    os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
     import numpy as np
+
     from sklearn import cluster
     from voluseg._tools.sparseness import sparseness
 

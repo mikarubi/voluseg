@@ -51,7 +51,10 @@ def align_volumes(parameters):
                 return np.full(12, np.nan)
 
         def register_volume(tuple_name_volume):
+            import os
+            # disable ITK multithreading
             os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
+
             name_volume = tuple_name_volume[1]
             fullname_volume = os.path.join(dir_volume, name_volume)
             # skip processing if aligned volume exists
