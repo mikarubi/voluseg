@@ -99,14 +99,18 @@ def process_volumes(parameters):
             # get full name of input volume, input data and list of planes
             fullname_volume_input = tuple_fullname_volume_input[1]
             volume = load_volume(fullname_volume_input+p.ext)
+            if len(p.input_dirs) == 1:
+                dir_prefix = None
+            else:
+                dir_prefix = os.path.basename(os.path.split(fullname_volume_input)[0])
 
             # process output volumes
             if p.planes_packed:
                 for pi, volume_pi in enumerate(volume):
-                    name_volume_pi = get_volume_name(fullname_volume_input, pi)
+                    name_volume_pi = get_volume_name(fullname_volume_input, dir_prefix, pi)
                     make_output_volume(name_volume_pi, volume_pi)
             else:
-                name_volume = get_volume_name(fullname_volume_input)
+                name_volume = get_volume_name(fullname_volume_input, dir_prefix)
                 make_output_volume(name_volume, volume)
         # end initial_processing
 

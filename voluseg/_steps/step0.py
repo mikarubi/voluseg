@@ -60,7 +60,7 @@ def process_parameters(parameters0=None):
         pi = parameters[i]
         if not (np.isscalar(pi) and (pi >= 0) and np.isreal(pi)):
             raise Exception('\'%s\' must be a nonnegative or positive real number.'%(i))
-            
+
     # check detrending
     if parameters['detrending']:
         parameters['detrending'] = parameters['detrending'].lower()
@@ -68,7 +68,7 @@ def process_parameters(parameters0=None):
             parameters['detrending'] = None
         elif not parameters['detrending'] in ['standard', 'robust']:
             raise Exception('\'detrending\' must be \'standard\', \'robust\', or \'none\'.')
-            
+
     # check registration
     if parameters['registration']:
         parameters['registration'] = parameters['registration'].lower()
@@ -87,30 +87,39 @@ def process_parameters(parameters0=None):
         raise Exception('\'planes_pad\' must be 0 if \'registration\' is None.')
 
     # convert dir_input into a list to account for multiple directories
-    dir_input_list = dir_input.replace(' ', '').split(';')
+    input_dirs = [os.path.normpath(h) for h in dir_input.split(';')]
+    if len(input_dirs) == 1:
+        prefix_dirs = [None]
+    else:
+        prefix_dirs = [os.path.basename(h) for h in input_dirs]
+        if len(prefix_dirs) != len(set(prefix_dirs)):
+            raise Exception('the names of last directories in \'dir_input\' must be unique.')
+        if prefix_dirs != sorted(prefix_dirs):
+            raise Exception('the names of last directories in \'dir_input\' must be sorted.')
+
     volume_fullnames_input = []
     volume_names = []
-    for dir_input_h in dir_input_list:
+    for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
         # get volume extension, volume names and number of segmentation timepoints
         file_names = [i.split('.', 1) for i in os.listdir(dir_input_h) if '.' in i]
         file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
         ext = '.'+file_exts[np.argmax(counts)]
-        volume_names_input_h = np.sort([i for i, j in file_names if '.'+j == ext])
+        volume_names_input_h = sorted([i for i, j in file_names if '.'+j == ext])
         volume_fullnames_input_h = [os.path.join(dir_input_h, i) for i in volume_names_input_h]
 
         # adjust parameters for packed planes data
         if parameters['planes_packed']:
             parameters['res_z'] = parameters['diam_cell']
-    
+
             def get_plane_names(tuple_fullname_volume_input):
                 fullname_volume_input = tuple_fullname_volume_input[1]
                 lp = len(load_volume(fullname_volume_input+ext))
-                return [get_volume_name(fullname_volume_input, pi) for pi in range(lp)]
-    
+                return [get_volume_name(fullname_volume_input, dir_prefix_h, pi) for pi in range(lp)]
+
             volume_names_h = evenly_parallelize(volume_fullnames_input_h).map(get_plane_names).collect()
-            volume_names_h = np.sort([pi for ni in volume_names_h for pi in ni])
+            volume_names_h = [pi for ni in volume_names_h for pi in ni]
         else:
-            volume_names_h = volume_names_input_h
+            volume_names_h = [get_volume_name(i, dir_prefix_h) for i in volume_names_input_h]
 
         # grow volume-name lists
         volume_fullnames_input += volume_fullnames_input_h
@@ -123,7 +132,7 @@ def process_parameters(parameters0=None):
     if not parameters['type_timepoints'] in ['dff', 'periodic', 'custom']:
         raise Exception('\'type_timepoints\' must be \'dff\', \'periodic\' or \'custom\'.')
     else:
-        print('Checking \'timepoints\' for \'type_timepoints\'=\'%s\'.'%parameters['type_timepoints'])
+        print('checking \'timepoints\' for \'type_timepoints\'=\'%s\'.'%parameters['type_timepoints'])
         tp = parameters['timepoints']
         if parameters['type_timepoints'] in ['dff', 'periodic']:
             if not (np.isscalar(tp) and (tp >= 0) and (tp == np.round(tp))):
@@ -149,6 +158,7 @@ def process_parameters(parameters0=None):
     # save parameters
     parameters['volume_fullnames_input'] = volume_fullnames_input
     parameters['volume_names'] = volume_names
+    parameters['input_dirs'] = input_dirs
     parameters['ext'] = ext
     parameters['lt'] = lt
     parameters['affine_mat'] = affine_mat
