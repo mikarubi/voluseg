@@ -2,18 +2,17 @@ def process_volumes(parameters):
     '''process original volumes and save into nifti format'''
 
     import os
-    import copy
     from scipy import interpolate
     from types import SimpleNamespace
     from voluseg._tools.load_volume import load_volume
     from voluseg._tools.save_volume import save_volume
-    from voluseg._tools.plane_name import plane_name
+    from voluseg._tools.get_volume_name import get_volume_name
     from voluseg._tools.constants import ori, ali, nii, hdf
     from voluseg._tools.evenly_parallelize import evenly_parallelize
 
     p = SimpleNamespace(**parameters)
 
-    volume_nameRDD = evenly_parallelize(p.volume_names0 if p.planes_packed else p.volume_names)
+    volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
         if os.path.isfile(fullname_volmean+hdf):
@@ -22,41 +21,25 @@ def process_volumes(parameters):
         dir_volume = os.path.join(p.dir_output, 'volumes', str(color_i))
         os.makedirs(dir_volume, exist_ok=True)
 
-        def initial_processing(tuple_name_volume):
-            import os
-            # disable numpy multithreading
-            os.environ['OMP_NUM_THREADS'] = '1'
-            os.environ['MKL_NUM_THREADS'] = '1'
-            os.environ['NUMEXPR_NUM_THREADS'] = '1'
-            os.environ['OPENBLAS_NUM_THREADS'] = '1'
-            os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
-            import numpy as np
+        def initial_processing(tuple_fullname_volume_input):
 
-            name_volume = tuple_name_volume[1]
-        # try:
-            # load input volumes
-            fullname_input = os.path.join(p.dir_input, name_volume)
-            volume = load_volume(fullname_input+p.ext)
+            def make_output_volume(name_volume, volume):
+                import os
+                # disable numpy multithreading
+                os.environ['OMP_NUM_THREADS'] = '1'
+                os.environ['MKL_NUM_THREADS'] = '1'
+                os.environ['NUMEXPR_NUM_THREADS'] = '1'
+                os.environ['OPENBLAS_NUM_THREADS'] = '1'
+                os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+                import numpy as np
 
-            # get number of planes
-            if p.planes_packed:
-                name_volume0 = copy.deepcopy(name_volume)
-                volume0 = copy.deepcopy(volume)
-                lp = len(volume0)
-            else:
-                lp = 1
-
-            for pi in range(lp):
-                if p.planes_packed:
-                    name_volume = plane_name(name_volume0, pi)
-                    volume = volume0[pi]
-
+                # skip processing if output volume exists
                 fullname_volume = os.path.join(dir_volume, name_volume)
-                # skip processing if volume exists
                 if load_volume(fullname_volume+ori+nii) is not None \
                         or load_volume(fullname_volume+ali+hdf) is not None:
-                    continue
+                    return 0
 
+                # fix dimensionality
                 if volume.ndim == 2:
                     volume = volume[None, :, :]
                 volume = volume.transpose(2, 1, 0)
@@ -111,8 +94,23 @@ def process_volumes(parameters):
                 else:
                     volume = volume.T
                     save_volume(fullname_volume+ali+hdf, volume)
+            # end make output volume
 
-        volume_nameRDD.foreach(initial_processing)
+            # get full name of input volume, input data and list of planes
+            fullname_volume_input = tuple_fullname_volume_input[1]
+            volume = load_volume(fullname_volume_input+p.ext)
+
+            # process output volumes
+            if p.planes_packed:
+                for pi, volume_pi in enumerate(volume):
+                    name_volume_pi = get_volume_name(fullname_volume_input, pi)
+                    make_output_volume(name_volume_pi, volume_pi)
+            else:
+                name_volume = get_volume_name(fullname_volume_input)
+                make_output_volume(name_volume, volume)
+        # end initial_processing
+
+        volume_fullname_inputRDD.foreach(initial_processing)
 
         # except Exception as msg:
         #     raise Exception('volume %s not processed: %s.'%(name_volume, msg))

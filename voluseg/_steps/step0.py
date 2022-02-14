@@ -7,7 +7,7 @@ def process_parameters(parameters0=None):
     import numpy as np
     from warnings import warn
     from voluseg._tools.load_volume import load_volume
-    from voluseg._tools.plane_name import plane_name
+    from voluseg._tools.get_volume_name import get_volume_name
     from voluseg._tools.parameter_dictionary import parameter_dictionary
     from voluseg._tools.evenly_parallelize import evenly_parallelize
 
@@ -33,12 +33,6 @@ def process_parameters(parameters0=None):
     if os.path.isfile(filename_parameters):
         print('exiting, parameter file exists: %s.'%(filename_parameters))
         return
-
-    ## backward compatibility
-    if 'nt' in parameters:
-        warn("\'nt\' is deprecated, use \'timepoints\' instead.",
-             DeprecationWarning, stacklevel=2)
-        parameters['timepoints'] = parameters['nt']
 
     ## specific checks
 
@@ -92,28 +86,37 @@ def process_parameters(parameters0=None):
     if (not parameters['registration']) and not ((parameters['planes_pad'] == 0)):
         raise Exception('\'planes_pad\' must be 0 if \'registration\' is None.')
 
-    # get volume extension, volume names and number of segmentation timepoints
-    file_names = [i.split('.', 1) for i in os.listdir(dir_input) if '.' in i]
-    file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
-    ext = '.'+file_exts[np.argmax(counts)]
-    volume_names = np.sort([i for i, j in file_names if '.'+j == ext])
+    # convert dir_input into a list to account for multiple directories
+    dir_input_list = dir_input.replace(' ', '').split(';')
+    volume_fullnames_input = []
+    volume_names = []
+    for dir_input_h in dir_input_list:
+        # get volume extension, volume names and number of segmentation timepoints
+        file_names = [i.split('.', 1) for i in os.listdir(dir_input_h) if '.' in i]
+        file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
+        ext = '.'+file_exts[np.argmax(counts)]
+        volume_names_input_h = np.sort([i for i, j in file_names if '.'+j == ext])
+        volume_fullnames_input_h = [os.path.join(dir_input_h, i) for i in volume_names_input_h]
+
+        # adjust parameters for packed planes data
+        if parameters['planes_packed']:
+            parameters['res_z'] = parameters['diam_cell']
+    
+            def get_plane_names(tuple_fullname_volume_input):
+                fullname_volume_input = tuple_fullname_volume_input[1]
+                lp = len(load_volume(fullname_volume_input+ext))
+                return [get_volume_name(fullname_volume_input, pi) for pi in range(lp)]
+    
+            volume_names_h = evenly_parallelize(volume_fullnames_input_h).map(get_plane_names).collect()
+            volume_names_h = np.sort([pi for ni in volume_names_h for pi in ni])
+        else:
+            volume_names_h = volume_names_input_h
+
+        # grow volume-name lists
+        volume_fullnames_input += volume_fullnames_input_h
+        volume_names += volume_names_h
+
     lt = len(volume_names)
-
-    # adjust parameters for packed planes data
-    if parameters['planes_packed']:
-        volume_names0 = copy.deepcopy(volume_names)
-        parameters['volume_names0'] = volume_names0
-        parameters['res_z'] = parameters['diam_cell']
-
-        def volume_plane_names(tuple_name_volume):
-            name_volume = tuple_name_volume[1]
-            fullname_volume = os.path.join(dir_input, name_volume)
-            lp = len(load_volume(fullname_volume+ext))
-            return [plane_name(name_volume, pi) for pi in range(lp)]
-
-        volume_names = evenly_parallelize(volume_names0).map(volume_plane_names).collect()
-        volume_names = np.sort([pi for ni in volume_names for pi in ni])
-        lt = len(volume_names)
 
     # check timepoints
     parameters['type_timepoints'] = parameters['type_timepoints'].lower()
@@ -144,6 +147,7 @@ def process_parameters(parameters0=None):
                             1])
 
     # save parameters
+    parameters['volume_fullnames_input'] = volume_fullnames_input
     parameters['volume_names'] = volume_names
     parameters['ext'] = ext
     parameters['lt'] = lt

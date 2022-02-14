@@ -8,7 +8,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='voluseg',
-    version='2022.01',
+    version='2022.02',
     author='Mika Rubinov',
     author_email='mikarubi@gmail.com',
     description='pipeline for volumetric segmentation of calcium imaging data',
