@@ -125,6 +125,7 @@ def process_parameters(parameters0=None):
         volume_fullnames_input += volume_fullnames_input_h
         volume_names += volume_names_h
 
+    volume_names = np.array(volume_names)
     lt = len(volume_names)
 
     # check timepoints
