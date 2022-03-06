@@ -58,7 +58,7 @@ def clean_cells(parameters):
                 volume_cell_n[xij, yij, zij] += 1
 
         pair_cells = [pi for a in volume_list for b in a for c in b for pi in combinations(c, 2)]
-        assert(len(pair_cells) == np.sum(volume_cell_n * (volume_cell_n - 1) / 2))
+        assert len(pair_cells) == np.sum(volume_cell_n * (volume_cell_n - 1) / 2)
 
         # remove duplicate cells
         pair_id, pair_count = np.unique(pair_cells, axis=0, return_counts=True)
@@ -100,10 +100,10 @@ def clean_cells(parameters):
         cell_baseline1 = np.array(cell_baseline1)
 
         # check that all series are in single precision
-        assert(cell_weights.dtype == dtype)
-        assert(cell_timeseries.dtype == dtype)
-        assert(cell_timeseries1.dtype == dtype)
-        assert(cell_baseline1.dtype == dtype)
+        assert cell_weights.dtype == dtype
+        assert cell_timeseries.dtype == dtype
+        assert cell_timeseries1.dtype == dtype
+        assert cell_baseline1.dtype == dtype
 
         n = np.count_nonzero(cell_valids)
         volume_id = -1 + np.zeros((x, y, z))
@@ -145,7 +145,7 @@ def clean_cells(parameters):
 
     if not p.save_volume:
         if completion:
-            try:    
+            try:
                 shutil.rmtree(os.path.join(p.dir_output, 'cells'))
                 shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
             except:

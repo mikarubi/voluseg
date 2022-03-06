@@ -99,7 +99,7 @@ def mask_volumes(parameters):
         class accum_param(pyspark.accumulators.AccumulatorParam):
             '''define accumulator class'''
 
-            def zero(self, val0):                
+            def zero(self, val0):
                 import os
                 # disable numpy multithreading
                 os.environ['OMP_NUM_THREADS'] = '1'
@@ -176,19 +176,19 @@ def mask_volumes(parameters):
 
         # get and save brain mask
         fig = plt.figure(1, (18, 6))
-        plt.subplot(131),
+        plt.subplot(131)
         _ = plt.hist(voxel_intensity, 100)
         plt.plot(thr_intensity, 0, '|', color='r', markersize=200)
         plt.xlabel('voxel intensity')
         plt.title('intensity histogram with threshold (red)')
 
-        plt.subplot(132),
+        plt.subplot(132)
         _ = plt.hist(voxel_probability, 100)
         plt.plot(thr_probability, 0, '|', color='r', markersize=200)
         plt.xlabel('voxel probability')
         plt.title('probability histogram with threshold (red)')
 
-        plt.subplot(133),
+        plt.subplot(133)
         plt.plot(voxel_intensity, voxel_probability, linewidth=3)
         plt.plot(thr_intensity, thr_probability, 'x', color='r', markersize=10)
         plt.xlabel('voxel intensity')

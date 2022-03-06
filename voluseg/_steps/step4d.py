@@ -39,7 +39,7 @@ def nnmf_sparse(V0, XYZ0, W0, B0, S0, tolfun=1e-4, miniter=10, maxiter=100,
     # get dimensions
     n,  t = V.shape
     n_, c = W.shape
-    assert(n_ == n)
+    assert n_ == n
 
     H = np.zeros((c, t))                                      # zero timeseries array
     dnorm_prev = np.full(2, np.inf)                           # last two d-norms

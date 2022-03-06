@@ -1,3 +1,5 @@
+'''initialization'''
+
 from voluseg._steps.step0 import process_parameters as step0_process_parameters
 from voluseg._steps.step1 import process_volumes as step1_process_volumes
 from voluseg._steps.step2 import align_volumes as step2_align_volumes
@@ -9,4 +11,4 @@ from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.load_parameters import load_parameters
 from voluseg._tools.load_metadata import load_metadata
 
-from voluseg._update import update as update
+from voluseg._update import voluseg_update as update

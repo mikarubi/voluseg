@@ -16,7 +16,7 @@ def process_parameters(parameters0=None):
     ## general checks
 
     # check that parameter input is a dictionary
-    if not type(parameters) == dict:
+    if not isinstance(parameters, dict):
         raise Exception('specify parameter dictionary as input.')
 
     # check if any parameters are missing

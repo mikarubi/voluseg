@@ -1,18 +1,20 @@
+'''volumetric segmentation pipeline'''
+
 import setuptools
 
 with open('README.md', 'r') as fh:
-    long_description = fh.read()
+    README = fh.read()
 
 # with open('requirements.txt', 'r') as fh:
 #     install_requires = fh.read().split('\n')
 
 setuptools.setup(
     name='voluseg',
-    version='2022.02',
+    version='2022.03',
     author='Mika Rubinov',
     author_email='mikarubi@gmail.com',
     description='pipeline for volumetric segmentation of calcium imaging data',
-    long_description=long_description,
+    long_description=README,
     long_description_content_type='text/markdown',
     url='https://github.com/mikarubi/voluseg',
     packages=[

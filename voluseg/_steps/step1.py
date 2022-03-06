@@ -37,7 +37,7 @@ def process_volumes(parameters):
                 fullname_volume = os.path.join(dir_volume, name_volume)
                 if load_volume(fullname_volume+ori+nii) is not None \
                         or load_volume(fullname_volume+ali+hdf) is not None:
-                    return 0
+                    return
 
                 # fix dimensionality
                 if volume.ndim == 2:
@@ -50,7 +50,7 @@ def process_volumes(parameters):
                 # split two-color volumes into two halves
                 if p.n_colors == 2:
                     # ensure that two-frames have even number of y-dim voxels
-                    assert(ly % 2 == 0)
+                    assert ly % 2 == 0
                     ly //= 2
                     if color_i == 0:
                         volume = volume[:, :ly, :]

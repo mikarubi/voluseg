@@ -37,7 +37,7 @@ def align_volumes(parameters):
         else:
             dir_transform = os.path.join(p.dir_output, 'transforms', str(color_i))
             os.makedirs(dir_transform, exist_ok=True)
-            
+
         def get_fullname_tform(name_volume):
             return os.path.join(dir_transform, name_volume+'_tform_0GenericAffine.mat')
 
@@ -45,7 +45,7 @@ def align_volumes(parameters):
             try:
                 tform = io.loadmat(get_fullname_tform(name_volume))
                 tform_vector = tform[list(tform.keys())[0]].T[0]
-                assert(tform_vector.size==12)
+                assert tform_vector.size == 12
                 return tform_vector
             except:
                 return np.full(12, np.nan)
@@ -125,7 +125,7 @@ def align_volumes(parameters):
                 except:
                     pass
 
-            # return transform            
+            # return transform
             tform_vector = load_transform(name_volume)
             return tform_vector
 
