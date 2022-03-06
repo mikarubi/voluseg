@@ -4,9 +4,9 @@ Reference: https://doi.org/10.1016/j.cell.2019.05.050
 
 Mu Y*, Bennett DV*, Rubinov M*, Narayan S, Yang CT, Tanimoto M, Mensh BD, Looger LL, Ahrens MB.
 
-Glia accumulate evidence that actions are futile and suppress unsuccessful behavior.
+Glia accumulate evidence that actions are futile and suppress unsuccessful behavior. Cell 2019 178:27-43.
 
-Cell 2019 178:27-43.
+Contact: Mika Rubinov, `mika.rubinov at vanderbilt.edu`
 
 # dependencies
 
