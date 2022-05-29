@@ -79,7 +79,8 @@ def align_volumes(parameters):
                     ref_nii = fullname_reference+nii,
                     out_nii = fullname_volume+ali+nii,
                     prefix_out_tform = os.path.join(dir_transform, name_volume+'_tform_'),
-                    typ = 'r'
+                    restrict = p.registration_restrict,
+                    typ = 'r',
                 )
                 if p.registration == 'high':
                     pass

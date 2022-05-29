@@ -36,8 +36,8 @@ def process_parameters(parameters0=None):
 
     ## specific checks
 
-    # check directory names
-    for i in ['dir_ants', 'dir_input', 'dir_output', 'dir_transform', 'registration']:
+    # check strings
+    for i in ['dir_ants', 'dir_input', 'dir_output', 'dir_transform', 'registration','registration_restrict']:
         pi = parameters[i]
         if not (isinstance(pi, str) and (' ' not in pi)):
             raise Exception('\'%s\' must be a string without spaces.'%(i))
@@ -76,6 +76,12 @@ def process_parameters(parameters0=None):
             parameters['registration'] = None
         elif not parameters['registration'] in ['high', 'medium', 'low', 'transform']:
             raise Exception('\'registration\' must be \'high\', \'medium\', \'low\', \'none\' or \'transform\'.')
+
+    # check registration restrict
+    if parameters['registration_restrict']:
+        parameters['registration_restrict'] = parameters['registration_restrict'].lower()
+        if not set(['0', '1']) == set(parameters['registration_restrict'].split('x')):
+            raise Exception('\'registration_restrict\' must comprise \'1\'s and \'0\'s, separated by \'x\'s.')
 
     # check type of mask
     parameters['type_mask'] = parameters['type_mask'].lower()

@@ -4,6 +4,7 @@ def parameter_dictionary():
     return  {
               'detrending': 'standard', # type of detrending: 'standard', 'robust', or 'none'
               'registration': 'medium', # quality of registration: 'high', 'medium', 'low' or 'none'
+              'registration_restrict': '', # restrict registration (e.g. 1x1x1x1x1x1x0x0x0x1x1x0)
               'diam_cell': 6.0,         # cell diameter (microns)
               'dir_ants': '',           # path to ANTs directory
               'dir_input': '',          # path to input directory/ies (separate multiple directories by ';')
