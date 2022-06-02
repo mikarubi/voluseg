@@ -15,9 +15,11 @@ def ants_registration(dir_ants, in_nii, ref_nii, out_nii, prefix_out_tform, typ,
         '--shrink-factors 10x6x4x2x1',
         '--smoothing-sigmas 5x3x2x1x0vox',
     ])
+
+    initial_moving_transform = (in_tform if in_tform else '[%s,%s,1]'%(ref_nii, in_nii))
     antsRegistration_call = ' '.join([
         os.path.join(dir_ants, 'antsRegistration'),
-        '--initial-moving-transform ' + (in_tform if in_tform else '[%s,%s,1]'%(ref_nii, in_nii)),
+        ('--initial-moving-transform ' + initial_moving_transform if not restrict else ''),
         '--output [%s,%s]'%(prefix_out_tform, out_nii),
         '--dimensionality 3',
         '--float 1',
