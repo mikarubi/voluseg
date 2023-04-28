@@ -35,7 +35,7 @@ def load_volume(fullname_ext):
             volume = pyklb.readfull(fullname_ext)
             volume = volume.transpose(0, 2, 1)
         elif ('.nii' in ext) or ('.nii.gz' in ext):
-            volume = nibabel.load(fullname_ext).get_data()
+            volume = nibabel.load(fullname_ext).get_fdata()
         else:
             raise Exception('unknown extension.')
 
