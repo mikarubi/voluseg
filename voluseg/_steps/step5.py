@@ -32,6 +32,7 @@ def clean_cells(parameters):
         fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
         with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
             volume_mask = file_handle['volume_mask'][()].T
+            volume_mean = file_handle['volume_mean'][()].T
             x, y, z = volume_mask.shape
 
         cell_x = cell_xyz[:, :, 0]
@@ -44,9 +45,13 @@ def clean_cells(parameters):
             print('nans (to be removed): %d'%np.count_nonzero(ix))
             cell_timeseries[ix] = 0
 
+        # keep cells that exceed threshold
         cell_valids = np.zeros(len(cell_w), dtype=bool)
         for i, (li, xi, yi, zi) in enumerate(zip(cell_lengths, cell_x, cell_y, cell_z)):
-            cell_valids[i] = np.mean(volume_mask[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
+            if (p.thr_mask > 0) and (p.thr_mask <= 1):
+                cell_valids[i] = np.mean(volume_mask[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
+            elif p.thr_mask > 1:
+                cell_valids[i] = np.mean(volume_mean[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
 
         # brain mask array
         volume_list = [[[[] for zi in range(z)] for yi in range(y)] for xi in range(x)]
