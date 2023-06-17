@@ -38,7 +38,7 @@ Contact: Mika Rubinov, `mika.rubinov at vanderbilt.edu`
 
 # example code
 
-```
+```python
 # set up
 import os
 import pprint
