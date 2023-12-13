@@ -37,12 +37,12 @@ def collect_blocks(color_i, parameters):
 
     def add_data(tuple_ii):
         ii = tuple_ii[1]
-        try:
-            cell_block_id = []
-            cell_xyz = []
-            cell_weights = []
-            cell_timeseries = []
 
+        cell_block_id = []
+        cell_xyz = []
+        cell_weights = []
+        cell_timeseries = []
+        try:
             fullname_block = os.path.join(dir_cell, 'block%05d'%(ii))
             with h5py.File(fullname_block+hdf, 'r') as file_handle:
                 for ci in range(file_handle['n_cells'][()]):
@@ -51,15 +51,15 @@ def collect_blocks(color_i, parameters):
                     cell_weights.append(file_handle['/cell/%05d/weights'%(ci)][()])
                     cell_timeseries.append(file_handle['/cell/%05d/timeseries'%(ci)][()])
 
-            if p.parallel_clean:
-                cell_data.add([cell_block_id, cell_xyz, cell_weights, cell_timeseries])
-            else:
-                return [cell_block_id, cell_xyz, cell_weights, cell_timeseries]
-
         except KeyError:
             print('block %d is empty.'%ii)
         except IOError:
             print('block %d does not exist.'%ii)
+
+        if p.parallel_clean:
+            cell_data.add([cell_block_id, cell_xyz, cell_weights, cell_timeseries])
+        else:
+            return [cell_block_id, cell_xyz, cell_weights, cell_timeseries]
 
     if p.parallel_clean:
         evenly_parallelize(np.argwhere(block_valids).T[0]).foreach(add_data)
