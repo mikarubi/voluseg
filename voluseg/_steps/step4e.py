@@ -46,10 +46,10 @@ def collect_blocks(color_i, parameters):
             fullname_block = os.path.join(dir_cell, 'block%05d'%(ii))
             with h5py.File(fullname_block+hdf, 'r') as file_handle:
                 for ci in range(file_handle['n_cells'][()]):
-                    cell_block_id.append(ii)
                     cell_xyz.append(file_handle['/cell/%05d/xyz'%(ci)][()])
                     cell_weights.append(file_handle['/cell/%05d/weights'%(ci)][()])
                     cell_timeseries.append(file_handle['/cell/%05d/timeseries'%(ci)][()])
+                    cell_block_id.append(ii)
 
         except KeyError:
             print('block %d is empty.'%ii)
