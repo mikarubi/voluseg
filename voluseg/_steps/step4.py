@@ -77,7 +77,7 @@ def detect_cells(parameters):
 
             # get number of voxels in each cell
             n_blocks, block_valids, xyz0, xyz1 = \
-                define_blocks(lx, ly, lz, p.n_cells_block, n_voxels_cell, volume_mask)
+                define_blocks(lx, ly, lz, p.n_cells_block, n_voxels_cell, volume_mask, volume_peak)
 
             # save number and indices of blocks
             with h5py.File(fullname_volmean+hdf, 'r+') as file_handle:

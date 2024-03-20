@@ -1,4 +1,4 @@
-def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask):
+def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask, volume_peak):
     '''get coordinates of individual blocks'''
 
     import os
@@ -54,6 +54,8 @@ def define_blocks(lx, ly, lz, n_cells_block, n_voxels_cell, volume_mask):
     # get indices of masked blocks
     block_valids = np.ones(n_blocks, dtype=bool)
     for i in range(n_blocks):
-        block_valids[i] = np.any(volume_mask[x0[i]:x1[i], y0[i]:y1[i], z0[i]:z1[i]])
+        mask_i = volume_mask[x0[i]:x1[i], y0[i]:y1[i], z0[i]:z1[i]]
+        peak_i = volume_peak[x0[i]:x1[i], y0[i]:y1[i], z0[i]:z1[i]]
+        block_valids[i] = np.any(np.logical_and(mask_i, peak_i))
 
     return n_blocks, block_valids, xyz0, xyz1
