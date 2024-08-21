@@ -12,6 +12,7 @@ from voluseg._tools.evenly_parallelize import evenly_parallelize
 def process_volumes(parameters: dict) -> None:
     """
     Process original volumes and save into nifti format.
+    Performs downsampling and padding if specified in parameters.
 
     Parameters
     ----------
