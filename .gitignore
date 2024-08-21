@@ -3,3 +3,17 @@ __pycache__/
 *.pyc
 *.egg-info
 
+
+# Python coverage files
+.coverage
+.coverage.*
+.cache
+.cache/
+coverage.xml
+coverage_html/
+htmlcov/
+
+# Local data
+data/*
+output/*
+logs/*

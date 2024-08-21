@@ -1,3 +1,9 @@
+import numpy as np
+
+from sklearn import cluster
+from voluseg._tools.sparseness import sparseness
+
+
 def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells, voxel_xyz,
                            voxel_timeseries, peak_idx, peak_valids, voxel_similarity_peak,
                            lxyz, rxyz, ball_diam, ball_diam_xyz0):
@@ -10,10 +16,7 @@ def initialize_block_cells(n_voxels_cell, n_voxels_block, n_cells, voxel_xyz,
     os.environ['NUMEXPR_NUM_THREADS'] = '1'
     os.environ['OPENBLAS_NUM_THREADS'] = '1'
     os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
-    import numpy as np
 
-    from sklearn import cluster
-    from voluseg._tools.sparseness import sparseness
 
     # get valid voxels of peaks
     peak_idx_valid = peak_idx[peak_valids]
