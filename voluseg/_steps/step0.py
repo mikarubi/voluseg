@@ -9,7 +9,7 @@ from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def process_parameters(parameters0=None):
+def process_parameters(parameters0: dict = None):
     """
     Process parameters and create parameter file.
 
