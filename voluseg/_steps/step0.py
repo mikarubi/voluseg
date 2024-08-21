@@ -1,5 +1,16 @@
 def process_parameters(parameters0=None):
-    '''process parameters and create parameter file'''
+    """
+    Process parameters and create parameter file.
+
+    Parameters
+    ----------
+    parameters0 : dict
+        Initial parameter dictionary
+
+    Returns
+    -------
+    None
+    """
 
     import os
     import copy
