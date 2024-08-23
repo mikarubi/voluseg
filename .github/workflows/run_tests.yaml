@@ -12,13 +12,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python:
+          - '3.10'
+          - '3.11'
+        spark:
+          - 3.4.0
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python }}
 
       - uses: actions/setup-java@v4
         with:
@@ -27,7 +35,7 @@ jobs:
 
       - uses: vemonet/setup-spark@v1
         with:
-          spark-version: '3.4.0'
+          spark-version: ${{ matrix.spark }}
           hadoop-version: '3'
 
       - run: spark-submit --version
