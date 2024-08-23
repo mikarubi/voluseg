@@ -14,6 +14,6 @@ coverage_html/
 htmlcov/
 
 # Local data
-data/*
+sample_data/*
 output/*
 logs/*

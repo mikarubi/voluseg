@@ -1,0 +1,49 @@
+name: Tests with Spark
+
+on:
+  push:
+    branches:
+      - dev-tests
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      - uses: vemonet/setup-spark@v1
+        with:
+          spark-version: '3.4.0'
+          hadoop-version: '3'
+
+      - run: spark-submit --version
+
+    #   - name: Install dependencies
+    #     run: |
+    #       python -m pip install --upgrade pip
+    #       pip install pytest pytest-cov
+
+    #   - name: Run tests with pytest
+    #     run: |
+    #       pytest --cov=voluseg --cov-report=term-missing
+
+    #   - name: Upload coverage report
+    #     if: success()
+    #     uses: actions/upload-artifact@v3
+    #     with:
+    #       name: coverage-report
+    #       path: htmlcov/

@@ -2,6 +2,7 @@ import os
 import pprint
 import voluseg
 import pytest
+from pathlib import Path
 
 
 @pytest.fixture
@@ -9,7 +10,8 @@ def setup_parameters(tmp_path):
     # Define parameters and paths
     parameters0 = voluseg.parameter_dictionary()
     parameters0['dir_ants'] = "/home/luiz/Downloads/ants-2.5.2/bin"  # Change this to your actual ANTs bin path
-    parameters0['dir_input'] = '/home/luiz/Desktop/voluseg/input/'  # Change this to your actual input directory
+    # parameters0['dir_input'] = str((Path(".").resolve().parent / "sample_data"))
+    parameters0['dir_input'] = "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
     parameters0['dir_output'] = str(tmp_path)  # Use pytest's tmp_path fixture for output
     parameters0['registration'] = 'high'
     parameters0['diam_cell'] = 5.0
@@ -22,10 +24,8 @@ def setup_parameters(tmp_path):
     return parameters0
 
 
-def test_voluseg_pipeline(setup_parameters):
+def test_voluseg_pipeline_h5_dir(setup_parameters):
     parameters = setup_parameters
-
-    # Load and print parameters (for debugging purposes)
     filename_parameters = os.path.join(parameters['dir_output'], 'parameters.pickle')
     parameters = voluseg.load_parameters(filename_parameters)
     pprint.pprint(parameters)
@@ -54,5 +54,5 @@ def test_voluseg_pipeline(setup_parameters):
     # assert os.path.exists(os.path.join(parameters['dir_output'], 'step5_output_file.ext')), "Step 5 output file missing"
 
 
-if __name__ == "__main__":
-    pytest.main()
+# if __name__ == "__main__":
+#     pytest.main()
