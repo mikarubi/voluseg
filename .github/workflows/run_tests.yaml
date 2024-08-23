@@ -45,7 +45,7 @@ jobs:
       - name: Install ANTs
         run: |
           wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
-          unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d /
+          unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d $HOME/
           rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
           echo "ANTs installed successfully"
 
@@ -60,7 +60,7 @@ jobs:
 
       - name: Run tests with pytest
         env:
-          ANTS_PATH: /ants-2.5.3/bin
+          ANTS_PATH: $HOME/ants-2.5.3/bin
           INPUT_PATH: /path/to/input  # Set this to the actual input path
         run: |
           pytest --cov=voluseg --cov-report=term-missing
