@@ -1,8 +1,9 @@
-h5py
 scipy
 scikit-image
 scikit-learn
 matplotlib
-nibabel
-numpy>=1.13
-pandas>=0.2
+h5py>=3.0
+nibabel>=5.0
+numpy>=2.0
+pandas>=2.2
+pyspark==3.4.0
