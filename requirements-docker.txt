@@ -1,0 +1,9 @@
+nibabel==5.2.1
+h5py==3.11.0
+scipy==1.14.0
+scikit-learn==1.5.1
+scikit-image==0.24.0
+matplotlib==3.9.2
+numpy==2.1.0
+pandas==2.2.2
+pyspark==3.4.0
