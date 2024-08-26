@@ -56,13 +56,14 @@ def get_nwbfile_volume(
     return nwbfile.acquisition[acquisition_name].data[volume_index]
 
 
-def h5_dir_to_nwbfile(
+def h5_dir_to_nwb_file(
     h5_dir: str,
     acquisition_name: str = "TwoPhotonSeries",
     max_volumes: int = None,
-) -> pynwb.NWBFile:
+    output_file_path: str = "output.nwb",
+) -> None:
     """
-    Convert a directory of HDF5 files to a single NWB file.
+    Convert a directory of HDF5 files to a single NWB file, and save it locally.
     Each h5 file is assumed to contain a single volume.
 
     Parameters
@@ -73,11 +74,12 @@ def h5_dir_to_nwbfile(
         Acquisition name.
     max_volumes : int
         Maximum number of volumes to read.
+    output_file_path : str
+        Output file path.
 
     Returns
     -------
-    pynwb.NWBFile
-        NWB file.
+    None
     """
     sorted_paths = sorted([str(p.resolve()) for p in Path(h5_dir).glob("*.h5")])
     datasets = []
@@ -120,4 +122,7 @@ def h5_dir_to_nwbfile(
         unit="normalized amplitude",
     )
     nwbfile.add_acquisition(two_p_series)
-    return nwbfile
+    io = pynwb.NWBHDF5IO(output_file_path, mode="w")
+    io.write(nwbfile)
+    io.close()
+    print(f"Saved NWB file to {output_file_path}")
