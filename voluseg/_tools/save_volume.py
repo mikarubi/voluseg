@@ -1,10 +1,32 @@
-def save_volume(fullname_ext, volume, affine_mat=None):
-    """save volume in hdf5 or nifti format"""
+import h5py
+import nibabel
+import numpy as np
+from typing import Union
+from voluseg._tools.constants import dtype
 
-    import h5py
-    import nibabel
-    from voluseg._tools.constants import dtype
 
+def save_volume(
+    fullname_ext: str,
+    volume: np.ndarray,
+    affine_mat: np.ndarray = None,
+) -> Union[bool, None]:
+    """
+    Save volume in hdf5 or nifti format.
+
+    Parameters
+    ----------
+    fullname_ext : str
+        Full name of volume with extension.
+    volume : np.ndarray
+        Volume as numpy array.
+    affine_mat : np.ndarray
+        Affine matrix for nifti format.
+
+    Returns
+    -------
+    bool or None
+        True if volume was saved successfully, None if volume could not be saved.
+    """
     try:
         volume = volume.astype(dtype)
         ext = "." + fullname_ext.split(".", 1)[1]

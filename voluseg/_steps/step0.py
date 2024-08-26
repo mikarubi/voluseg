@@ -1,17 +1,28 @@
-def process_parameters(parameters0=None):
-    """process parameters and create parameter file"""
+import os
+import copy
+import pickle
+import numpy as np
+from warnings import warn
+from voluseg._tools.load_volume import load_volume
+from voluseg._tools.get_volume_name import get_volume_name
+from voluseg._tools.parameter_dictionary import parameter_dictionary
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 
-    import os
-    import copy
-    import pickle
-    import numpy as np
-    from warnings import warn
-    from voluseg._tools.load_volume import load_volume
-    from voluseg._tools.get_volume_name import get_volume_name
-    from voluseg._tools.parameter_dictionary import parameter_dictionary
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
 
-    parameters = copy.deepcopy(parameters0)
+def process_parameters(initial_parameters: dict) -> None:
+    """
+    Process parameters and create parameter file (pickle).
+
+    Parameters
+    ----------
+    initial_parameters : dict
+        Initial parameter dictionary
+
+    Returns
+    -------
+    None
+    """
+    parameters = copy.deepcopy(initial_parameters)
 
     ## general checks
 

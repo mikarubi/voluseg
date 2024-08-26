@@ -1,14 +1,27 @@
-def process_volumes(parameters):
-    """process original volumes and save into nifti format"""
+import os
+from scipy import interpolate
+from types import SimpleNamespace
+from voluseg._tools.load_volume import load_volume
+from voluseg._tools.save_volume import save_volume
+from voluseg._tools.get_volume_name import get_volume_name
+from voluseg._tools.constants import ori, ali, nii, hdf
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 
-    import os
-    from scipy import interpolate
-    from types import SimpleNamespace
-    from voluseg._tools.load_volume import load_volume
-    from voluseg._tools.save_volume import save_volume
-    from voluseg._tools.get_volume_name import get_volume_name
-    from voluseg._tools.constants import ori, ali, nii, hdf
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
+
+def process_volumes(parameters: dict) -> None:
+    """
+    Process original volumes and save them to multiple nifti files.
+    Performs downsampling and padding if specified in parameters.
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    None
+    """
 
     p = SimpleNamespace(**parameters)
 
@@ -24,8 +37,6 @@ def process_volumes(parameters):
         def initial_processing(tuple_fullname_volume_input):
 
             def make_output_volume(name_volume, volume):
-                import os
-
                 # disable numpy multithreading
                 os.environ["OMP_NUM_THREADS"] = "1"
                 os.environ["MKL_NUM_THREADS"] = "1"
