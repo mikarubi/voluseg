@@ -1,5 +1,5 @@
 def clean_cells(parameters):
-    '''remove noise cells, detrend and detect baseline'''
+    """remove noise cells, detrend and detect baseline"""
 
     import os
     import h5py
@@ -14,6 +14,7 @@ def clean_cells(parameters):
 
     # set up spark
     from pyspark.sql.session import SparkSession
+
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
 
@@ -22,17 +23,18 @@ def clean_cells(parameters):
     thr_similarity = 0.5
 
     for color_i in range(p.n_colors):
-        fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i))
-        if os.path.isfile(fullname_cells+hdf):
+        fullname_cells = os.path.join(p.dir_output, "cells%s_clean" % (color_i))
+        if os.path.isfile(fullname_cells + hdf):
             continue
 
-        cell_block_id, cell_xyz, cell_weights, cell_timeseries, cell_lengths = \
+        cell_block_id, cell_xyz, cell_weights, cell_timeseries, cell_lengths = (
             collect_blocks(color_i, parameters)
+        )
 
-        fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
-        with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
-            volume_mask = file_handle['volume_mask'][()].T
-            volume_mean = file_handle['volume_mean'][()].T
+        fullname_volmean = os.path.join(p.dir_output, "volume%d" % (color_i))
+        with h5py.File(fullname_volmean + hdf, "r") as file_handle:
+            volume_mask = file_handle["volume_mask"][()].T
+            volume_mean = file_handle["volume_mean"][()].T
             x, y, z = volume_mask.shape
 
         cell_x = cell_xyz[:, :, 0]
@@ -42,27 +44,33 @@ def clean_cells(parameters):
 
         ix = np.any(np.isnan(cell_timeseries), 1)
         if np.any(ix):
-            print('nans (to be removed): %d'%np.count_nonzero(ix))
+            print("nans (to be removed): %d" % np.count_nonzero(ix))
             cell_timeseries[ix] = 0
 
         # keep cells that exceed threshold
         cell_valids = np.zeros(len(cell_w), dtype=bool)
         for i, (li, xi, yi, zi) in enumerate(zip(cell_lengths, cell_x, cell_y, cell_z)):
             if (p.thr_mask > 0) and (p.thr_mask <= 1):
-                cell_valids[i] = np.mean(volume_mask[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
+                cell_valids[i] = (
+                    np.mean(volume_mask[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
+                )
             elif p.thr_mask > 1:
-                cell_valids[i] = np.mean(volume_mean[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
+                cell_valids[i] = (
+                    np.mean(volume_mean[xi[:li], yi[:li], zi[:li]]) > p.thr_mask
+                )
 
         # brain mask array
         volume_list = [[[[] for zi in range(z)] for yi in range(y)] for xi in range(x)]
-        volume_cell_n = np.zeros((x, y, z), dtype='int')
+        volume_cell_n = np.zeros((x, y, z), dtype="int")
         for i, (li, vi) in enumerate(zip(cell_lengths, cell_valids)):
             for j in range(li if vi else 0):
                 xij, yij, zij = cell_x[i, j], cell_y[i, j], cell_z[i, j]
                 volume_list[xij][yij][zij].append(i)
                 volume_cell_n[xij, yij, zij] += 1
 
-        pair_cells = [pi for a in volume_list for b in a for c in b for pi in combinations(c, 2)]
+        pair_cells = [
+            pi for a in volume_list for b in a for c in b for pi in combinations(c, 2)
+        ]
         assert len(pair_cells) == np.sum(volume_cell_n * (volume_cell_n - 1) / 2)
 
         # remove duplicate cells
@@ -70,7 +78,7 @@ def clean_cells(parameters):
         for pi, fi in zip(pair_id, pair_count):
             pair_overlap = (fi / np.mean(cell_lengths[pi])) > thr_similarity
             pair_correlation = np.corrcoef(cell_timeseries[pi])[0, 1] > thr_similarity
-            if (pair_overlap and pair_correlation):
+            if pair_overlap and pair_correlation:
                 cell_valids[pi[np.argmin(cell_w[pi])]] = 0
 
         ## get valid version of cells
@@ -89,14 +97,15 @@ def clean_cells(parameters):
         def get_timebase(timeseries_tuple):
             timeseries = timeseries_tuple[1]
             return clean_signal(bparameters.value, timeseries)
+
         if p.parallel_clean:
-            print('Computing baseline in parallel mode... ', end='')
+            print("Computing baseline in parallel mode... ", end="")
             timebase = evenly_parallelize(cell_timeseries).map(get_timebase).collect()
         else:
-            print('Computing baseline in serial mode... ', end='')
-            timeseries_tuple = zip([[]]*len(cell_timeseries), cell_timeseries)
+            print("Computing baseline in serial mode... ", end="")
+            timeseries_tuple = zip([[]] * len(cell_timeseries), cell_timeseries)
             timebase = map(get_timebase, timeseries_tuple)
-        print('done.')
+        print("done.")
 
         cell_timeseries1, cell_baseline1 = list(zip(*timebase))
 
@@ -120,38 +129,38 @@ def clean_cells(parameters):
                     volume_id[xij, yij, zij] = i
                     volume_weight[xij, yij, zij] = cell_weights[i, j]
 
-        with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
-            background = file_handle['background'][()]
+        with h5py.File(fullname_volmean + hdf, "r") as file_handle:
+            background = file_handle["background"][()]
 
-        with h5py.File(fullname_cells+hdf, 'w') as file_handle:
-            file_handle['n'] = n
-            file_handle['t'] = p.lt
-            file_handle['x'] = x
-            file_handle['y'] = y
-            file_handle['z'] = z
-            file_handle['cell_x'] = cell_x
-            file_handle['cell_y'] = cell_y
-            file_handle['cell_z'] = cell_z
-            file_handle['cell_block_id'] = cell_block_id
-            file_handle['volume_id'] = volume_id
-            file_handle['volume_weight'] = volume_weight
-            file_handle['cell_weights'] = cell_weights
-            file_handle['cell_timeseries_raw'] = cell_timeseries
-            file_handle['cell_timeseries'] = cell_timeseries1
-            file_handle['cell_baseline'] = cell_baseline1
-            file_handle['background'] = background
+        with h5py.File(fullname_cells + hdf, "w") as file_handle:
+            file_handle["n"] = n
+            file_handle["t"] = p.lt
+            file_handle["x"] = x
+            file_handle["y"] = y
+            file_handle["z"] = z
+            file_handle["cell_x"] = cell_x
+            file_handle["cell_y"] = cell_y
+            file_handle["cell_z"] = cell_z
+            file_handle["cell_block_id"] = cell_block_id
+            file_handle["volume_id"] = volume_id
+            file_handle["volume_weight"] = volume_weight
+            file_handle["cell_weights"] = cell_weights
+            file_handle["cell_timeseries_raw"] = cell_timeseries
+            file_handle["cell_timeseries"] = cell_timeseries1
+            file_handle["cell_baseline"] = cell_baseline1
+            file_handle["background"] = background
 
     # clean up
     completion = 1
     for color_i in range(p.n_colors):
-        fullname_cells = os.path.join(p.dir_output, 'cells%s_clean'%(color_i))
-        if not os.path.isfile(fullname_cells+hdf):
+        fullname_cells = os.path.join(p.dir_output, "cells%s_clean" % (color_i))
+        if not os.path.isfile(fullname_cells + hdf):
             completion = 0
 
     if not p.save_volume:
         if completion:
             try:
-                shutil.rmtree(os.path.join(p.dir_output, 'cells'))
-                shutil.rmtree(os.path.join(p.dir_output, 'volumes'))
+                shutil.rmtree(os.path.join(p.dir_output, "cells"))
+                shutil.rmtree(os.path.join(p.dir_output, "volumes"))
             except:
                 pass

@@ -1,4 +1,4 @@
-'''initialization'''
+"""initialization"""
 
 from voluseg._steps.step0 import process_parameters as step0_process_parameters
 from voluseg._steps.step1 import process_volumes as step1_process_volumes

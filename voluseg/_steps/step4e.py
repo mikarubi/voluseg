@@ -1,5 +1,5 @@
 def collect_blocks(color_i, parameters):
-    '''collect cells across all blocks'''
+    """collect cells across all blocks"""
 
     import os
     import h5py
@@ -11,19 +11,20 @@ def collect_blocks(color_i, parameters):
     # set up spark
     import pyspark
     from pyspark.sql.session import SparkSession
+
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
-    dir_cell = os.path.join(p.dir_output, 'cells', str(color_i))
+    dir_cell = os.path.join(p.dir_output, "cells", str(color_i))
 
-    fullname_volmean = os.path.join(p.dir_output, 'volume%d'%(color_i))
-    with h5py.File(fullname_volmean+hdf, 'r') as file_handle:
-        block_valids = file_handle['block_valids'][()]
+    fullname_volmean = os.path.join(p.dir_output, "volume%d" % (color_i))
+    with h5py.File(fullname_volmean + hdf, "r") as file_handle:
+        block_valids = file_handle["block_valids"][()]
 
     class accum_data(pyspark.accumulators.AccumulatorParam):
-        '''define accumulator class'''
+        """define accumulator class"""
 
         def zero(self, val0):
             return [[]] * 4
@@ -43,18 +44,20 @@ def collect_blocks(color_i, parameters):
         cell_weights = []
         cell_timeseries = []
         try:
-            fullname_block = os.path.join(dir_cell, 'block%05d'%(ii))
-            with h5py.File(fullname_block+hdf, 'r') as file_handle:
-                for ci in range(file_handle['n_cells'][()]):
-                    cell_xyz.append(file_handle['/cell/%05d/xyz'%(ci)][()])
-                    cell_weights.append(file_handle['/cell/%05d/weights'%(ci)][()])
-                    cell_timeseries.append(file_handle['/cell/%05d/timeseries'%(ci)][()])
+            fullname_block = os.path.join(dir_cell, "block%05d" % (ii))
+            with h5py.File(fullname_block + hdf, "r") as file_handle:
+                for ci in range(file_handle["n_cells"][()]):
+                    cell_xyz.append(file_handle["/cell/%05d/xyz" % (ci)][()])
+                    cell_weights.append(file_handle["/cell/%05d/weights" % (ci)][()])
+                    cell_timeseries.append(
+                        file_handle["/cell/%05d/timeseries" % (ci)][()]
+                    )
                     cell_block_id.append(ii)
 
         except KeyError:
-            print('block %d is empty.'%ii)
+            print("block %d is empty." % ii)
         except IOError:
-            print('block %d does not exist.'%ii)
+            print("block %d does not exist." % ii)
 
         if p.parallel_clean:
             cell_data.add([cell_block_id, cell_xyz, cell_weights, cell_timeseries])
@@ -66,8 +69,10 @@ def collect_blocks(color_i, parameters):
         cell_block_id, cell_xyz, cell_weights, cell_timeseries = cell_data.value
     else:
         idx_block_valids = np.argwhere(block_valids).T[0]
-        valids_tuple = zip([[]]*len(idx_block_valids), idx_block_valids)
-        cell_block_id, cell_xyz, cell_weights, cell_timeseries = list(zip(*map(add_data, valids_tuple)))
+        valids_tuple = zip([[]] * len(idx_block_valids), idx_block_valids)
+        cell_block_id, cell_xyz, cell_weights, cell_timeseries = list(
+            zip(*map(add_data, valids_tuple))
+        )
         cell_block_id = [ii for bi in cell_block_id for ii in bi]
         cell_xyz = [xyzi for ci in cell_xyz for xyzi in ci]
         cell_weights = [wi for ci in cell_weights for wi in ci]
@@ -84,4 +89,10 @@ def collect_blocks(color_i, parameters):
         cell_weights_array[ci, :li] = cell_weights[ci]
     cell_timeseries_array = np.array(cell_timeseries)
 
-    return cell_block_id, cell_xyz_array, cell_weights_array, cell_timeseries_array, cell_lengths
+    return (
+        cell_block_id,
+        cell_xyz_array,
+        cell_weights_array,
+        cell_timeseries_array,
+        cell_lengths,
+    )

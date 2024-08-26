@@ -1,18 +1,18 @@
 def sparseness_projection(Si, s, at_least_as_sparse=False):
-    '''Hoyer sparseness projection'''
+    """Hoyer sparseness projection"""
 
     import numpy as np
 
-    assert(Si.ndim == 1)
-    S = np.copy(Si)                                           # copy input signal
+    assert Si.ndim == 1
+    S = np.copy(Si)  # copy input signal
 
     if s <= 0:
-        return np.maximum(S, 0)                               # enforce nonnegativity
+        return np.maximum(S, 0)  # enforce nonnegativity
 
     d = S.size
 
-    L2 = np.sqrt(np.sum(np.square(S)))                        # fixed l2-norm
-    L1 = L2 * (np.sqrt(d) * (1 - s) + s)                      # desired l1-norm
+    L2 = np.sqrt(np.sum(np.square(S)))  # fixed l2-norm
+    L1 = L2 * (np.sqrt(d) * (1 - s) + s)  # desired l1-norm
 
     # quit if at_least_sparse=True and original exceeds target sparseness
     if at_least_as_sparse:
@@ -42,9 +42,9 @@ def sparseness_projection(Si, s, at_least_as_sparse=False):
         # For convenience, we square both sides and find the roots,
         # 0 = (l2[P*Alph + M])^2 - (L2)^2
         # 0 = sum((P*Alph)^2) + sum(2*P*M*Alph) + sum(M^2) - L2^2
-        A =     np.sum(P * P)
+        A = np.sum(P * P)
         B = 2 * np.sum(P * M)
-        C =     np.sum(M * M) - L2**2
+        C = np.sum(M * M) - L2**2
 
         Alph = (-B + np.real(np.sqrt(B**2 - 4 * A * C))) / (2 * A)
 
