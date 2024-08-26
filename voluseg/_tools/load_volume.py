@@ -1,24 +1,36 @@
-def load_volume(fullname_ext):
-    """load volume based on input name and extension"""
+import h5py
+import nibabel
+import numpy as np
+from typing import Union
+try:
+    from skimage.external import tifffile
+except:
+    import tifffile
+try:
+    import PIL
+    import pyklb
+except:
+    pass
+from voluseg._tools.constants import dtype
 
-    import h5py
-    import nibabel
-    import numpy as np
 
-    try:
-        from skimage.external import tifffile
-    except:
-        import tifffile
-    try:
-        import PIL
-        import pyklb
-    except:
-        pass
-    from voluseg._tools.constants import dtype
+def load_volume(fullname_ext: str) -> Union[np.ndarray, None]:
+    """
+    Load volume based on input name and extension.
+    Supports tiff, hdf5, klb, and nifti formats.
 
+    Parameters
+    ----------
+    fullname_ext : str
+        Full name of volume with extension.
+
+    Returns
+    -------
+    np.ndarray or None
+        Volume as numpy array, or None if volume could not be loaded.
+    """
     try:
         ext = "." + fullname_ext.split(".", 1)[1]
-
         if (".tif" in ext) or (".tiff" in ext):
             try:
                 volume = tifffile.imread(fullname_ext)
@@ -39,7 +51,6 @@ def load_volume(fullname_ext):
             volume = nibabel.load(fullname_ext).get_fdata()
         else:
             raise Exception("unknown extension.")
-
         return volume.astype(dtype)
 
     except:

@@ -23,9 +23,20 @@ from voluseg._tools.clean_signal import clean_signal
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def mask_volumes(parameters):
+def mask_volumes(parameters) -> None:
     """
     Create intensity mask from the average registered volume.
+    Produces figures with masks and histograms.
+    Produces `mean_timeseries.hdf5` and `volume0.hdf5` files.
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    None
     """
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
