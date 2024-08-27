@@ -1,8 +1,9 @@
 def evenly_parallelize(input_list):
-    '''return evenly partitioned spark resilient distributed dataset (RDD)'''
+    """return evenly partitioned spark resilient distributed dataset (RDD)"""
 
     import numpy as np
     from pyspark.sql.session import SparkSession
+
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
 
