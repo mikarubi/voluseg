@@ -15,7 +15,7 @@ def define_blocks(
     ly: int,
     lz: int,
     n_cells_block: int,
-    n_voxels_cell: float,
+    n_voxels_cell: int,
     volume_mask: np.ndarray,
     volume_peak: np.ndarray,
 ) -> Tuple[int, bool, np.ndarray, np.ndarray]:
@@ -32,7 +32,7 @@ def define_blocks(
         Number of voxels in z-dimension.
     n_cells_block : int
         Number of cells in each block.
-    n_voxels_cell : float
+    n_voxels_cell : int
         Number of voxels in each cell.
     volume_mask : np.ndarray
         Volume mask.
