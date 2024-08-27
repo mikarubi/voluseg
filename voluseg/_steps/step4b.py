@@ -1,34 +1,65 @@
+import os
+from typing import Tuple
+
+# disable numpy multithreading
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+import numpy as np
+
+import h5py
+import time
+from scipy import interpolate
+from skimage import morphology
+from types import SimpleNamespace
+from voluseg._tools.constants import ali, hdf, dtype
+
+
 def process_block_data(
-    xyz0,
-    xyz1,
-    parameters,
-    color_i,
-    lxyz,
-    rxyz,
-    ball_diam,
-    bvolume_mean,
-    bvolume_peak,
-    timepoints,
-):
-    """load timeseries in individual blocks, slice-time correct, and find similar timeseries"""
+    xyz0: Tuple[int, int, int],
+    xyz1: Tuple[int, int, int],
+    parameters: dict,
+    color_i: int,
+    lxyz: Tuple[int, int, int],
+    rxyz: Tuple[float, float, float],
+    ball_diam: np.ndarray,
+    bvolume_mean: h5py.Dataset,
+    bvolume_peak: h5py.Dataset,
+    timepoints: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Load timeseries in individual blocks, slice-time correct, and find similar timeseries.
 
-    import os
+    Parameters
+    ----------
+    xyz0 : Tuple[int, int, int]
+        Start coordinates of block.
+    xyz1 : Tuple[int, int, int]
+        End coordinates of block.
+    parameters : dict
+        Parameters dictionary.
+    color_i : int
+        Color index.
+    lxyz : Tuple[int, int, int]
+        Number of voxels in x, y, and z dimensions.
+    rxyz : Tuple[float, float, float]
+        TODO - add description
+    ball_diam : np.ndarray
+        TODO - add description
+    bvolume_mean : h5py.Dataset
+        TODO - add description
+    bvolume_peak : h5py.Dataset
+        TODO - add description
+    timepoints : np.ndarray
+        TODO - add description
 
-    # disable numpy multithreading
-    os.environ["OMP_NUM_THREADS"] = "1"
-    os.environ["MKL_NUM_THREADS"] = "1"
-    os.environ["NUMEXPR_NUM_THREADS"] = "1"
-    os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-    import numpy as np
-
-    import h5py
-    import time
-    from scipy import interpolate
-    from skimage import morphology
-    from types import SimpleNamespace
-    from voluseg._tools.constants import ali, hdf, dtype
-
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        Tuple containing: Voxel coordinates, timeseries, peak indices, and similarity matrix of peaks.
+    """
     p = SimpleNamespace(**parameters)
     lz = lxyz[2]
 
