@@ -1,31 +1,67 @@
+import os
+from typing import Tuple
+
+# disable numpy multithreading
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+import numpy as np
+
+from sklearn import cluster
+from voluseg._tools.sparseness import sparseness
+
+
 def initialize_block_cells(
-    n_voxels_cell,
-    n_voxels_block,
-    n_cells,
-    voxel_xyz,
-    voxel_timeseries,
-    peak_idx,
-    peak_valids,
-    voxel_similarity_peak,
-    lxyz,
-    rxyz,
-    ball_diam,
-    ball_diam_xyz0,
-):
-    """initialize cell positions in individual blocks"""
+    n_voxels_cell: int,
+    n_voxels_block: int,
+    n_cells: int,
+    voxel_xyz: np.ndarray,
+    voxel_timeseries: np.ndarray,
+    peak_idx: np.ndarray,
+    peak_valids: np.ndarray,
+    voxel_similarity_peak: np.ndarray,
+    lxyz: Tuple[int, int, int],
+    rxyz: Tuple[float, float, float],
+    ball_diam: np.ndarray,
+    ball_diam_xyz0: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Initialize cell positions in individual blocks.
 
-    import os
+    Parameters
+    ----------
+    n_voxels_cell : int
+        Number of voxels in each cell.
+    n_voxels_block : int
+        Number of voxels in block.
+    n_cells : int
+        Number of cells.
+    voxel_xyz : np.ndarray
+        Voxel coordinates.
+    voxel_timeseries : np.ndarray
+        Voxel timeseries.
+    peak_idx : np.ndarray
+        Peak indices.
+    peak_valids : np.ndarray
+        TODO - add description
+    voxel_similarity_peak : np.ndarray
+        TODO - add description
+    lxyz : Tuple[int, int, int]
+        Number of voxels in x, y, and z dimensions.
+    rxyz : Tuple[float, float, float]
+        TODO - add description - THIS DOES NOT SEEM TO BE USED
+    ball_diam : np.ndarray
+        TODO - add description
+    ball_diam_xyz0 : np.ndarray
+        TODO - add description
 
-    # disable numpy multithreading
-    os.environ["OMP_NUM_THREADS"] = "1"
-    os.environ["MKL_NUM_THREADS"] = "1"
-    os.environ["NUMEXPR_NUM_THREADS"] = "1"
-    os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-    import numpy as np
-
-    from sklearn import cluster
-    from voluseg._tools.sparseness import sparseness
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        TODO - add description
+    """
 
     # get valid voxels of peaks
     peak_idx_valid = peak_idx[peak_valids]
