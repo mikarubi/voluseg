@@ -148,8 +148,12 @@ def process_parameters(parameters0: dict) -> None:
         if not acquisition_name:
             raise Exception("nwb_input_acquisition_name is required to read nwb file")
         volume_fullnames_input = [parameters.get("nwb_input_local_path")]
-        volume_names = [parameters.get("nwb_input_local_path").split("/")[-1].split(".nwb")[0]]
-        with open_nwbfile_local(file_path=parameters["nwb_input_local_path"]) as nwbfile:
+        volume_names = [
+            parameters.get("nwb_input_local_path").split("/")[-1].split(".nwb")[0]
+        ]
+        with open_nwbfile_local(
+            file_path=parameters["nwb_input_local_path"]
+        ) as nwbfile:
             lt = nwbfile.acquisition[acquisition_name].data.shape[0]
             if parameters["timepoints"]:
                 lt = min(lt, parameters["timepoints"])

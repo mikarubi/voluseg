@@ -23,7 +23,7 @@ def open_nwbfile_local(file_path: str):
     pynwb.NWBFile
         The opened NWB file.
     """
-    io = pynwb.NWBHDF5IO(file_path, 'r')
+    io = pynwb.NWBHDF5IO(file_path, "r")
     try:
         nwbfile = io.read()
         yield nwbfile
@@ -86,14 +86,16 @@ def h5_dir_to_nwb_file(
     if max_volumes is None:
         max_volumes = len(sorted_paths)
     for p in sorted_paths[:max_volumes]:
-        with h5py.File(p, 'r') as hdf:
-            dataset = hdf['default'][:]
+        with h5py.File(p, "r") as hdf:
+            dataset = hdf["default"][:]
             datasets.append(dataset)
     concatenated_dataset = np.concatenate(datasets, axis=0)
     nwbfile = pynwb.NWBFile(
         session_description="description",
         identifier=str(uuid4()),
-        session_start_time=datetime(2018, 4, 25, 2, 30, 3, tzinfo=tz.gettz("US/Pacific")),
+        session_start_time=datetime(
+            2018, 4, 25, 2, 30, 3, tzinfo=tz.gettz("US/Pacific")
+        ),
     )
     device = nwbfile.create_device(
         name="Microscope",

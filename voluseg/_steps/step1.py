@@ -127,7 +127,8 @@ def process_volumes(parameters: dict) -> None:
                         volume_index=tuple_fullname_volume_input[1],
                     )
                 make_output_volume(
-                    name_volume=p.volume_names[0] + f"_{tuple_fullname_volume_input[1]}",
+                    name_volume=p.volume_names[0]
+                    + f"_{tuple_fullname_volume_input[1]}",
                     volume=volume,
                 )
             else:
@@ -136,7 +137,9 @@ def process_volumes(parameters: dict) -> None:
                 if len(p.input_dirs) == 1:
                     dir_prefix = None
                 else:
-                    dir_prefix = os.path.basename(os.path.split(fullname_volume_input)[0])
+                    dir_prefix = os.path.basename(
+                        os.path.split(fullname_volume_input)[0]
+                    )
 
                 # process output volumes
                 if p.planes_packed:
