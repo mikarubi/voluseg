@@ -1,7 +1,28 @@
-def sparseness_projection(Si, s, at_least_as_sparse=False):
-    """Hoyer sparseness projection"""
+import numpy as np
 
-    import numpy as np
+
+def sparseness_projection(
+    Si: np.ndarray,
+    s: float,
+    at_least_as_sparse:bool=False,
+) -> np.ndarray:
+    """
+    Hoyer sparseness projection.
+
+    Parameters
+    ----------
+    Si : np.ndarray
+        Input signal.
+    s : float
+        Sparseness parameter.
+    at_least_as_sparse : bool, optional
+        Enforce at least as sparse, by default False.
+
+    Returns
+    -------
+    np.ndarray
+        Sparse signal.
+    """
 
     assert Si.ndim == 1
     S = np.copy(Si)  # copy input signal
