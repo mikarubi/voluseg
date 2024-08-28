@@ -21,12 +21,12 @@ def nnmf_sparse(
     W0: np.ndarray,
     B0: np.ndarray,
     S0: np.ndarray,
-    tolfun: float=1e-4,
-    miniter: int=10,
-    maxiter: int=100,
+    tolfun: float = 1e-4,
+    miniter: int = 10,
+    maxiter: int = 100,
     timeseries_mean=1.0,
-    timepoints: np.ndarray=None,
-    verbosity: bool=True,
+    timepoints: np.ndarray = None,
+    verbosity: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray, float]:
     """
     Cell detection via nonnegative matrix factorization with sparseness projection.
