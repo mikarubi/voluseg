@@ -1,22 +1,40 @@
-def clean_signal(parameters, timeseries):
-    """detrend, filter, and estimate dynamic baseline for input timeseries"""
+import os
+from typing import Tuple
 
-    import os
+# disable numpy multithreading
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+import numpy as np
 
-    # disable numpy multithreading
-    os.environ["OMP_NUM_THREADS"] = "1"
-    os.environ["MKL_NUM_THREADS"] = "1"
-    os.environ["NUMEXPR_NUM_THREADS"] = "1"
-    os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-    import numpy as np
+import pandas as pd
+from scipy import signal
+from scipy.stats.mstats import winsorize
+from voluseg._tools.constants import dtype
+from types import SimpleNamespace
 
-    import pandas as pd
-    from scipy import signal
-    from scipy.stats.mstats import winsorize
-    from voluseg._tools.constants import dtype
-    from types import SimpleNamespace
 
+def clean_signal(
+    parameters: dict,
+    timeseries: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Detrend, filter, and estimate dynamic baseline for input timeseries.
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+    timeseries : np.ndarray
+        Input timeseries.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        TODO - add description
+    """
     p = SimpleNamespace(**parameters)
 
     # p.t_baseline:  timescale constant for baseline estimation (in seconds)
