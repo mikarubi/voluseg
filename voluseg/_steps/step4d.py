@@ -1,40 +1,66 @@
+import os
+from typing import Tuple
+
+# disable numpy multithreading
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+import numpy as np
+
+from scipy import stats
+from scipy import linalg
+from skimage import measure
+from voluseg._tools.sparseness_projection import sparseness_projection
+
+
 def nnmf_sparse(
-    V0,
-    XYZ0,
-    W0,
-    B0,
-    S0,
-    tolfun=1e-4,
-    miniter=10,
-    maxiter=100,
+    V0: np.ndarray,
+    XYZ0: np.ndarray,
+    W0: np.ndarray,
+    B0: np.ndarray,
+    S0: np.ndarray,
+    tolfun: float=1e-4,
+    miniter: int=10,
+    maxiter: int=100,
     timeseries_mean=1.0,
-    timepoints=None,
-    verbosity=1,
-):
+    timepoints: np.ndarray=None,
+    verbosity: bool=True,
+) -> Tuple[np.ndarray, np.ndarray, float]:
     """
-    cell detection via nonnegative matrix factorization with sparseness projection
-    V0 = voxel_timeseries_valid
-    XYZ0 = voxel_xyz_valid
-    W0 = cell_weight_init_valid
-    B0 = cell_neighborhood_valid
-    S0 = cell_sparseness
+    Cell detection via nonnegative matrix factorization with sparseness projection.
+
+    Parameters
+    ----------
+    V0 : np.ndarray
+        Voxel timeseries (voxel_timeseries_valid).
+    XYZ0 : np.ndarray
+        Voxel coordinates (voxel_xyz_valid).
+    W0 : np.ndarray
+        Initial cell weights (cell_weight_init_valid).
+    B0 : np.ndarray
+        Cell neighborhood (cell_neighborhood_valid).
+    S0 : np.ndarray
+        Cell sparseness (cell_sparseness).
+    tolfun : float, optional
+        Tolerance for convergence, by default 1e-4.
+    miniter : int, optional
+        Minimum number of iterations, by default 10.
+    maxiter : int, optional
+        Maximum number of iterations, by default 100.
+    timeseries_mean : float, optional
+        Mean timeseries value, by default 1.0.
+    timepoints : np.ndarray, optional
+        Timepoints to use, by default None.
+    verbosity : bool, optional
+        Print progress, by default True.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray, float]
+        TODO - add description
     """
-
-    import os
-
-    # disable numpy multithreading
-    os.environ["OMP_NUM_THREADS"] = "1"
-    os.environ["MKL_NUM_THREADS"] = "1"
-    os.environ["NUMEXPR_NUM_THREADS"] = "1"
-    os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-    import numpy as np
-
-    from scipy import stats
-    from scipy import linalg
-    from skimage import measure
-    from voluseg._tools.sparseness_projection import sparseness_projection
-
     # CAUTION: variable is modified in-place to save memory
     V0 *= timeseries_mean / V0.mean(1)[:, None]  # normalize voxel timeseries
 
