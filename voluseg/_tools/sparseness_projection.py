@@ -4,7 +4,7 @@ import numpy as np
 def sparseness_projection(
     Si: np.ndarray,
     s: float,
-    at_least_as_sparse:bool=False,
+    at_least_as_sparse: bool = False,
 ) -> np.ndarray:
     """
     Hoyer sparseness projection.
