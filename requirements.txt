@@ -4,6 +4,7 @@ scikit-image
 scikit-learn
 matplotlib
 nibabel
+requests
 numpy>=1.13
 pandas>=0.2
-requests==2.32.3
+pyspark==3.4.0
