@@ -53,11 +53,11 @@ def initialize_block_cells(
     lxyz : Tuple[int, int, int]
         Number of voxels in x, y, and z dimensions.
     rxyz : Tuple[float, float, float]
-        TODO - add description - THIS DOES NOT SEEM TO BE USED
+        Resolution of x, y, z dimensions.
     ball_diam : np.ndarray
-        TODO - add description
+        Diameter of a sphere that may defines a cell boundary.
     ball_diam_xyz0 : np.ndarray
-        TODO - add description
+        Midpoint of the sphere.
 
     Returns
     -------

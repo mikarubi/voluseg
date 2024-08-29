@@ -59,7 +59,7 @@ def nnmf_sparse(
     Returns
     -------
     Tuple[np.ndarray, np.ndarray, float]
-        TODO - add description
+        Tuple containing: Spatial footprint, temporal footprint, convergence error.
     """
     # CAUTION: variable is modified in-place to save memory
     V0 *= timeseries_mean / V0.mean(1)[:, None]  # normalize voxel timeseries
