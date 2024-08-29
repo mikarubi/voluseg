@@ -1,10 +1,9 @@
 import os
-import pprint
 import voluseg
+from voluseg._tools import download_sample_data
 import pytest
 from pathlib import Path
-
-from voluseg._tools import download_sample_data
+import numpy as np
 
 
 @pytest.fixture
@@ -42,9 +41,19 @@ def test_load_parameters(setup_parameters):
         assert key in setup_parameters, f"Key '{key}' is missing in setup_parameters"
         assert key in file_parameters, f"Key '{key}' is missing in file_parameters"
         if key in setup_parameters and key in file_parameters:
-            assert (
-                setup_parameters[key] == file_parameters[key]
-            ), f"Value differs for key '{key}': setup_parameters has {setup_parameters[key]}, file_parameters has {file_parameters[key]}"
+            value_setup = setup_parameters[key]
+            value_file = file_parameters[key]
+
+            if isinstance(value_setup, np.ndarray) and isinstance(value_file, np.ndarray):
+                assert np.array_equal(value_setup, value_file), (
+                    f"Value differs for key '{key}': "
+                    f"setup_parameters has {value_setup}, file_parameters has {value_file}"
+                )
+            else:
+                assert value_setup == value_file, (
+                    f"Value differs for key '{key}': "
+                    f"setup_parameters has {value_setup}, file_parameters has {value_file}"
+                )
 
 
 def test_voluseg_pipeline_h5_dir(setup_parameters):
