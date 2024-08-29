@@ -30,6 +30,7 @@ def setup_parameters(tmp_path):
     return parameters
 
 
+@pytest.mark.order(1)
 def test_load_parameters(setup_parameters):
     # Load parameters
     file_path = str(Path(setup_parameters["dir_output"]) / "parameters.pickle")
@@ -56,7 +57,8 @@ def test_load_parameters(setup_parameters):
                 )
 
 
-def test_voluseg_pipeline_h5_dir(setup_parameters):
+@pytest.mark.order(2)
+def test_voluseg_h5_dir_step_1(setup_parameters):
     # Test step 1 - process volumes
     print("Process volumes.")
     voluseg.step1_process_volumes(setup_parameters)
@@ -73,9 +75,20 @@ def test_voluseg_pipeline_h5_dir(setup_parameters):
         n_files_input == n_files_output
     ), f"Number of input files ({n_files_input}) does not match number of output files ({n_files_output})"
 
+
+@pytest.mark.order(3)
+def test_voluseg_h5_dir_step_2(setup_parameters):
     # Test step 2 - align volumes
     print("Align volumes.")
     voluseg.step2_align_volumes(setup_parameters)
+    n_files_output = len(
+        [
+            p
+            for p in (Path(setup_parameters["dir_output"]) / "volumes/0/").glob(
+                "*.nii.gz"
+            )
+        ]
+    )
     n_files_transform = len(
         [
             p
@@ -88,6 +101,9 @@ def test_voluseg_pipeline_h5_dir(setup_parameters):
         n_files_output == n_files_transform
     ), f"Number of output files ({n_files_output}) does not match number of transform files ({n_files_transform})"
 
+
+@pytest.mark.order(4)
+def test_voluseg_h5_dir_step_3(setup_parameters):
     # Test step 3 - mask volumes
     print("Mask volumes.")
     voluseg.step3_mask_volumes(setup_parameters)
