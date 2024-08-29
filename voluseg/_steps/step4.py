@@ -16,7 +16,7 @@ from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 def detect_cells(parameters: dict) -> None:
     """
-    Detect cells in volumes.
+    Detect cells in volumetric blocks.
 
     Parameters
     ----------

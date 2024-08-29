@@ -23,7 +23,7 @@ from voluseg._tools.clean_signal import clean_signal
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def mask_volumes(parameters) -> None:
+def mask_volumes(parameters: dict) -> None:
     """
     Create intensity mask from the average registered volume.
     Produces figures with masks and histograms.

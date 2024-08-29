@@ -11,7 +11,8 @@ def save_volume(
     affine_mat: np.ndarray = None,
 ) -> Union[bool, None]:
     """
-    Save volume in hdf5 or nifti format.
+    Save volume in output format.
+    Formats currently accepted are: nifti and hdf5.
 
     Parameters
     ----------

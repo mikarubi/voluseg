@@ -37,7 +37,7 @@ def define_blocks(
     volume_mask : np.ndarray
         Volume mask.
     volume_peak : np.ndarray
-        Volume peak.
+        Volume local intensity maxima (peaks).
 
     Returns
     -------

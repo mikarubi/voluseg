@@ -45,9 +45,11 @@ def initialize_block_cells(
     peak_idx : np.ndarray
         Peak indices.
     peak_valids : np.ndarray
-        TODO - add description
+        Valid local-intensity maxima (used to determine number of cells).
     voxel_similarity_peak : np.ndarray
-        TODO - add description
+        Similarity between voxels: defined by the combination of spatial proximity
+        and temporal similarity (the voxels are neighbors of each other and also
+        correlated with each other).
     lxyz : Tuple[int, int, int]
         Number of voxels in x, y, and z dimensions.
     rxyz : Tuple[float, float, float]

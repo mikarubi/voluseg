@@ -10,7 +10,7 @@ def ants_transformation(
     interpolation="Linear",
 ) -> str:
     """
-    Application of ANTs transform..
+    Application of ANTs transform.
 
     Parameters
     ----------

@@ -14,9 +14,8 @@ from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 def align_volumes(parameters: dict) -> None:
     """
-    Register volumes to a single middle volume.
-    Updates volumes files (nifti) in place.
-    Generates transforms files (mat) if needed.
+    Register volumes to a reference volume.
+    Generates ANTs transforms files (.mat).
 
     Parameters
     ----------

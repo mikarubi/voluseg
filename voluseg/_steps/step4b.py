@@ -45,15 +45,15 @@ def process_block_data(
     lxyz : Tuple[int, int, int]
         Number of voxels in x, y, and z dimensions.
     rxyz : Tuple[float, float, float]
-        TODO - add description
+        The resolution of x, y, and z dimensions.
     ball_diam : np.ndarray
-        TODO - add description
+        The diameter of a cell-area sphere.
     bvolume_mean : h5py.Dataset
-        TODO - add description
+        Spark broadcast variable: volume mean.
     bvolume_peak : h5py.Dataset
-        TODO - add description
+        Spark broadcast variable: local intensity maximum volume (peak).
     timepoints : np.ndarray
-        TODO - add description
+        Timepoints at which segmentation will be performed.
 
     Returns
     -------
