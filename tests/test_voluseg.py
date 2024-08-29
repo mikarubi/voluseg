@@ -25,7 +25,7 @@ def setup_parameters(tmp_path):
     parameters["f_volume"] = 2.0
 
     # Save parameters
-    voluseg.step0_process_parameters(parameters)
+    parameters = voluseg.step0_process_parameters(parameters)
 
     # Return parameters for further use in tests
     return parameters
@@ -33,7 +33,7 @@ def setup_parameters(tmp_path):
 
 def test_load_parameters(setup_parameters):
     # Load parameters
-    file_path = str(Path(setup_parameters["dir_output"] / "parameters.pickle"))
+    file_path = str(Path(setup_parameters["dir_output"]) / "parameters.pickle")
     file_parameters = voluseg.load_parameters(file_path)
 
     all_keys = set(setup_parameters.keys()).union(set(file_parameters.keys()))
@@ -48,7 +48,6 @@ def test_load_parameters(setup_parameters):
 
 
 def test_voluseg_pipeline_h5_dir(setup_parameters):
-
     # Test step 1 - process volumes
     print("Process volumes.")
     voluseg.step1_process_volumes(setup_parameters)
