@@ -85,7 +85,7 @@ def test_voluseg_h5_dir_step_2(setup_parameters):
         [
             p
             for p in (Path(setup_parameters["dir_output"]) / "volumes/0/").glob(
-                "*.nii.gz"
+                "*.hdf5"
             )
         ]
     )
