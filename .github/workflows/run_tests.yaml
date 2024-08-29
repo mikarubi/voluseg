@@ -66,7 +66,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest --cov=voluseg --cov-report=term-missing
+          pytest --cov=voluseg --cov-report=term-missing -s -v --tb=short
 
       - name: Upload coverage report
         if: success()

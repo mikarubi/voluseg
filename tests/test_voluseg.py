@@ -6,8 +6,14 @@ from pathlib import Path
 import numpy as np
 
 
-@pytest.fixture
-def setup_parameters(tmp_path):
+# # To run tests locally, set these environment variables:
+# os.environ["GITHUB_ACTIONS"] = "false"
+# os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
+# os.environ["SAMPLE_DATA_PATH"] = "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
+
+
+@pytest.fixture(scope="module")
+def setup_parameters(tmp_path_factory):
     # Define parameters and paths
     parameters = voluseg.parameter_dictionary()
 
@@ -15,10 +21,15 @@ def setup_parameters(tmp_path):
     if os.environ.get("GITHUB_ACTIONS") == "true":
         data_path = download_sample_data()
     else:
-        data_path = "/change_path_to/sample_data"
+        data_path = os.environ.get("SAMPLE_DATA_PATH")
     parameters["dir_input"] = data_path
     parameters["dir_ants"] = os.environ.get("ANTS_PATH")
-    parameters["dir_output"] = str(tmp_path)  # Use pytest's tmp_path fixture for output
+
+    # Use pytest's tmp_path_factory fixture for output
+    tmp_dir = str(tmp_path_factory.mktemp("output"))
+    parameters["dir_output"] = tmp_dir
+
+    # Other parameters
     parameters["registration"] = "high"
     parameters["diam_cell"] = 5.0
     parameters["f_volume"] = 2.0
@@ -108,10 +119,10 @@ def test_voluseg_h5_dir_step_3(setup_parameters):
     print("Mask volumes.")
     voluseg.step3_mask_volumes(setup_parameters)
     assert (
-        Path(setup_parameters["dir_output"]) / "masks_plots/0/histogram.png"
+        Path(setup_parameters["dir_output"]) / "mask_plots/0/histogram.png"
     ).exists(), "Histogram plot does not exist"
     assert (
-        Path(setup_parameters["dir_output"]) / "masks_plots/0/mask_z000.png"
+        Path(setup_parameters["dir_output"]) / "mask_plots/0/mask_z000.png"
     ).exists(), "Mask plot does not exist"
 
     # print("Detect cells.")
