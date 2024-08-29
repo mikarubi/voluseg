@@ -125,8 +125,16 @@ def test_voluseg_h5_dir_step_3(setup_parameters):
         Path(setup_parameters["dir_output"]) / "mask_plots/0/mask_z000.png"
     ).exists(), "Mask plot does not exist"
 
-    # print("Detect cells.")
-    # voluseg.step4_detect_cells(setup_parameters)
 
-    # print("Clean cells.")
-    # voluseg.step5_clean_cells(setup_parameters)
+@pytest.mark.order(5)
+def test_voluseg_h5_dir_step_4(setup_parameters):
+    print("Detect cells.")
+    voluseg.step4_detect_cells(setup_parameters)
+    # TODO - add asserts
+
+
+@pytest.mark.order(6)
+def test_voluseg_h5_dir_step_5(setup_parameters):
+    print("Clean cells.")
+    voluseg.step5_clean_cells(setup_parameters)
+    # TODO - add asserts
