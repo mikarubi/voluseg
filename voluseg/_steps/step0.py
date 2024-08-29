@@ -9,7 +9,7 @@ from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def process_parameters(initial_parameters: dict) -> None:
+def process_parameters(initial_parameters: dict) -> dict:
     """
     Process parameters and create parameter file (pickle).
 
@@ -20,7 +20,8 @@ def process_parameters(initial_parameters: dict) -> None:
 
     Returns
     -------
-    None
+    dict
+        Processed parameters dictionary.
     """
     parameters = copy.deepcopy(initial_parameters)
 
@@ -241,3 +242,5 @@ def process_parameters(initial_parameters: dict) -> None:
 
     except Exception as msg:
         print("parameter file not saved: %s." % (msg))
+
+    return parameters
