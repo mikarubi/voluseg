@@ -64,6 +64,9 @@ jobs:
           pip install -r requirements.txt --no-cache-dir
           pip install . --no-cache-dir
 
+      - name: Clear previous coverage data
+        run: coverage erase
+
       - name: Run tests with pytest
         run: |
           pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
