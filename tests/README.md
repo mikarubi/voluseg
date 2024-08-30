@@ -3,5 +3,5 @@
 Run tests locally with `pytest`:
 
 ```bash
-pytest -s
+pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
 ```

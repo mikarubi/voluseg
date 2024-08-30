@@ -66,11 +66,9 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest --cov=voluseg --cov-report=term-missing -s -v --tb=short
+          pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
 
-      - name: Upload coverage report
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: htmlcov/
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
