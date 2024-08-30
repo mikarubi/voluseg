@@ -30,7 +30,7 @@ def setup_parameters(tmp_path_factory):
 
     # Use pytest's tmp_path_factory fixture for output
     tmp_dir = str(tmp_path_factory.mktemp("output"))
-    parameters["dir_output"] = tmp_dir
+    parameters["dir_output"] = data_path + "/output"
 
     # Other parameters
     parameters["registration"] = "high"
