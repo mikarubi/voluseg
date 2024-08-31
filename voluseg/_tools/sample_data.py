@@ -2,9 +2,10 @@ import requests
 import zipfile
 import os
 from pathlib import Path
+from typing import Union
 
 
-def download_sample_data(destination_folder: str = ".") -> None:
+def download_sample_data(destination_folder: str = ".") -> Union[str, None]:
     """
     Download sample data for Voluseg.
 
@@ -16,7 +17,8 @@ def download_sample_data(destination_folder: str = ".") -> None:
 
     Returns
     -------
-    None
+    str or None
+        Path to the folder where the data was extracted, or None if the download failed.
     """
     # Download the ZIP file
     download_url = "https://drive.usercontent.google.com/download"
@@ -47,6 +49,7 @@ def download_sample_data(destination_folder: str = ".") -> None:
         # Remove the ZIP file
         os.remove(filename)
         print(f"Removed the ZIP file: {filename}")
-
+        return extract_folder
     else:
         print(f"Failed to download file. Status code: {response.status_code}")
+        return None
