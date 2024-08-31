@@ -22,7 +22,7 @@ Contact: Mika Rubinov, `mika.rubinov at vanderbilt.edu`
 
 # example usage
 
-- Download an example dataset folder: 
+- Download an example dataset folder:
 
 	https://www.dropbox.com/sh/psrj9lusohj7epu/AAAbj8Jbb3o__pyKTTDxPvIKa?dl=0
 
@@ -47,10 +47,13 @@ import voluseg
 # check for updates
 voluseg.update()
 
+# Download sample data
+voluseg._tools.download_sample_data("/path/to/input/")
+
 # set and save parameters
 parameters0 = voluseg.parameter_dictionary()
 parameters0['dir_ants'] = '/path/to/ants/bin/'
-parameters0['dir_input'] = '/path/to/input/volumes/'
+parameters0['dir_input'] = '/path/to/input/downloaded_data/'
 parameters0['dir_output'] = '/path/to/output/directory/'
 parameters0['registration'] = 'high'
 parameters0['diam_cell'] = 5.0
