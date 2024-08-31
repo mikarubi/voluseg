@@ -4,7 +4,7 @@ import numpy as np
 def sparseness(
     W: np.ndarray,
     dim: int = 0,
-):
+) -> np.ndarray:
     """
     Vector sparseness along specified dimension.
 
