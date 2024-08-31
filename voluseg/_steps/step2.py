@@ -1,22 +1,34 @@
-def align_volumes(parameters):
-    """register volumes to a single middle volume"""
+import os
+import h5py
+import shutil
+import numpy as np
+from scipy import io
+from types import SimpleNamespace
+from voluseg._tools.load_volume import load_volume
+from voluseg._tools.save_volume import save_volume
+from voluseg._tools.constants import ori, ali, nii, hdf, dtype
+from voluseg._tools.ants_registration import ants_registration
+from voluseg._tools.ants_transformation import ants_transformation
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 
+
+def align_volumes(parameters: dict) -> None:
+    """
+    Register volumes to a reference volume.
+    Generates ANTs transforms files (.mat).
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    None
+    """
     # do not run if registration is set to none
     if not parameters["registration"]:
         return
-
-    import os
-    import h5py
-    import shutil
-    import numpy as np
-    from scipy import io
-    from types import SimpleNamespace
-    from voluseg._tools.load_volume import load_volume
-    from voluseg._tools.save_volume import save_volume
-    from voluseg._tools.constants import ori, ali, nii, hdf, dtype
-    from voluseg._tools.ants_registration import ants_registration
-    from voluseg._tools.ants_transformation import ants_transformation
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
 
     p = SimpleNamespace(**parameters)
 

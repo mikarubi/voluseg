@@ -1,9 +1,29 @@
-def load_metadata(parameters, filename_channel, filename_stack):
-    """fetch z-resolution, exposure time, and stack frequency"""
+import numpy as np
+from xml.etree import ElementTree
 
-    import numpy as np
-    from xml.etree import ElementTree
 
+def load_metadata(
+    parameters: dict,
+    filename_channel: str,
+    filename_stack: str,
+) -> dict:
+    """
+    Fetch z-resolution, exposure time, and stack frequency.
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+    filename_channel : str
+        Filename XML file containing channel information.
+    filename_stack : str
+        Filename of XML file containing stack information.
+
+    Returns
+    -------
+    dict
+        Parameters dictionary.
+    """
     #    try:
     with open(filename_channel, "r") as file_handle:
         xml_str = file_handle.read()

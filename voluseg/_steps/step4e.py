@@ -1,16 +1,34 @@
-def collect_blocks(color_i, parameters):
-    """collect cells across all blocks"""
+import os
+import h5py
+import numpy as np
+from types import SimpleNamespace
+from typing import Tuple
+import pyspark
+from pyspark.sql.session import SparkSession
 
-    import os
-    import h5py
-    import numpy as np
-    from types import SimpleNamespace
-    from voluseg._tools.constants import hdf
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg._tools.constants import hdf
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 
-    # set up spark
-    import pyspark
-    from pyspark.sql.session import SparkSession
+
+def collect_blocks(
+    color_i: int,
+    parameters: dict,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Collect cells across all blocks.
+
+    Parameters
+    ----------
+    color_i : int
+        Color index.
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        Tuple of cell block id, cell xyz, cell weights, cell timeseries, and cell lengths.
+    """
 
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
