@@ -4,7 +4,9 @@ def evenly_parallelize(input_list):
     import numpy as np
     from pyspark.sql.session import SparkSession
 
-    spark = SparkSession.builder.getOrCreate()
+    spark = SparkSession.builder \
+        .config("spark.executorEnv.COVERAGE_PROCESS_START", "/mnt/shared_storage/Github/voluseg/.coveragerc") \
+        .getOrCreate()
     sc = spark.sparkContext
 
     n_input = len(input_list)
