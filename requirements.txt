@@ -7,4 +7,3 @@ nibabel
 requests
 numpy>=1.13
 pandas>=0.2
-pyspark==3.4.0
