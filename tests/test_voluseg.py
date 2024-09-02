@@ -47,7 +47,7 @@ def setup_parameters(tmp_path_factory):
 @pytest.mark.order(1)
 def test_load_parameters(setup_parameters):
     # Load parameters
-    file_path = str(Path(setup_parameters["dir_output"]) / "parameters.pickle")
+    file_path = str(Path(setup_parameters["dir_output"]) / "parameters.json")
     file_parameters = voluseg.load_parameters(file_path)
 
     all_keys = set(setup_parameters.keys()).union(set(file_parameters.keys()))
