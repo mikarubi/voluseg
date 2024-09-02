@@ -126,4 +126,4 @@ def parameter_dictionary(
         thr_mask=thr_mask,
     )
 
-    return params.dict()
+    return params.model_dump()
