@@ -1,12 +1,13 @@
 import os
 import copy
-import pickle
+import json
 import numpy as np
 from warnings import warn
 from voluseg._tools.load_volume import load_volume
 from voluseg._tools.get_volume_name import get_volume_name
 from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg._tools.load_parameters import load_parameters
 
 
 def process_parameters(initial_parameters: dict) -> dict:
@@ -39,12 +40,13 @@ def process_parameters(initial_parameters: dict) -> dict:
     # get input and output directories, and parameter filename
     dir_input = parameters["dir_input"]
     dir_output = parameters["dir_output"]
-    filename_parameters = os.path.join(dir_output, "parameters.pickle")
+    filename_parameters = os.path.join(dir_output, "parameters.json")
 
     # load parameters from file, if it already exists
     if os.path.isfile(filename_parameters):
-        print("exiting, parameter file exists: %s." % (filename_parameters))
-        return
+        print("Parameter file exists at: %s." % (filename_parameters))
+        print("Loading parameters from file.")
+        return load_parameters(filename_parameters)
 
     ## specific checks
 
@@ -226,20 +228,19 @@ def process_parameters(initial_parameters: dict) -> dict:
     )
 
     # save parameters
-    parameters["volume_fullnames_input"] = volume_fullnames_input
-    parameters["volume_names"] = volume_names
+    parameters["volume_fullnames_input"] = volume_fullnames_input.tolist()
+    parameters["volume_names"] = volume_names.tolist()
     parameters["input_dirs"] = input_dirs
     parameters["ext"] = ext
     parameters["lt"] = lt
-    parameters["affine_mat"] = affine_mat
+    parameters["affine_mat"] = affine_mat.tolist()
     parameters["timepoints"] = tp
 
     try:
         os.makedirs(dir_output, exist_ok=True)
         with open(filename_parameters, "wb") as file_handle:
-            pickle.dump(parameters, file_handle)
+            json.dump(parameters, file_handle, indent=4)
             print("parameter file successfully saved.")
-
     except Exception as msg:
         print("parameter file not saved: %s." % (msg))
 
