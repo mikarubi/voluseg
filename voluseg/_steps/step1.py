@@ -35,6 +35,8 @@ def process_volumes(parameters: dict) -> None:
         os.makedirs(dir_volume, exist_ok=True)
 
         def initial_processing(tuple_fullname_volume_input):
+            import os
+            os.environ["COVERAGE_PROCESS_START"] = "/mnt/shared_storage/Github/voluseg/.coveragerc"
 
             def make_output_volume(name_volume, volume):
                 # disable numpy multithreading

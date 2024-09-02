@@ -1,0 +1,1 @@
+# import os; os.environ["COVERAGE_PROCESS_START"] = "/mnt/shared_storage/Github/voluseg/.coveragerc"; import coverage; coverage.process_startup(); import sys; print("Hello from .pth file");

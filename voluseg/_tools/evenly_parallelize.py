@@ -17,7 +17,9 @@ def evenly_parallelize(input_list: list) -> RDD:
     RDD
         Spark resilient distributed dataset (RDD).
     """
-    spark = SparkSession.builder.getOrCreate()
+    spark = SparkSession.builder \
+        .config("spark.executorEnv.COVERAGE_PROCESS_START", "/mnt/shared_storage/Github/voluseg/.coveragerc") \
+        .getOrCreate()
     sc = spark.sparkContext
 
     n_input = len(input_list)
