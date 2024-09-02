@@ -137,3 +137,6 @@ class ParametersModel(BaseModel):
         default=0.5,
         description="Threshold for volume mask: 0 < thr <= 1 (probability) or thr > 1 (intensity)",
     )
+
+    class Config:
+        use_enum_values = True  # Automatically use the string values of Enums
