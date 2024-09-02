@@ -1,4 +1,4 @@
-from voluseg.models.parameters import ParametersModel
+from voluseg._models.parameters import ParametersModel
 
 
 def parameter_dictionary(
