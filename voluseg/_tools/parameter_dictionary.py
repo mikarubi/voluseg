@@ -1,5 +1,12 @@
-def parameter_dictionary():
-    """parameter dictionary with specified defaults"""
+def parameter_dictionary() -> dict:
+    """
+    Return parameter dictionary with specified defaults.
+
+    Returns
+    -------
+    dict
+        Parameters dictionary with default values.
+    """
 
     return {
         "detrending": "standard",  # type of detrending: 'standard', 'robust', or 'none'

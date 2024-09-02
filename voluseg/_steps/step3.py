@@ -1,35 +1,45 @@
-def mask_volumes(parameters):
-    """create intensity mask from the average registered volume"""
+import os
+import h5py
+import pyspark
+import numpy as np
+from scipy import stats
+from sklearn import mixture
+from skimage import morphology
+from types import SimpleNamespace
+from scipy.ndimage.filters import median_filter
+from pyspark.sql.session import SparkSession
+import warnings
+import matplotlib
 
-    import os
-    import h5py
-    import pyspark
-    import numpy as np
-    from scipy import stats
-    from sklearn import mixture
-    from skimage import morphology
-    from types import SimpleNamespace
-    from scipy.ndimage.filters import median_filter
-    from voluseg._tools.ball import ball
-    from voluseg._tools.constants import ali, hdf
-    from voluseg._tools.load_volume import load_volume
-    from voluseg._tools.clean_signal import clean_signal
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
-    # set up spark
-    from pyspark.sql.session import SparkSession
+from voluseg._tools.ball import ball
+from voluseg._tools.constants import ali, hdf
+from voluseg._tools.load_volume import load_volume
+from voluseg._tools.clean_signal import clean_signal
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 
+
+def mask_volumes(parameters: dict) -> None:
+    """
+    Create intensity mask from the average registered volume.
+    Produces figures with masks and histograms.
+    Produces `mean_timeseries.hdf5` and `volume0.hdf5` files.
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    None
+    """
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
-
-    # set up matplotlib
-    import warnings
-    import matplotlib
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
 
     p = SimpleNamespace(**parameters)
 
@@ -45,8 +55,6 @@ def mask_volumes(parameters):
             dir_volume = os.path.join(p.dir_output, "volumes", str(color_i))
 
             def mean_volume(tuple_name_volume):
-                import os
-
                 # disable numpy multithreading
                 os.environ["OMP_NUM_THREADS"] = "1"
                 os.environ["MKL_NUM_THREADS"] = "1"

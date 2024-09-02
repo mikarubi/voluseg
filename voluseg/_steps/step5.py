@@ -1,20 +1,29 @@
-def clean_cells(parameters):
-    """remove noise cells, detrend and detect baseline"""
+import os
+import h5py
+import shutil
+import numpy as np
+from types import SimpleNamespace
+from itertools import combinations
+from voluseg._steps.step4e import collect_blocks
+from voluseg._tools.constants import hdf, dtype
+from voluseg._tools.clean_signal import clean_signal
+from voluseg._tools.evenly_parallelize import evenly_parallelize
+from pyspark.sql.session import SparkSession
 
-    import os
-    import h5py
-    import shutil
-    import numpy as np
-    from types import SimpleNamespace
-    from itertools import combinations
-    from voluseg._steps.step4e import collect_blocks
-    from voluseg._tools.constants import hdf, dtype
-    from voluseg._tools.clean_signal import clean_signal
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
 
-    # set up spark
-    from pyspark.sql.session import SparkSession
+def clean_cells(parameters: dict) -> None:
+    """
+    Remove noise cells, detrend and detect baseline.
 
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    None
+    """
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
 

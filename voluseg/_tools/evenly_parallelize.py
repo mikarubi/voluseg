@@ -1,9 +1,22 @@
-def evenly_parallelize(input_list):
-    """return evenly partitioned spark resilient distributed dataset (RDD)"""
+import numpy as np
+from pyspark.sql.session import SparkSession
+from pyspark.rdd import RDD
 
-    import numpy as np
-    from pyspark.sql.session import SparkSession
 
+def evenly_parallelize(input_list: list) -> RDD:
+    """
+    Return evenly partitioned spark resilient distributed dataset (RDD).
+
+    Parameters
+    ----------
+    input_list : list
+        List of input elements.
+
+    Returns
+    -------
+    RDD
+        Spark resilient distributed dataset (RDD).
+    """
     spark = SparkSession.builder \
         .config("spark.executorEnv.COVERAGE_PROCESS_START", "/mnt/shared_storage/Github/voluseg/.coveragerc") \
         .getOrCreate()

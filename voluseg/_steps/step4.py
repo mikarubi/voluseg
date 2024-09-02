@@ -1,22 +1,32 @@
-def detect_cells(parameters):
-    """detect cells in volumes"""
+import os
+import h5py
+import time
+import numpy as np
+from types import SimpleNamespace
+from pyspark.sql.session import SparkSession
 
-    import os
-    import h5py
-    import time
-    import numpy as np
-    from types import SimpleNamespace
-    from voluseg._steps.step4a import define_blocks
-    from voluseg._steps.step4b import process_block_data
-    from voluseg._steps.step4c import initialize_block_cells
-    from voluseg._steps.step4d import nnmf_sparse
-    from voluseg._tools.ball import ball
-    from voluseg._tools.constants import hdf
-    from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg._steps.step4a import define_blocks
+from voluseg._steps.step4b import process_block_data
+from voluseg._steps.step4c import initialize_block_cells
+from voluseg._steps.step4d import nnmf_sparse
+from voluseg._tools.ball import ball
+from voluseg._tools.constants import hdf
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 
-    # set up spark
-    from pyspark.sql.session import SparkSession
 
+def detect_cells(parameters: dict) -> None:
+    """
+    Detect cells in volumetric blocks.
+
+    Parameters
+    ----------
+    parameters : dict
+        Parameters dictionary.
+
+    Returns
+    -------
+    None
+    """
     spark = SparkSession.builder.getOrCreate()
     sc = spark.sparkContext
 
@@ -80,7 +90,13 @@ def detect_cells(parameters):
 
             # get number of voxels in each cell
             n_blocks, block_valids, xyz0, xyz1 = define_blocks(
-                lx, ly, lz, p.n_cells_block, n_voxels_cell, volume_mask, volume_peak
+                lx,
+                ly,
+                lz,
+                p.n_cells_block,
+                n_voxels_cell,
+                volume_mask,
+                volume_peak,
             )
 
             # save number and indices of blocks
@@ -110,8 +126,6 @@ def detect_cells(parameters):
 
         # detect individual cells with sparse nnmf algorithm
         def detect_cells_block(tuple_i_xyz0_xyz1):
-            import os
-
             # disable numpy multithreading
             os.environ["OMP_NUM_THREADS"] = "1"
             os.environ["MKL_NUM_THREADS"] = "1"
@@ -122,19 +136,22 @@ def detect_cells(parameters):
 
             ii, xyz0, xyz1 = tuple_i_xyz0_xyz1[1]
 
-            voxel_xyz, voxel_timeseries, peak_idx, voxel_similarity_peak = (
-                process_block_data(
-                    xyz0,
-                    xyz1,
-                    parameters,
-                    color_i,
-                    lxyz,
-                    rxyz,
-                    ball_diam,
-                    bvolume_mean,
-                    bvolume_peak,
-                    timepoints,
-                )
+            (
+                voxel_xyz,
+                voxel_timeseries,
+                peak_idx,
+                voxel_similarity_peak,
+            ) = process_block_data(
+                xyz0,
+                xyz1,
+                parameters,
+                color_i,
+                lxyz,
+                rxyz,
+                ball_diam,
+                bvolume_mean,
+                bvolume_peak,
+                timepoints,
             )
 
             n_voxels_block = len(voxel_xyz)  # number of voxels in block
@@ -144,9 +161,8 @@ def detect_cells(parameters):
             ) / len(peak_idx)
             for fraction in np.r_[1:0:-0.05]:
                 try:
-                    peak_valids = voxel_fraction_peak >= (
-                        1 - fraction
-                    )  # valid voxel indices
+                    # valid voxel indices
+                    peak_valids = voxel_fraction_peak >= (1 - fraction)
 
                     n_cells = np.round(
                         peak_valids.sum() / (0.5 * n_voxels_cell)
