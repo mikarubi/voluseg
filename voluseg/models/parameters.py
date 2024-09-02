@@ -28,7 +28,7 @@ class TypeMask(str, Enum):
     max = "max"
 
 
-class Parameters(BaseModel):
+class ParametersModel(BaseModel):
     detrending: Detrending = Field(
         default=Detrending.standard,
         description="Type of detrending: 'standard', 'robust', or 'none'",
