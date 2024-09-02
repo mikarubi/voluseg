@@ -236,12 +236,9 @@ def process_parameters(initial_parameters: dict) -> dict:
     parameters["affine_mat"] = affine_mat.tolist()
     parameters["timepoints"] = tp
 
-    try:
-        os.makedirs(dir_output, exist_ok=True)
-        with open(filename_parameters, "wb") as file_handle:
-            json.dump(parameters, file_handle, indent=4)
-            print("parameter file successfully saved.")
-    except Exception as msg:
-        print("parameter file not saved: %s." % (msg))
+    os.makedirs(dir_output, exist_ok=True)
+    with open(filename_parameters, "w") as file_handle:
+        json.dump(parameters, file_handle, indent=4)
+        print("parameter file successfully saved.")
 
     return parameters
