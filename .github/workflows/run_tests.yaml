@@ -15,7 +15,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-13
+          - macos-14
           - windows-latest
         python:
           - '3.10'
@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      ANTS_PATH: $HOME/ants-2.5.3/bin
+      ANTS_PATH: ${{ if startsWith(matrix.os, 'windows') }}%USERPROFILE%/ants-2.5.3/bin${{ else }}$HOME/ants-2.5.3/bin${{ end }}
 
     steps:
       - name: Checkout code
