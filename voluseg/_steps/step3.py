@@ -151,9 +151,9 @@ def mask_volumes(parameters: dict) -> None:
             volume_accum.add(volume)
 
         if p.parallel_volume:
-            evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
+            evenly_parallelize(np.array(p.volume_names)[timepoints]).foreach(add_volume)
         else:
-            for name_volume in p.volume_names[timepoints]:
+            for name_volume in np.array(p.volume_names)[timepoints]:
                 add_volume(([], name_volume))
         volume_mean = volume_accum.value
         if p.type_mask != "max":
