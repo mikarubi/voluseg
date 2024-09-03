@@ -10,11 +10,13 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-13
+          - windows-latest
         python:
           - '3.10'
           - '3.11'
@@ -22,6 +24,9 @@ jobs:
         spark:
           - 3.4.0
           - 3.5.2
+
+    name: ${{ matrix.os }} Python ${{ matrix.python }} Spark ${{ matrix.spark }}
+    runs-on: ${{ matrix.os }}
 
     env:
       ANTS_PATH: $HOME/ants-2.5.3/bin
@@ -38,14 +43,6 @@ jobs:
         with:
           java-version: '17'
           distribution: temurin
-
-      # # https://github.com/marketplace/actions/setup-apache-spark
-      # - uses: vemonet/setup-spark@v1
-      #   with:
-      #     spark-version: ${{ matrix.spark }}
-      #     hadoop-version: '3'
-
-      # - run: spark-submit --version
 
       # Download and install ANTs
       - name: Install ANTs
