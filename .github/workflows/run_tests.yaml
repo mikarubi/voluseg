@@ -46,23 +46,39 @@ jobs:
 
       # Download and install ANTs
       - name: Install ANTs
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
           unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d $HOME/
           rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
           echo "ANTs installed successfully"
 
-      - name: Install test dependencies
+      - name: Install ANTs on macOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          curl -L -o $HOME/ants-2.5.3-macos-14-ARM64-clang.zip https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-macos-14-ARM64-clang.zip
+          unzip $HOME/ants-2.5.3-macos-14-ARM64-clang.zip -d $HOME/
+          rm $HOME/ants-2.5.3-macos-14-ARM64-clang.zip
+          echo "ANTs installed successfully on macOS"
+
+      - name: Install ANTs on Windows
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          Invoke-WebRequest -Uri https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-windows-2022-X64-VS2019.zip -OutFile $env:USERPROFILE\\ants-2.5.3-windows-2022-X64-VS2019.zip
+          Expand-Archive -Path $env:USERPROFILE\\ants-2.5.3-windows-2022-X64-VS2019.zip -DestinationPath $env:USERPROFILE\\ants-2.5.3
+          Remove-Item $env:USERPROFILE\\ants-2.5.3-windows-2022-X64-VS2019.zip
+          echo "ANTs installed successfully on Windows"
+
+      # Install voluseg and dependencies
+      - name: Install voluseg
         run: |
           python -m pip install --upgrade pip
           pip install -r tests/requirements.txt --no-cache-dir
-
-      - name: Install voluseg
-        run: |
           pip install -r requirements.txt --no-cache-dir
           pip install pyspark==${{ matrix.spark }} --no-cache-dir
           pip install . --no-cache-dir
 
+      # Tests and coverage
       - name: Clear previous coverage data
         run: coverage erase
 
