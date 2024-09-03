@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      ANTS_PATH: ${{ if startsWith(matrix.os, 'windows') }}%USERPROFILE%/ants-2.5.3/bin${{ else }}$HOME/ants-2.5.3/bin${{ end }}
+      ANTS_PATH: $HOME/ants-2.5.3/bin
 
     steps:
       - name: Checkout code
