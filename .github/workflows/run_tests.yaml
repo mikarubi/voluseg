@@ -84,7 +84,7 @@ jobs:
         env:
           ANTS_PATH: "$HOME/ants-2.5.3/bin"
         run: |
-          pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
+          coverage run -m pytest -s -v --tb=short
 
       - name: Run tests with pytest on Windows
         if: startsWith(matrix.os, 'windows')
