@@ -38,21 +38,21 @@ jobs:
           java-version: '17'
           distribution: temurin
 
-      # https://github.com/marketplace/actions/setup-apache-spark
-      - uses: vemonet/setup-spark@v1
-        with:
-          spark-version: ${{ matrix.spark }}
-          hadoop-version: '3'
+      # # https://github.com/marketplace/actions/setup-apache-spark
+      # - uses: vemonet/setup-spark@v1
+      #   with:
+      #     spark-version: ${{ matrix.spark }}
+      #     hadoop-version: '3'
 
-      - run: spark-submit --version
+      # - run: spark-submit --version
 
-      # Download and install ANTs
-      - name: Install ANTs
-        run: |
-          wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
-          unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d $HOME/
-          rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
-          echo "ANTs installed successfully"
+      # # Download and install ANTs
+      # - name: Install ANTs
+      #   run: |
+      #     wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
+      #     unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d $HOME/
+      #     rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
+      #     echo "ANTs installed successfully"
 
       - name: Install test dependencies
         run: |
@@ -70,6 +70,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
+          cd tests
           pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
 
       - name: Generate coverage report
