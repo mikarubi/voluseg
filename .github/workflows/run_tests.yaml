@@ -28,9 +28,6 @@ jobs:
     name: ${{ matrix.os }} Python ${{ matrix.python }} Spark ${{ matrix.spark }}
     runs-on: ${{ matrix.os }}
 
-    env:
-      ANTS_PATH: $HOME/ants-2.5.3/bin
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -82,7 +79,17 @@ jobs:
       - name: Clear previous coverage data
         run: coverage erase
 
-      - name: Run tests with pytest
+      - name: Run tests with pytest on Unix-like systems
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        env:
+          ANTS_PATH: "$HOME/ants-2.5.3/bin"
+        run: |
+          pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
+
+      - name: Run tests with pytest on Windows
+        if: startsWith(matrix.os, 'windows')
+        env:
+          ANTS_PATH: "%USERPROFILE%/ants-2.5.3/bin"
         run: |
           pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
 
