@@ -7,12 +7,12 @@ import numpy as np
 import h5py
 
 
-# To run tests locally, set these environment variables:
-os.environ["GITHUB_ACTIONS"] = "false"
-os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
-os.environ["SAMPLE_DATA_PATH"] = (
-    "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
-)
+# # To run tests locally, set these environment variables:
+# os.environ["GITHUB_ACTIONS"] = "false"
+# os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
+# os.environ["SAMPLE_DATA_PATH"] = (
+#     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
+# )
 
 
 def compare_dicts(
@@ -186,29 +186,29 @@ def test_voluseg_h5_dir_step_3(setup_parameters):
             assert k in file_handle.keys(), f"Key '{k}' is missing in volume file"
 
 
-# @pytest.mark.order(5)
-# def test_voluseg_h5_dir_step_4(setup_parameters):
-#     print("Detect cells.")
-#     voluseg.step4_detect_cells(setup_parameters)
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells"
-#     ).exists(), "Cells directory does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00000.hdf5"
-#     ).exists(), "Block file 00000 does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00001.hdf5"
-#     ).exists(), "Block file 00001 does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00002.hdf5"
-#     ).exists(), "Block file 00002 does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00003.hdf5"
-#     ).exists(), "Block file 00003 does not exist"
+@pytest.mark.order(5)
+def test_voluseg_h5_dir_step_4(setup_parameters):
+    print("Detect cells.")
+    voluseg.step4_detect_cells(setup_parameters)
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells"
+    ).exists(), "Cells directory does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00000.hdf5"
+    ).exists(), "Block file 00000 does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00001.hdf5"
+    ).exists(), "Block file 00001 does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00002.hdf5"
+    ).exists(), "Block file 00002 does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00003.hdf5"
+    ).exists(), "Block file 00003 does not exist"
 
 
-# @pytest.mark.order(6)
-# def test_voluseg_h5_dir_step_5(setup_parameters):
-#     print("Clean cells.")
-#     voluseg.step5_clean_cells(setup_parameters)
-#     # TODO - add asserts
+@pytest.mark.order(6)
+def test_voluseg_h5_dir_step_5(setup_parameters):
+    print("Clean cells.")
+    voluseg.step5_clean_cells(setup_parameters)
+    # TODO - add asserts
