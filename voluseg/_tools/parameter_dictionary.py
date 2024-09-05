@@ -96,33 +96,7 @@ def parameter_dictionary(
         A dictionary of validated parameters with their default values.
     """
     # Validate and parse the input parameters using the Pydantic model
-    parameters = ParametersModel(
-        detrending=detrending,
-        registration=registration,
-        registration_restrict=registration_restrict,
-        diam_cell=diam_cell,
-        dir_ants=dir_ants,
-        dir_input=dir_input,
-        dir_output=dir_output,
-        dir_transform=dir_transform,
-        ds=ds,
-        planes_pad=planes_pad,
-        planes_packed=planes_packed,
-        parallel_clean=parallel_clean,
-        parallel_volume=parallel_volume,
-        save_volume=save_volume,
-        type_timepoints=type_timepoints,
-        type_mask=type_mask,
-        timepoints=timepoints,
-        f_hipass=f_hipass,
-        f_volume=f_volume,
-        n_cells_block=n_cells_block,
-        n_colors=n_colors,
-        res_x=res_x,
-        res_y=res_y,
-        res_z=res_z,
-        t_baseline=t_baseline,
-        t_section=t_section,
-        thr_mask=thr_mask,
-    )
+    allowed_keys = ParametersModel.model_fields.keys()  # Get model's expected fields
+    filtered_locals = {key: value for key, value in locals().items() if key in allowed_keys}
+    parameters = ParametersModel(**filtered_locals)
     return parameters.model_dump()

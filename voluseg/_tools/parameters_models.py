@@ -139,13 +139,13 @@ class ParametersModel(BaseModel):
         description="Threshold for volume mask: 0 < thr <= 1 (probability) or thr > 1 (intensity)",
     )
 
-    class Config:
-        use_enum_values = True  # Automatically use the string values of Enums
-
     def model_dump(self, *args, **kwargs):
         # Override the model_dump method to convert lists to NumPy arrays
+        # and Enums to their values
         data = super().model_dump(*args, **kwargs)
         for key, value in data.items():
             if isinstance(value, list):
                 data[key] = np.array(value)
+            if isinstance(value, Enum):
+                data[key] = value.value
         return data
