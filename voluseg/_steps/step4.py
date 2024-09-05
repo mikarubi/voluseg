@@ -32,7 +32,7 @@ def detect_cells(parameters: dict) -> None:
 
     p = SimpleNamespace(**parameters)
 
-    ball_diam, ball_diam_xyz0 = ball(1.0 * p.diam_cell, p.affine_mat)
+    ball_diam, ball_diam_xyz0 = ball(1.0 * p.diam_cell, p.affine_matrix)
 
     # load timepoints
     fullname_timemean = os.path.join(p.dir_output, "mean_timeseries")
@@ -69,7 +69,7 @@ def detect_cells(parameters: dict) -> None:
 
         # dimensions and resolution
         lxyz = volume_mean.shape
-        rxyz = np.diag(p.affine_mat)[:3]
+        rxyz = np.diag(p.affine_matrix)[:3]
 
         # compute number of blocks (do only once)
         if flag:

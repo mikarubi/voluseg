@@ -1,7 +1,8 @@
+from typing import Union
 from voluseg._tools.parameters_models import ParametersModel
 
 
-def parameter_dictionary(
+def get_parameters_dictionary(
     detrending: str = "standard",
     registration: str = "medium",
     registration_restrict: str = "",
@@ -29,6 +30,12 @@ def parameter_dictionary(
     t_baseline: int = 300,
     t_section: float = 0.01,
     thr_mask: float = 0.5,
+    volume_fullnames_input: Union[list[str], None] = None,
+    volume_names: Union[list[str], None] = None,
+    input_dirs: Union[list[str], None] = None,
+    ext: Union[str, None] = None,
+    lt: Union[int, None] = None,
+    affine_matrix: Union[list, None] = None,
 ) -> dict:
     """
     Return a parameter dictionary with specified defaults.
@@ -89,6 +96,18 @@ def parameter_dictionary(
         Exposure time in seconds for slice acquisition (default is 0.01).
     thr_mask : float, optional
         Threshold for volume mask: 0 < thr <= 1 (probability) or thr > 1 (intensity) (default is 0.5).
+    volume_fullnames_input : list[str], optional
+        List of full volume names (default is None).
+    volume_names : list[str], optional
+        List of volume names (default is None).
+    input_dirs : list[str], optional
+        List of input directories (default is None).
+    ext : str, optional
+        File extension (default is None).
+    lt : int, optional
+        Number of volumes (default is None).
+    affine_matrix : list, optional
+        Affine matrix (default is None).
 
     Returns
     -------
@@ -97,6 +116,8 @@ def parameter_dictionary(
     """
     # Validate and parse the input parameters using the Pydantic model
     allowed_keys = ParametersModel.model_fields.keys()  # Get model's expected fields
-    filtered_locals = {key: value for key, value in locals().items() if key in allowed_keys}
+    filtered_locals = {
+        key: value for key, value in locals().items() if key in allowed_keys
+    }
     parameters = ParametersModel(**filtered_locals)
     return parameters.model_dump()

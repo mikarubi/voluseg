@@ -138,13 +138,58 @@ class ParametersModel(BaseModel):
         default=0.5,
         description="Threshold for volume mask: 0 < thr <= 1 (probability) or thr > 1 (intensity)",
     )
+    volume_fullnames_input: Optional[list[str]] = Field(
+        default=None,
+        description="List of full volume names",
+    )
+    volume_names: Optional[list[str]] = Field(
+        default=None,
+        description="List of volume names",
+    )
+    input_dirs: Optional[list[str]] = Field(
+        default=None,
+        description="List of input directories",
+    )
+    ext: Optional[str] = Field(
+        default=None,
+        description="File extension",
+    )
+    lt: Optional[int] = Field(
+        default=None,
+        description="Number of volumes",
+    )
+    affine_matrix: Optional[list] = Field(
+        default=None,
+        description="Affine matrix",
+    )
 
-    def model_dump(self, *args, **kwargs):
-        # Override the model_dump method to convert lists to NumPy arrays
-        # and Enums to their values
+    def model_dump(
+        self,
+        use_np_array: bool = True,
+        *args,
+        **kwargs,
+    ):
+        """
+        Override the model_dump method to convert lists to NumPy arrays (if use_np_array is True)
+        and Enums to their values.
+
+        Parameters
+        ----------
+        use_np_array : bool, optional
+            Convert lists to NumPy arrays (default is True)
+        *args
+            Positional arguments to pass to the parent class
+        **kwargs
+            Keyword arguments to pass to the parent class
+
+        Returns
+        -------
+        dict
+            A dictionary of the model's data
+        """
         data = super().model_dump(*args, **kwargs)
         for key, value in data.items():
-            if isinstance(value, list):
+            if isinstance(value, list) and use_np_array:
                 data[key] = np.array(value)
             if isinstance(value, Enum):
                 data[key] = value.value
