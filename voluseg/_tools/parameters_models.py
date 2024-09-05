@@ -1,4 +1,5 @@
 from enum import Enum
+import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -140,3 +141,11 @@ class ParametersModel(BaseModel):
 
     class Config:
         use_enum_values = True  # Automatically use the string values of Enums
+
+    def model_dump(self, *args, **kwargs):
+        # Override the model_dump method to convert lists to NumPy arrays
+        data = super().model_dump(*args, **kwargs)
+        for key, value in data.items():
+            if isinstance(value, list):
+                data[key] = np.array(value)
+        return data

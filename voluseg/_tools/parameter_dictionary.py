@@ -96,7 +96,7 @@ def parameter_dictionary(
         A dictionary of validated parameters with their default values.
     """
     # Validate and parse the input parameters using the Pydantic model
-    params = ParametersModel(
+    parameters = ParametersModel(
         detrending=detrending,
         registration=registration,
         registration_restrict=registration_restrict,
@@ -125,5 +125,4 @@ def parameter_dictionary(
         t_section=t_section,
         thr_mask=thr_mask,
     )
-
-    return params.model_dump()
+    return parameters.model_dump()
