@@ -31,7 +31,7 @@ def load_parameters(filename: str) -> dict:
     except Exception as e:
         raise Exception(f"Parameters file is not valid: {e}.")
     print("Parameters file successfully loaded and validated.")
-    return parameters_model.model_dump()
+    return parameters_model.model_dump(use_np_array=True)
 
 
 def save_parameters(parameters: dict, filename: str) -> None:

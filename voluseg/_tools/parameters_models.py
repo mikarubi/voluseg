@@ -1,6 +1,6 @@
 from enum import Enum
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 
 
@@ -162,6 +162,16 @@ class ParametersModel(BaseModel):
         default=None,
         description="Affine matrix",
     )
+
+    @model_validator(mode="before")
+    def convert_array_to_list(cls, values):
+        """
+        Validator to automatically convert NumPy arrays to lists.
+        """
+        for field, v in values.items():
+            if isinstance(v, np.ndarray):
+                values[field] = v.tolist()
+        return values
 
     def model_dump(
         self,

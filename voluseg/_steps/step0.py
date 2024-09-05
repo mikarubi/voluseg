@@ -8,6 +8,7 @@ from voluseg._tools.get_volume_name import get_volume_name
 from voluseg._tools.parameter_dictionary import get_parameters_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 from voluseg._tools.parameters import load_parameters, save_parameters
+from voluseg._tools.parameters_models import ParametersModel
 
 
 def process_parameters(initial_parameters: dict) -> dict:
@@ -228,15 +229,15 @@ def process_parameters(initial_parameters: dict) -> dict:
     )
 
     # save parameters
-    parameters["volume_fullnames_input"] = volume_fullnames_input.tolist()
-    parameters["volume_names"] = volume_names.tolist()
+    parameters["volume_fullnames_input"] = volume_fullnames_input
+    parameters["volume_names"] = volume_names
     parameters["input_dirs"] = input_dirs
     parameters["ext"] = ext
     parameters["lt"] = lt
-    parameters["affine_matrix"] = affine_matrix.tolist()
+    parameters["affine_matrix"] = affine_matrix
     parameters["timepoints"] = tp
 
     os.makedirs(dir_output, exist_ok=True)
     save_parameters(parameters=parameters, filename=filename_parameters)
 
-    return parameters
+    return ParametersModel(**parameters).model_dump(use_np_array=True)
