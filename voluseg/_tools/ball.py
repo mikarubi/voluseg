@@ -3,7 +3,7 @@ import numpy as np
 
 def ball(
     radi: float,
-    affine_mat: np.ndarray,
+    affine_matrix: np.ndarray,
 ) -> tuple:
     """
     Morphological cell balls and midpoints.
@@ -12,7 +12,7 @@ def ball(
     ----------
     radi : float
         Radius of ball.
-    affine_mat : np.ndarray
+    affine_matrix : np.ndarray
         Affine matrix.
 
     Returns
@@ -20,7 +20,7 @@ def ball(
     tuple
         Tuple containing: Ball and midpoints.
     """
-    rx, ry, rz, _ = np.diag(affine_mat)
+    rx, ry, rz, _ = np.diag(affine_matrix)
     ball = np.ones(
         (
             np.maximum(1, np.round(radi / rx).astype(int) * 2 + 1),

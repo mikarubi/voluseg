@@ -10,20 +10,23 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-14
+          # - windows-latest
         python:
           - '3.10'
           - '3.11'
           - '3.12'
         spark:
           - 3.4.0
+          - 3.5.2
 
-    env:
-      ANTS_PATH: $HOME/ants-2.5.3/bin
+    name: ${{ matrix.os }} Python ${{ matrix.python }} Spark ${{ matrix.spark }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -38,39 +41,57 @@ jobs:
           java-version: '17'
           distribution: temurin
 
-      # https://github.com/marketplace/actions/setup-apache-spark
-      - uses: vemonet/setup-spark@v1
-        with:
-          spark-version: ${{ matrix.spark }}
-          hadoop-version: '3'
-
-      - run: spark-submit --version
-
       # Download and install ANTs
       - name: Install ANTs
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
           unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d $HOME/
           rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
           echo "ANTs installed successfully"
 
-      - name: Install test dependencies
+      - name: Install ANTs on macOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          curl -L -o $HOME/ants-2.5.3-macos-14-ARM64-clang.zip https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-macos-14-ARM64-clang.zip
+          unzip $HOME/ants-2.5.3-macos-14-ARM64-clang.zip -d $HOME/
+          rm $HOME/ants-2.5.3-macos-14-ARM64-clang.zip
+          echo "ANTs installed successfully on macOS"
+
+      # - name: Install ANTs on Windows
+      #   if: startsWith(matrix.os, 'windows')
+      #   run: |
+      #     Invoke-WebRequest -Uri https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-windows-2022-X64-VS2019.zip -OutFile $env:USERPROFILE\\ants-2.5.3-windows-2022-X64-VS2019.zip
+      #     Expand-Archive -Path $env:USERPROFILE\\ants-2.5.3-windows-2022-X64-VS2019.zip -DestinationPath $env:USERPROFILE\\ants-2.5.3
+      #     Remove-Item $env:USERPROFILE\\ants-2.5.3-windows-2022-X64-VS2019.zip
+      #     echo "ANTs installed successfully on Windows"
+
+      # Install voluseg and dependencies
+      - name: Install voluseg
         run: |
           python -m pip install --upgrade pip
           pip install -r tests/requirements.txt --no-cache-dir
-
-      - name: Install voluseg
-        run: |
           pip install -r requirements.txt --no-cache-dir
-          pip install pyspark==3.4.0 --no-cache-dir
+          pip install pyspark==${{ matrix.spark }} --no-cache-dir
           pip install . --no-cache-dir
 
+      # Tests and coverage
       - name: Clear previous coverage data
         run: coverage erase
 
-      - name: Run tests with pytest
+      - name: Run tests with pytest on Unix-like systems
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        env:
+          ANTS_PATH: "$HOME/ants-2.5.3/bin"
         run: |
-          pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
+          coverage run -m pytest -s -v --tb=short
+
+      # - name: Run tests with pytest on Windows
+      #   if: startsWith(matrix.os, 'windows')
+      #   env:
+      #     ANTS_PATH: "%USERPROFILE%/ants-2.5.3/bin"
+      #   run: |
+      #     pytest --cov=voluseg --cov-report=term-missing --cov-report=html --cov-report=xml -s -v --tb=short
 
       - name: Generate coverage report
         run: coverage report -m
@@ -79,3 +100,4 @@ jobs:
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+

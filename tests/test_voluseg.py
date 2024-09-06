@@ -15,10 +15,38 @@ import h5py
 # )
 
 
+def compare_dicts(
+    dict1: dict,
+    dict1_name: str,
+    dict2: dict,
+    dict2_name: str,
+):
+    all_keys = set(dict1.keys()).union(set(dict2.keys()))
+    for key in all_keys:
+        assert key in dict1, f"Key '{key}' is missing in {dict1_name}"
+        assert key in dict2, f"Key '{key}' is missing in {dict2_name}"
+        if key in dict1 and key in dict2:
+            value_1 = dict1[key]
+            value_2 = dict2[key]
+
+            if isinstance(value_1, (np.ndarray, list)) and isinstance(
+                value_2, (np.ndarray, list)
+            ):
+                assert np.array_equal(value_1, value_2), (
+                    f"Value differs for key '{key}': "
+                    f"{dict1_name} has {value_1}, {dict2_name} has {value_2}"
+                )
+            else:
+                assert value_1 == value_2, (
+                    f"Value differs for key '{key}': "
+                    f"{dict1_name} has {value_1}, {dict2_name} has {value_2}"
+                )
+
+
 @pytest.fixture(scope="module")
 def setup_parameters(tmp_path_factory):
     # Define parameters and paths
-    parameters = voluseg.parameter_dictionary()
+    parameters = voluseg.get_parameters_dictionary()
 
     # Download sample data, only if running in GitHub Actions
     if os.environ.get("GITHUB_ACTIONS") == "true":
@@ -30,7 +58,7 @@ def setup_parameters(tmp_path_factory):
 
     # Use pytest's tmp_path_factory fixture for output
     tmp_dir = str(tmp_path_factory.mktemp("output"))
-    parameters["dir_output"] = data_path + "/output"
+    parameters["dir_output"] = tmp_dir
 
     # Other parameters
     parameters["registration"] = "high"
@@ -45,32 +73,36 @@ def setup_parameters(tmp_path_factory):
 
 
 @pytest.mark.order(1)
+def test_parameters_json_pickle(setup_parameters, tmp_path):
+    temp_json = str((tmp_path / "parameters.json").resolve())
+    voluseg.save_parameters(setup_parameters, temp_json)
+    loaded_parameters_json = voluseg.load_parameters(temp_json)
+
+    temp_pickle = str((tmp_path / "parameters.pickle").resolve())
+    voluseg.save_parameters(setup_parameters, temp_pickle)
+    loaded_parameters_pickle = voluseg.load_parameters(temp_pickle)
+
+    compare_dicts(
+        loaded_parameters_json,
+        "loaded_parameters_json",
+        loaded_parameters_pickle,
+        "loaded_parameters_pickle",
+    )
+
+
+@pytest.mark.order(1)
 def test_load_parameters(setup_parameters):
     # Load parameters
-    file_path = str(Path(setup_parameters["dir_output"]) / "parameters.pickle")
+    file_path = str(Path(setup_parameters["dir_output"]) / "parameters.json")
     file_parameters = voluseg.load_parameters(file_path)
 
-    all_keys = set(setup_parameters.keys()).union(set(file_parameters.keys()))
-
-    for key in all_keys:
-        assert key in setup_parameters, f"Key '{key}' is missing in setup_parameters"
-        assert key in file_parameters, f"Key '{key}' is missing in file_parameters"
-        if key in setup_parameters and key in file_parameters:
-            value_setup = setup_parameters[key]
-            value_file = file_parameters[key]
-
-            if isinstance(value_setup, np.ndarray) and isinstance(
-                value_file, np.ndarray
-            ):
-                assert np.array_equal(value_setup, value_file), (
-                    f"Value differs for key '{key}': "
-                    f"setup_parameters has {value_setup}, file_parameters has {value_file}"
-                )
-            else:
-                assert value_setup == value_file, (
-                    f"Value differs for key '{key}': "
-                    f"setup_parameters has {value_setup}, file_parameters has {value_file}"
-                )
+    # Compare parameters
+    compare_dicts(
+        setup_parameters,
+        "setup_parameters",
+        file_parameters,
+        "file_parameters",
+    )
 
 
 @pytest.mark.order(2)

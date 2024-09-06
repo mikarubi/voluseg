@@ -106,7 +106,7 @@ def process_volumes(parameters: dict) -> None:
 
                 # save volume in output directory
                 if p.registration:
-                    save_volume(fullname_volume + ori + nii, volume, p.affine_mat)
+                    save_volume(fullname_volume + ori + nii, volume, p.affine_matrix)
                 else:
                     volume = volume.T
                     save_volume(fullname_volume + ali + hdf, volume)
