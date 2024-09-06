@@ -25,6 +25,30 @@ def open_nwbfile_local(file_path: str):
         io.close()
 
 
+def find_nwbfile_volume_object_name(nwbfile: pynwb.NWBFile) -> str:
+    """
+    Find the name of the `TwoPhotonSeries` volume object in the NWB file.
+
+    Parameters
+    ----------
+    nwbfile : pynwb.NWBFile
+        NWB file.
+
+    Returns
+    -------
+    str
+        Name of the volume object.
+    """
+    acquisition_names = [
+        k
+        for k in nwbfile.acquisition.keys()
+        if nwbfile.acquisition[k].__class__.__name__ == "TwoPhotonSeries"
+    ]
+    if len(acquisition_names) != 1:
+        raise ValueError(f"Expected 1 acquisition object, but found {len(acquisition_names)}")
+    return acquisition_names[0]
+
+
 def get_nwbfile_volume(
     nwbfile: pynwb.NWBFile,
     acquisition_name: str = "TwoPhotonSeries",
