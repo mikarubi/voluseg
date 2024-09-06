@@ -1,5 +1,3 @@
-import os
-import pprint
 import voluseg
 import typer
 
@@ -34,16 +32,16 @@ def test_pipeline(
     thr_mask: float = 0.5,
 ):
     # set and save parameters
-    parameters0 = voluseg.parameter_dictionary()
+    parameters0 = voluseg.get_parameters_dictionary()
     parameters0["dir_ants"] = "/ants-2.5.3/bin/"
     parameters0["dir_input"] = "/voluseg/data/"
     parameters0["dir_output"] = "/voluseg/output/"
 
     # user-defined parameters
-    parameters0["registration"] = "high"
-    parameters0["diam_cell"] = 5.0
     parameters0["detrending"] = detrending
+    parameters0["registration"] = registration
     parameters0["registration_restrict"] = registration_restrict
+    parameters0["diam_cell"] = diam_cell
     parameters0["ds"] = ds
     parameters0["planes_pad"] = planes_pad
     parameters0["planes_packed"] = planes_packed
@@ -64,8 +62,8 @@ def test_pipeline(
     parameters0["t_section"] = t_section
     parameters0["thr_mask"] = thr_mask
 
-    print(parameters0["ds"])
-    print(parameters0["save_volume"])
+    print(parameters0["registration"])
+    print(parameters0["diam_cell"])
 
     # voluseg.step0_process_parameters(parameters0)
     # filename_parameters = os.path.join(parameters0["dir_output"], "parameters.pickle")

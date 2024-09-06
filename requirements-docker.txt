@@ -9,3 +9,4 @@ pandas==2.2.2
 pyspark==3.4.0
 requests==2.32.3
 typer==0.12.5
+pydantic==2.8.2
