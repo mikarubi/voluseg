@@ -9,6 +9,7 @@ from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 from voluseg._tools.parameters import load_parameters, save_parameters
 from voluseg._tools.parameters_models import ParametersModel
+from voluseg._tools.nwb import open_nwbfile_local, find_nwbfile_volume_object_name
 
 
 def process_parameters(initial_parameters: dict) -> dict:
@@ -146,46 +147,57 @@ def process_parameters(initial_parameters: dict) -> dict:
 
     volume_fullnames_input = []
     volume_names = []
-    for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
-        # get volume extension, volume names and number of segmentation timepoints
-        file_names = [i.split(".", 1) for i in os.listdir(dir_input_h) if "." in i]
-        file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
-        ext = "." + file_exts[np.argmax(counts)]
-        volume_names_input_h = sorted([i for i, j in file_names if "." + j == ext])
-        volume_fullnames_input_h = [
-            os.path.join(dir_input_h, i) for i in volume_names_input_h
-        ]
-
-        # adjust parameters for packed planes data
-        if parameters["planes_packed"]:
-            parameters["res_z"] = parameters["diam_cell"]
-
-            def get_plane_names(tuple_fullname_volume_input):
-                fullname_volume_input = tuple_fullname_volume_input[1]
-                lp = len(load_volume(fullname_volume_input + ext))
-                return [
-                    get_volume_name(fullname_volume_input, dir_prefix_h, pi)
-                    for pi in range(lp)
-                ]
-
-            volume_names_h = (
-                evenly_parallelize(volume_fullnames_input_h)
-                .map(get_plane_names)
-                .collect()
-            )
-            volume_names_h = [pi for ni in volume_names_h for pi in ni]
-        else:
-            volume_names_h = [
-                get_volume_name(i, dir_prefix_h) for i in volume_names_input_h
+    if parameters.get("nwb_input_local_path", None):
+        volume_fullnames_input = [parameters.get("nwb_input_local_path")]
+        volume_names = [parameters.get("nwb_input_local_path").split("/")[-1].split(".nwb")[0]]
+        with open_nwbfile_local(file_path=parameters["nwb_input_local_path"]) as nwbfile:
+            acquisition_name = find_nwbfile_volume_object_name(nwbfile)
+            parameters["nwb_input_acquisition_name"] = acquisition_name
+            lt = nwbfile.acquisition[acquisition_name].data.shape[0]
+            if parameters["timepoints"]:
+                lt = min(lt, parameters["timepoints"])
+        ext = ".nwb"
+    else:
+        for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
+            # get volume extension, volume names and number of segmentation timepoints
+            file_names = [i.split(".", 1) for i in os.listdir(dir_input_h) if "." in i]
+            file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
+            ext = "." + file_exts[np.argmax(counts)]
+            volume_names_input_h = sorted([i for i, j in file_names if "." + j == ext])
+            volume_fullnames_input_h = [
+                os.path.join(dir_input_h, i) for i in volume_names_input_h
             ]
 
-        # grow volume-name lists
-        volume_fullnames_input += volume_fullnames_input_h
-        volume_names += volume_names_h
+            # adjust parameters for packed planes data
+            if parameters["planes_packed"]:
+                parameters["res_z"] = parameters["diam_cell"]
 
-    volume_fullnames_input = np.array(volume_fullnames_input)
-    volume_names = np.array(volume_names)
-    lt = len(volume_names)
+                def get_plane_names(tuple_fullname_volume_input):
+                    fullname_volume_input = tuple_fullname_volume_input[1]
+                    lp = len(load_volume(fullname_volume_input + ext))
+                    return [
+                        get_volume_name(fullname_volume_input, dir_prefix_h, pi)
+                        for pi in range(lp)
+                    ]
+
+                volume_names_h = (
+                    evenly_parallelize(volume_fullnames_input_h)
+                    .map(get_plane_names)
+                    .collect()
+                )
+                volume_names_h = [pi for ni in volume_names_h for pi in ni]
+            else:
+                volume_names_h = [
+                    get_volume_name(i, dir_prefix_h) for i in volume_names_input_h
+                ]
+
+            # grow volume-name lists
+            volume_fullnames_input += volume_fullnames_input_h
+            volume_names += volume_names_h
+
+        volume_fullnames_input = np.array(volume_fullnames_input)
+        volume_names = np.array(volume_names)
+        lt = len(volume_names)
 
     # check timepoints
     parameters["type_timepoints"] = parameters["type_timepoints"].lower()
