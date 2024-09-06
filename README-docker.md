@@ -19,3 +19,10 @@ docker run \
 -v $(pwd)/app:/voluseg/app \
 voluseg
 ```
+
+docker run \
+-v /mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data:/voluseg/data \
+-v $(pwd)/output:/voluseg/output \
+-v $(pwd)/voluseg:/voluseg/voluseg \
+-v $(pwd)/app:/voluseg/app \
+voluseg
