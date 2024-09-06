@@ -8,7 +8,7 @@ from voluseg._tools.constants import dtype
 def save_volume(
     fullname_ext: str,
     volume: np.ndarray,
-    affine_mat: np.ndarray = None,
+    affine_matrix: np.ndarray = None,
 ) -> Union[bool, None]:
     """
     Save volume in output format.
@@ -20,7 +20,7 @@ def save_volume(
         Full name of volume with extension.
     volume : np.ndarray
         Volume as numpy array.
-    affine_mat : np.ndarray
+    affine_matrix : np.ndarray
         Affine matrix for nifti format.
 
     Returns
@@ -36,7 +36,7 @@ def save_volume(
             with h5py.File(fullname_ext, "w") as file_handle:
                 file_handle.create_dataset("volume", data=volume, compression="gzip")
         elif (".nii" in ext) or (".nii.gz" in ext):
-            nii = nibabel.Nifti1Image(volume, affine_mat)
+            nii = nibabel.Nifti1Image(volume, affine_matrix)
             nii.header["qform_code"] = 2  # make codes consistent with ANTS
             nii.header["sform_code"] = 1  # 1 scanner, 2 aligned, 3 tlrc, 4 mni.
             nibabel.save(nii, fullname_ext)

@@ -1,12 +1,14 @@
 import os
 import copy
-import pickle
+import json
 import numpy as np
 from warnings import warn
 from voluseg._tools.load_volume import load_volume
 from voluseg._tools.get_volume_name import get_volume_name
-from voluseg._tools.parameter_dictionary import parameter_dictionary
+from voluseg._tools.parameter_dictionary import get_parameters_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg._tools.parameters import load_parameters, save_parameters
+from voluseg._tools.parameters_models import ParametersModel
 
 
 def process_parameters(initial_parameters: dict) -> dict:
@@ -32,19 +34,20 @@ def process_parameters(initial_parameters: dict) -> dict:
         raise Exception("specify parameter dictionary as input.")
 
     # check if any parameters are missing
-    missing_parameters = set(parameter_dictionary()) - set(parameters)
+    missing_parameters = set(get_parameters_dictionary()) - set(parameters)
     if missing_parameters:
         raise Exception("missing parameters '%s'." % ("', '".join(missing_parameters)))
 
     # get input and output directories, and parameter filename
     dir_input = parameters["dir_input"]
     dir_output = parameters["dir_output"]
-    filename_parameters = os.path.join(dir_output, "parameters.pickle")
+    filename_parameters = os.path.join(dir_output, "parameters.json")
 
     # load parameters from file, if it already exists
     if os.path.isfile(filename_parameters):
-        print("exiting, parameter file exists: %s." % (filename_parameters))
-        return
+        print("Parameter file exists at: %s." % (filename_parameters))
+        print("Loading parameters from file.")
+        return load_parameters(filename_parameters)
 
     ## specific checks
 
@@ -216,7 +219,7 @@ def process_parameters(initial_parameters: dict) -> dict:
             tp = tp.astype(int)
 
     # affine matrix
-    affine_mat = np.diag(
+    affine_matrix = np.diag(
         [
             parameters["res_x"] * parameters["ds"],
             parameters["res_y"] * parameters["ds"],
@@ -231,16 +234,10 @@ def process_parameters(initial_parameters: dict) -> dict:
     parameters["input_dirs"] = input_dirs
     parameters["ext"] = ext
     parameters["lt"] = lt
-    parameters["affine_mat"] = affine_mat
+    parameters["affine_matrix"] = affine_matrix
     parameters["timepoints"] = tp
 
-    try:
-        os.makedirs(dir_output, exist_ok=True)
-        with open(filename_parameters, "wb") as file_handle:
-            pickle.dump(parameters, file_handle)
-            print("parameter file successfully saved.")
+    os.makedirs(dir_output, exist_ok=True)
+    save_parameters(parameters=parameters, filename=filename_parameters)
 
-    except Exception as msg:
-        print("parameter file not saved: %s." % (msg))
-
-    return parameters
+    return ParametersModel(**parameters).model_dump(use_np_array=True)

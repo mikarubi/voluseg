@@ -126,7 +126,7 @@ def align_volumes(parameters: dict) -> None:
                 )
                 if not flag:
                     volume = load_volume(fullname_volume + ali + nii)[:, :, None]
-                    save_volume(fullname_volume + ali + nii, volume, p.affine_mat)
+                    save_volume(fullname_volume + ali + nii, volume, p.affine_matrix)
             if flag:
                 raise Exception(
                     "volume %s not registered: flag %d." % (name_volume, flag)
