@@ -162,7 +162,7 @@ def mask_volumes(parameters: dict) -> None:
             volume_mean = 10**volume_mean
 
         # get peaks by comparing to a median-smoothed volume
-        ball_radi = ball(0.5 * p.diam_cell, p.affine_mat)[0]
+        ball_radi = ball(0.5 * p.diam_cell, p.affine_matrix)[0]
         volume_peak = volume_mean >= median_filter(volume_mean, footprint=ball_radi)
 
         # compute power and probability
@@ -218,7 +218,7 @@ def mask_volumes(parameters: dict) -> None:
         plt.close(fig)
 
         # remove all disconnected components less than 5000 cubic microliters in size
-        rx, ry, rz, _ = np.diag(p.affine_mat)
+        rx, ry, rz, _ = np.diag(p.affine_matrix)
         volume_mask = (volume_mean > thr_intensity).astype(bool)
         thr_size = np.round(5000 * rx * ry * rz).astype(int)
         volume_mask = morphology.remove_small_objects(volume_mask, thr_size)
