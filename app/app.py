@@ -1,3 +1,4 @@
+import os
 import voluseg
 import typer
 
@@ -6,7 +7,7 @@ app = typer.Typer()
 
 
 @app.command()
-def test_pipeline(
+def run_pipeline(
     detrending: str = "standard",
     registration: str = "medium",
     registration_restrict: str = "",
@@ -62,24 +63,26 @@ def test_pipeline(
     parameters0["t_section"] = t_section
     parameters0["thr_mask"] = thr_mask
 
-    print(parameters0["registration"])
-    print(parameters0["diam_cell"])
+    voluseg.step0_process_parameters(parameters0)
+    filename_parameters = str(
+        os.path.join(parameters0["dir_output"], "parameters.json")
+    )
+    parameters = voluseg.load_parameters(filename_parameters)
 
-    # voluseg.step0_process_parameters(parameters0)
-    # filename_parameters = os.path.join(parameters0["dir_output"], "parameters.pickle")
-    # parameters = voluseg.load_parameters(filename_parameters)
+    print("process volumes.")
+    voluseg.step1_process_volumes(parameters)
 
+    print("align volumes.")
+    voluseg.step2_align_volumes(parameters)
 
-    # print("process volumes.")
-    # voluseg.step1_process_volumes(parameters)
-    # print("align volumes.")
-    # voluseg.step2_align_volumes(parameters)
-    # print("mask volumes.")
-    # voluseg.step3_mask_volumes(parameters)
-    # print("detect cells.")
-    # voluseg.step4_detect_cells(parameters)
-    # print("clean cells.")
-    # voluseg.step5_clean_cells(parameters)
+    print("mask volumes.")
+    voluseg.step3_mask_volumes(parameters)
+
+    print("detect cells.")
+    voluseg.step4_detect_cells(parameters)
+
+    print("clean cells.")
+    voluseg.step5_clean_cells(parameters)
 
 
 if __name__ == "__main__":
