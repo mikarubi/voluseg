@@ -162,14 +162,6 @@ class ParametersModel(BaseModel):
         default=None,
         description="Affine matrix",
     )
-    nwb_input_local_path: Optional[str] = Field(
-        default=None,
-        description="Path to the local NWB file",
-    )
-    nwb_input_acquisition_name: Optional[str] = Field(
-        default=None,
-        description="Name of the acquisition object in the NWB file",
-    )
 
     @model_validator(mode="before")
     def convert_array_to_list(cls, values):

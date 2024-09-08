@@ -6,6 +6,7 @@ from voluseg._tools.save_volume import save_volume
 from voluseg._tools.get_volume_name import get_volume_name
 from voluseg._tools.constants import ori, ali, nii, hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg._tools.nwb import open_nwbfile_local, get_nwbfile_volume
 
 
 def process_volumes(parameters: dict) -> None:
@@ -25,7 +26,11 @@ def process_volumes(parameters: dict) -> None:
 
     p = SimpleNamespace(**parameters)
 
-    volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
+    if parameters.get("ext") == ".nwb":
+        volume_fullname_inputRDD = evenly_parallelize(range(p.lt))
+    else:
+        volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
+
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, "volume%d" % (color_i))
         if os.path.isfile(fullname_volmean + hdf):
@@ -114,23 +119,36 @@ def process_volumes(parameters: dict) -> None:
             # end make output volume
 
             # get full name of input volume, input data and list of planes
-            fullname_volume_input = tuple_fullname_volume_input[1]
-            volume = load_volume(fullname_volume_input + p.ext)
-            if len(p.input_dirs) == 1:
-                dir_prefix = None
-            else:
-                dir_prefix = os.path.basename(os.path.split(fullname_volume_input)[0])
-
-            # process output volumes
-            if p.planes_packed:
-                for pi, volume_pi in enumerate(volume):
-                    name_volume_pi = get_volume_name(
-                        fullname_volume_input, dir_prefix, pi
+            if parameters.get("ext") == ".nwb":
+                with open_nwbfile_local(file_path=p.volume_fullnames_input[0]) as nwbfile:
+                    nwb_volume = get_nwbfile_volume(
+                        nwbfile=nwbfile,
+                        acquisition_name=p.volume_names[0],
                     )
-                    make_output_volume(name_volume_pi, volume_pi)
+                    volume = nwb_volume.data[tuple_fullname_volume_input[1]]
+                file_name = p.volume_fullnames_input[0].split("/")[-1].split(".")[0]
+                make_output_volume(
+                    name_volume=file_name + f"_{tuple_fullname_volume_input[1]}",
+                    volume=volume,
+                )
             else:
-                name_volume = get_volume_name(fullname_volume_input, dir_prefix)
-                make_output_volume(name_volume, volume)
+                fullname_volume_input = tuple_fullname_volume_input[1]
+                volume = load_volume(fullname_volume_input + p.ext)
+                if len(p.input_dirs) == 1:
+                    dir_prefix = None
+                else:
+                    dir_prefix = os.path.basename(os.path.split(fullname_volume_input)[0])
+
+                # process output volumes
+                if p.planes_packed:
+                    for pi, volume_pi in enumerate(volume):
+                        name_volume_pi = get_volume_name(
+                            fullname_volume_input, dir_prefix, pi
+                        )
+                        make_output_volume(name_volume_pi, volume_pi)
+                else:
+                    name_volume = get_volume_name(fullname_volume_input, dir_prefix)
+                    make_output_volume(name_volume, volume)
 
         # end initial_processing
 

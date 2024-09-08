@@ -147,13 +147,17 @@ def process_parameters(initial_parameters: dict) -> dict:
 
     volume_fullnames_input = []
     volume_names = []
-    if parameters.get("nwb_input_local_path", None):
-        volume_fullnames_input = [parameters.get("nwb_input_local_path")]
-        volume_names = [parameters.get("nwb_input_local_path").split("/")[-1].split(".nwb")[0]]
-        with open_nwbfile_local(file_path=parameters["nwb_input_local_path"]) as nwbfile:
-            acquisition_name = find_nwbfile_volume_object_name(nwbfile)
-            parameters["nwb_input_acquisition_name"] = acquisition_name
-            lt = nwbfile.acquisition[acquisition_name].data.shape[0]
+    if ".nwb" in dir_input:
+        if len(input_dirs) > 1:
+            raise Exception("Only one file path can be specified for NWB input.")
+        aux_list = dir_input.split(":")
+        volume_fullnames_input = [aux_list[0]]
+        with open_nwbfile_local(file_path=volume_fullnames_input[0]) as nwbfile:
+            if len(aux_list) == 2:
+                volume_names = [aux_list[1]]
+            else:
+                volume_names = [find_nwbfile_volume_object_name(nwbfile)]
+            lt = nwbfile.acquisition[volume_names[0]].data.shape[0]
             if parameters["timepoints"]:
                 lt = min(lt, parameters["timepoints"])
         ext = ".nwb"
