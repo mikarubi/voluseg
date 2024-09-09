@@ -54,7 +54,7 @@ def process_parameters(initial_parameters: dict) -> dict:
     # check strings
     for i in [
         "dir_ants",
-        "dir_input",
+        # "dir_input",
         "dir_output",
         "dir_transform",
         "registration",

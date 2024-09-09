@@ -3,6 +3,8 @@ import h5py
 import time
 import numpy as np
 from types import SimpleNamespace
+from typing import Union
+from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
 
 from voluseg._steps.step4a import define_blocks
@@ -14,7 +16,10 @@ from voluseg._tools.constants import hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def detect_cells(parameters: dict) -> None:
+def detect_cells(
+    parameters: dict,
+    spark_context: Union[SparkContext, None] = None,
+) -> None:
     """
     Detect cells in volumetric blocks.
 
@@ -22,13 +27,16 @@ def detect_cells(parameters: dict) -> None:
     ----------
     parameters : dict
         Parameters dictionary.
+    spark_context : Union[SparkContext, None], optional
+        Spark context, if None, a new one will be created (default is None).
 
     Returns
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    if spark_context is None:
+        spark = SparkSession.builder.getOrCreate()
+        spark_context = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -64,8 +72,8 @@ def detect_cells(parameters: dict) -> None:
                 flag = 1
 
         # broadcast volume peaks (for initialization) and volume_mean (for renormalization)
-        bvolume_peak = sc.broadcast(volume_peak)
-        bvolume_mean = sc.broadcast(volume_mean)
+        bvolume_peak = spark_context.broadcast(volume_peak)
+        bvolume_mean = spark_context.broadcast(volume_mean)
 
         # dimensions and resolution
         lxyz = volume_mean.shape
@@ -243,6 +251,9 @@ def detect_cells(parameters: dict) -> None:
                 file_handle["completion"] = 1
 
         if block_valids.any():
-            evenly_parallelize(block_ixyz01).foreach(detect_cells_block)
+            evenly_parallelize(
+                input_list=block_ixyz01,
+                spark_context=spark_context,
+            ).foreach(detect_cells_block)
 
         # collect_blocks(color_i, parameters, lxyz)

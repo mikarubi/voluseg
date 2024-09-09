@@ -7,6 +7,8 @@ from sklearn import mixture
 from skimage import morphology
 from types import SimpleNamespace
 from scipy.ndimage.filters import median_filter
+from typing import Union
+from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
 import warnings
 import matplotlib
@@ -23,7 +25,10 @@ from voluseg._tools.clean_signal import clean_signal
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def mask_volumes(parameters: dict) -> None:
+def mask_volumes(
+    parameters: dict,
+    spark_context: Union[SparkContext, None] = None,
+) -> None:
     """
     Create intensity mask from the average registered volume.
     Produces figures with masks and histograms.
@@ -33,19 +38,25 @@ def mask_volumes(parameters: dict) -> None:
     ----------
     parameters : dict
         Parameters dictionary.
+    spark_context : Union[SparkContext, None], optional
+        Spark context, if None, a new one will be created (default is None).
 
     Returns
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    if spark_context is None:
+        spark = SparkSession.builder.getOrCreate()
+        spark_context = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
     # compute mean timeseries and ranked dff
     fullname_timemean = os.path.join(p.dir_output, "mean_timeseries")
-    volume_nameRDD = evenly_parallelize(p.volume_names)
+    volume_nameRDD = evenly_parallelize(
+        input_list=p.volume_names,
+        spark_context=spark_context,
+    )
     if not os.path.isfile(fullname_timemean + hdf):
         dff_rank = np.zeros(p.lt)
         mean_timeseries_raw = np.zeros((p.n_colors, p.lt))
@@ -140,7 +151,7 @@ def mask_volumes(parameters: dict) -> None:
                     return np.add(val1, val2, dtype="float")
 
         # geometric mean
-        volume_accum = sc.accumulator(np.zeros((lx, ly, lz)), accum_param())
+        volume_accum = spark_context.accumulator(np.zeros((lx, ly, lz)), accum_param())
 
         def add_volume(tuple_name_volume):
             name_volume = tuple_name_volume[1]
@@ -151,7 +162,9 @@ def mask_volumes(parameters: dict) -> None:
             volume_accum.add(volume)
 
         if p.parallel_volume:
-            evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
+            evenly_parallelize(
+                input_list=p.volume_names[timepoints], spark_context=spark_context
+            ).foreach(add_volume)
         else:
             for name_volume in p.volume_names[timepoints]:
                 add_volume(([], name_volume))

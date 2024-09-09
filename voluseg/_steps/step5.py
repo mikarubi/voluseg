@@ -2,16 +2,22 @@ import os
 import h5py
 import shutil
 import numpy as np
-from types import SimpleNamespace
 from itertools import combinations
+from types import SimpleNamespace
+from typing import Union
+from pyspark import SparkContext
+from pyspark.sql.session import SparkSession
+
 from voluseg._steps.step4e import collect_blocks
 from voluseg._tools.constants import hdf, dtype
 from voluseg._tools.clean_signal import clean_signal
 from voluseg._tools.evenly_parallelize import evenly_parallelize
-from pyspark.sql.session import SparkSession
 
 
-def clean_cells(parameters: dict) -> None:
+def clean_cells(
+    parameters: dict,
+    spark_context: Union[SparkContext, None] = None,
+) -> None:
     """
     Remove noise cells, detrend and detect baseline.
 
@@ -19,13 +25,16 @@ def clean_cells(parameters: dict) -> None:
     ----------
     parameters : dict
         Parameters dictionary.
+    spark_context : Union[SparkContext, None], optional
+        Spark context, if None, a new one will be created (default is None).
 
     Returns
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    if spark_context is None:
+        spark = SparkSession.builder.getOrCreate()
+        spark_context = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -101,7 +110,7 @@ def clean_cells(parameters: dict) -> None:
         cell_w = cell_w[cell_valids]
         ## end get valid version of cells
 
-        bparameters = sc.broadcast(parameters)
+        bparameters = spark_context.broadcast(parameters)
 
         def get_timebase(timeseries_tuple):
             timeseries = timeseries_tuple[1]
