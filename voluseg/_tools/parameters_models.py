@@ -162,6 +162,10 @@ class ParametersModel(BaseModel):
         default=None,
         description="Affine matrix",
     )
+    dim_order: Optional[str] = Field(
+        default="z,y,x",
+        description="Dimension order, as comma-separated string. Examples: 'z,y,x', 'x,y,z'",
+    )
 
     @model_validator(mode="before")
     def convert_array_to_list(cls, values):
