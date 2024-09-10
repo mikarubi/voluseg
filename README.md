@@ -8,6 +8,11 @@ Glia accumulate evidence that actions are futile and suppress unsuccessful behav
 
 Contact: Mika Rubinov, `mika.rubinov at vanderbilt.edu`
 
+# Run from Docker container
+
+Instructions [here](https://github.com/mikarubi/voluseg/blob/master/README-docker.md).
+
+
 # dependencies
 
 - Apache Spark
