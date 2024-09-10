@@ -46,7 +46,7 @@ def compare_dicts(
 @pytest.fixture(scope="module")
 def setup_parameters(tmp_path_factory):
     # Define parameters and paths
-    parameters = voluseg.get_parameters_dictionary()
+    parameters = voluseg.parameter_dictionary()
 
     # Download sample data, only if running in GitHub Actions
     if os.environ.get("GITHUB_ACTIONS") == "true":
