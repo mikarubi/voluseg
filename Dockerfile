@@ -1,4 +1,4 @@
-FROM apache/spark-py:v3.4.0
+FROM python:3.12.4-slim
 
 USER root
 
@@ -6,8 +6,14 @@ WORKDIR /voluseg
 
 RUN apt-get update && apt-get install -y wget unzip && \
     apt-get update && apt-get install -y git && \
+    apt-get install -y openjdk-17-jdk && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Set JAVA_HOME environment variable
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH $JAVA_HOME/bin:$PATH
+
+# Update pip
 RUN python3 -m pip install --upgrade pip
 
 # Download and install ANTs
@@ -30,7 +36,5 @@ RUN pip install --no-cache-dir -e .
 RUN mkdir /voluseg/data
 RUN mkdir /voluseg/output
 RUN mkdir /voluseg/logs
-
-# EXPOSE 80
 
 CMD ["python3", "/voluseg/app/app.py"]

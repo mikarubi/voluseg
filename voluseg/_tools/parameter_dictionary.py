@@ -2,7 +2,7 @@ from typing import Union
 from voluseg._tools.parameters_models import ParametersModel
 
 
-def get_parameters_dictionary(
+def parameter_dictionary(
     detrending: str = "standard",
     registration: str = "medium",
     registration_restrict: str = "",
