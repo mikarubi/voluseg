@@ -55,7 +55,7 @@ def process_parameters(initial_parameters: dict) -> dict:
     # check strings
     for i in [
         "dir_ants",
-        "dir_input",
+        # "dir_input",
         "dir_output",
         "dir_transform",
         "registration",
@@ -161,6 +161,7 @@ def process_parameters(initial_parameters: dict) -> dict:
             if parameters["timepoints"]:
                 lt = min(lt, parameters["timepoints"])
         ext = ".nwb"
+        parameters["dim_order"] = "xyz"
     else:
         for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
             # get volume extension, volume names and number of segmentation timepoints

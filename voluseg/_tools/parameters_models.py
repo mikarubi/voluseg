@@ -163,8 +163,8 @@ class ParametersModel(BaseModel):
         description="Affine matrix",
     )
     dim_order: Optional[str] = Field(
-        default="z,y,x",
-        description="Dimension order, as comma-separated string. Examples: 'z,y,x', 'x,y,z'",
+        default="zyx",
+        description="Dimensions order. Examples: 'zyx', 'xyz'",
     )
 
     @model_validator(mode="before")

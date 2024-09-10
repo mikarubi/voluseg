@@ -61,7 +61,14 @@ def process_volumes(parameters: dict) -> None:
                 # fix dimensionality
                 if volume.ndim == 2:
                     volume = volume[None, :, :]
-                volume = volume.transpose(2, 1, 0)
+
+                # reorder dimensions to xyz, if necessary
+                if p.dim_order == "zyx":
+                    volume = volume.transpose(2, 1, 0)
+                elif p.dim_order == "zxy":
+                    volume = volume.transpose(1, 2, 0)
+                elif p.dim_order == "xyz":
+                    pass
 
                 # get dimensions
                 lx, ly, lz = volume.shape
