@@ -33,7 +33,7 @@ def run_pipeline(
     thr_mask: float = 0.5,
 ):
     # set and save parameters
-    parameters0 = voluseg.get_parameters_dictionary()
+    parameters0 = voluseg.parameter_dictionary()
     parameters0["dir_ants"] = "/ants-2.5.3/bin/"
     parameters0["dir_input"] = "/voluseg/data/"
     parameters0["dir_output"] = "/voluseg/output/"
