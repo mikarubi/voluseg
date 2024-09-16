@@ -242,28 +242,28 @@ def test_voluseg_h5_dir_step_3(setup_parameters):
             assert k in file_handle.keys(), f"Key '{k}' is missing in volume file"
 
 
-# @pytest.mark.order(5)
-# def test_voluseg_h5_dir_step_4(setup_parameters):
-#     """
-#     Test the fourth step of the pipeline - detect cells.
-#     """
-#     print("Detect cells.")
-#     voluseg.step4_detect_cells(setup_parameters)
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells"
-#     ).exists(), "Cells directory does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00000.hdf5"
-#     ).exists(), "Block file 00000 does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00001.hdf5"
-#     ).exists(), "Block file 00001 does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00002.hdf5"
-#     ).exists(), "Block file 00002 does not exist"
-#     assert Path(
-#         Path(setup_parameters["dir_output"]) / "cells/0/block00003.hdf5"
-#     ).exists(), "Block file 00003 does not exist"
+@pytest.mark.order(5)
+def test_voluseg_h5_dir_step_4(setup_parameters):
+    """
+    Test the fourth step of the pipeline - detect cells.
+    """
+    print("Detect cells.")
+    voluseg.step4_detect_cells(setup_parameters)
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells"
+    ).exists(), "Cells directory does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00000.hdf5"
+    ).exists(), "Block file 00000 does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00001.hdf5"
+    ).exists(), "Block file 00001 does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00002.hdf5"
+    ).exists(), "Block file 00002 does not exist"
+    assert Path(
+        Path(setup_parameters["dir_output"]) / "cells/0/block00003.hdf5"
+    ).exists(), "Block file 00003 does not exist"
 
 
 # @pytest.mark.order(6)
@@ -290,8 +290,42 @@ def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
     print("Mask volumes.")
     voluseg.step3_mask_volumes(setup_parameters_nwb)
 
-    # print("Detect cells.")
-    # voluseg.step4_detect_cells(parameters)
+    print("Detect cells.")
+    voluseg.step4_detect_cells(setup_parameters_nwb)
 
     # print("Clean cells.")
-    # voluseg.step5_clean_cells(parameters)
+    # voluseg.step5_clean_cells(setup_parameters_nwb)
+
+
+@pytest.mark.order(8)
+def compare_results_nwb_and_h5_dir(
+    setup_parameters,
+    setup_parameters_nwb,
+):
+    """
+    Compare segmentation results from the pipeline with h5 and nwb files.
+    """
+    result_nwb = Path(setup_parameters_nwb["dir_output"]) / "cells/0/block00000.hdf5"
+    hdf_nwb = h5py.File(result_nwb, "r")
+
+    result_h5 = Path(setup_parameters["dir_output"]) / "cells/0/block00000.hdf5"
+    hdf_h5 = h5py.File(result_h5, "r")
+
+    assert (
+        hdf_nwb["n_cells"][()] == hdf_h5["n_cells"][()]
+    ), "Different number of cells between NWB and h5 results"
+    assert (
+        hdf_nwb["completion"][()] == hdf_h5["completion"][()]
+    ), "Different completion value between NWB and h5 results"
+    assert np.array_equal(
+        hdf_nwb["cell"]["00001"]["xyz"][:],
+        hdf_h5["cell"]["00001"]["xyz"][:],
+    ), "Different cell coordinates between NWB and h5 results"
+    assert np.array_equal(
+        hdf_nwb["cell"]["00001"]["weights"][:],
+        hdf_h5["cell"]["00001"]["weights"][:],
+    ), "Different cell weights between NWB and h5 results"
+    assert np.array_equal(
+        hdf_nwb["cell"]["00001"]["timeseries"][:],
+        hdf_h5["cell"]["00001"]["timeseries"][:],
+    ), "Different cell weights between NWB and h5 results"
