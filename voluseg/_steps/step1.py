@@ -27,7 +27,7 @@ def process_volumes(parameters: dict) -> None:
     p = SimpleNamespace(**parameters)
 
     if parameters.get("ext") == ".nwb":
-        volume_fullname_inputRDD = evenly_parallelize(range(p.lt))
+        volume_fullname_inputRDD = evenly_parallelize(p.volume_names)
     else:
         volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
 
@@ -127,15 +127,17 @@ def process_volumes(parameters: dict) -> None:
 
             # get full name of input volume, input data and list of planes
             if parameters.get("ext") == ".nwb":
+                acquisition_name, time_index = tuple_fullname_volume_input[1].split("_")
+                time_index = int(time_index)
                 with open_nwbfile_local(file_path=p.volume_fullnames_input[0]) as nwbfile:
                     nwb_volume = get_nwbfile_volume(
                         nwbfile=nwbfile,
-                        acquisition_name=p.volume_names[0],
+                        acquisition_name=acquisition_name,
                     )
-                    volume = nwb_volume.data[tuple_fullname_volume_input[1]]
-                file_name = p.volume_fullnames_input[0].split("/")[-1].split(".")[0]
+                    volume = nwb_volume.data[time_index]
+                file_name = p.volume_fullnames_input[0].split("/")[-1].split(".nwb")[0]
                 make_output_volume(
-                    name_volume=file_name + f"_{tuple_fullname_volume_input[1]}",
+                    name_volume=file_name + f"_{acquisition_name}_{time_index}",
                     volume=volume,
                 )
             else:

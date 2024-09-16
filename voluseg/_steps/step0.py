@@ -154,12 +154,14 @@ def process_parameters(initial_parameters: dict) -> dict:
         volume_fullnames_input = [aux_list[0]]
         with open_nwbfile_local(file_path=volume_fullnames_input[0]) as nwbfile:
             if len(aux_list) == 2:
-                volume_names = [aux_list[1]]
+                volume_name = [aux_list[1]]
             else:
-                volume_names = [find_nwbfile_volume_object_name(nwbfile)]
-            lt = nwbfile.acquisition[volume_names[0]].data.shape[0]
+                volume_name = [find_nwbfile_volume_object_name(nwbfile)]
+            lt = nwbfile.acquisition[volume_name[0]].data.shape[0]
             if parameters["timepoints"]:
                 lt = min(lt, parameters["timepoints"])
+        for ii in range(lt):
+            volume_names.append(volume_name[0] + "_%d" % ii)
         ext = ".nwb"
         parameters["dim_order"] = "xyz"
     else:
