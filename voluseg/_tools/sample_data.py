@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import Union
 
 
-def download_sample_data(destination_folder: str = ".", data_type: str = "h5_dir") -> Union[str, None]:
+def download_sample_data(
+    destination_folder: str = ".",
+    data_type: str = "h5_dir",
+) -> Union[str, None]:
     """
     Download sample data for Voluseg.
 
@@ -60,7 +63,7 @@ def download_sample_data_nwb_file(destination_folder: str = ".") -> Union[str, N
     response = requests.get(s3_url, stream=True)
     if response.status_code == 200:
         output_file = Path(destination_folder) / "downloaded.nwb"
-        with open(output_file, 'wb') as file:
+        with open(output_file, "wb") as file:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
                     file.write(chunk)

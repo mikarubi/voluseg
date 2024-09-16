@@ -17,7 +17,7 @@ def open_nwbfile_local(file_path: str):
     pynwb.NWBFile
         The opened NWB file.
     """
-    io = pynwb.NWBHDF5IO(file_path, 'r')
+    io = pynwb.NWBHDF5IO(file_path, "r")
     try:
         nwbfile = io.read()
         yield nwbfile
@@ -45,7 +45,9 @@ def find_nwbfile_volume_object_name(nwbfile: pynwb.NWBFile) -> str:
         if nwbfile.acquisition[k].__class__.__name__ == "TwoPhotonSeries"
     ]
     if len(acquisition_names) != 1:
-        raise ValueError(f"Expected 1 acquisition object, but found {len(acquisition_names)}")
+        raise ValueError(
+            f"Expected 1 acquisition object, but found {len(acquisition_names)}"
+        )
     return acquisition_names[0]
 
 
@@ -69,5 +71,7 @@ def get_nwbfile_volume(
         NWB file.
     """
     if acquisition_name not in nwbfile.acquisition:
-        raise ValueError(f"Acquisition name '{acquisition_name}' not found in NWB file.")
+        raise ValueError(
+            f"Acquisition name '{acquisition_name}' not found in NWB file."
+        )
     return nwbfile.acquisition[acquisition_name]

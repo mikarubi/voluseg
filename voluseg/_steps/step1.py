@@ -127,17 +127,19 @@ def process_volumes(parameters: dict) -> None:
 
             # get full name of input volume, input data and list of planes
             if parameters.get("ext") == ".nwb":
-                acquisition_name, time_index = tuple_fullname_volume_input[1].split("_")
+                fullname_volume_input = tuple_fullname_volume_input[1]
+                acquisition_name, time_index = fullname_volume_input.split("_")
                 time_index = int(time_index)
-                with open_nwbfile_local(file_path=p.volume_fullnames_input[0]) as nwbfile:
+                with open_nwbfile_local(
+                    file_path=p.volume_fullnames_input[0]
+                ) as nwbfile:
                     nwb_volume = get_nwbfile_volume(
                         nwbfile=nwbfile,
                         acquisition_name=acquisition_name,
                     )
                     volume = nwb_volume.data[time_index]
-                file_name = p.volume_fullnames_input[0].split("/")[-1].split(".nwb")[0]
                 make_output_volume(
-                    name_volume=file_name + f"_{acquisition_name}_{time_index}",
+                    name_volume=fullname_volume_input,
                     volume=volume,
                 )
             else:
@@ -146,13 +148,17 @@ def process_volumes(parameters: dict) -> None:
                 if len(p.input_dirs) == 1:
                     dir_prefix = None
                 else:
-                    dir_prefix = os.path.basename(os.path.split(fullname_volume_input)[0])
+                    dir_prefix = os.path.basename(
+                        os.path.split(fullname_volume_input)[0]
+                    )
 
                 # process output volumes
                 if p.planes_packed:
                     for pi, volume_pi in enumerate(volume):
                         name_volume_pi = get_volume_name(
-                            fullname_volume_input, dir_prefix, pi
+                            fullname_volume_input,
+                            dir_prefix,
+                            pi,
                         )
                         make_output_volume(name_volume_pi, volume_pi)
                 else:

@@ -8,15 +8,15 @@ import h5py
 import copy
 
 
-# To run tests locally, set these environment variables:
-os.environ["GITHUB_ACTIONS"] = "false"
-os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
-os.environ["SAMPLE_DATA_PATH_H5"] = (
-    "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
-)
-os.environ["SAMPLE_DATA_PATH_NWB"] = (
-    "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_twophoton.nwb"
-)
+# # To run tests locally, set these environment variables:
+# os.environ["GITHUB_ACTIONS"] = "false"
+# os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
+# os.environ["SAMPLE_DATA_PATH_H5"] = (
+#     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
+# )
+# os.environ["SAMPLE_DATA_PATH_NWB"] = (
+#     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_twophoton.nwb"
+# )
 
 
 def compare_dicts(
