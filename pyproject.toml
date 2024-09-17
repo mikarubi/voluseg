@@ -4,7 +4,7 @@ version = '0.1.0'
 dynamic = ["dependencies"]
 description = "Pipeline for volumetric segmentation of calcium imaging data."
 authors = [{ name = "Mika Rubinov", email = "mika.rubinov@vanderbilt.edu" }]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 keywords = ["voluseg", "volumetric segmentation", "calcium imaging"]
 
