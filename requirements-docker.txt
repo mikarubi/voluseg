@@ -8,5 +8,6 @@ numpy==2.1.0
 pandas==2.2.2
 pyspark==3.4.0
 requests==2.32.3
+loguru==0.7.2
 typer==0.12.5
 pydantic==2.8.2

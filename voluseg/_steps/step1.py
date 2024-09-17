@@ -1,6 +1,8 @@
 import os
 from scipy import interpolate
 from types import SimpleNamespace
+from typing import Union
+from pyspark import SparkContext
 from voluseg._tools.load_volume import load_volume
 from voluseg._tools.save_volume import save_volume
 from voluseg._tools.get_volume_name import get_volume_name
@@ -8,7 +10,10 @@ from voluseg._tools.constants import ori, ali, nii, hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
 
-def process_volumes(parameters: dict) -> None:
+def process_volumes(
+    parameters: dict,
+    spark_context: Union[SparkContext, None] = None,
+) -> None:
     """
     Process original volumes and save them to nifti files.
     Performs downsampling and padding if specified in parameters.
@@ -17,6 +22,8 @@ def process_volumes(parameters: dict) -> None:
     ----------
     parameters : dict
         Parameters dictionary.
+    spark_context : Union[SparkContext, None], optional
+        Spark context, if None, a new one will be created (default is None).
 
     Returns
     -------
@@ -25,7 +32,10 @@ def process_volumes(parameters: dict) -> None:
 
     p = SimpleNamespace(**parameters)
 
-    volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
+    volume_fullname_inputRDD = evenly_parallelize(
+        input_list=p.volume_fullnames_input,
+        spark_context=spark_context,
+    )
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, "volume%d" % (color_i))
         if os.path.isfile(fullname_volmean + hdf):

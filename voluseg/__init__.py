@@ -12,3 +12,5 @@ from voluseg._tools.parameters import load_parameters, save_parameters
 from voluseg._tools.load_metadata import load_metadata
 
 from voluseg._update import voluseg_update as update
+
+from voluseg.pipeline import Pipeline
