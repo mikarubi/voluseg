@@ -19,7 +19,7 @@ jobs:
 
     - name: Build SIF image
       run: |
-        apptainer build voluseg_latest.sif Dockerfile
+        apptainer build voluseg_latest.sif docker://ghcr.io/mikarubi/voluseg/voluseg:latest
 
     - name: Login and Deploy Container
       run: |
