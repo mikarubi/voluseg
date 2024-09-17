@@ -1,0 +1,35 @@
+[project]
+name = "voluseg"
+version = '0.1.0'
+dynamic = ["dependencies"]
+description = "Pipeline for volumetric segmentation of calcium imaging data."
+authors = [{ name = "Mika Rubinov", email = "mika.rubinov@vanderbilt.edu" }]
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["voluseg", "volumetric segmentation", "calcium imaging"]
+
+[project.urls]
+homepage = "https://github.com/mikarubi/voluseg"
+repository = "https://github.com/mikarubi/voluseg"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+
+[project.optional-dependencies]
+pyspark = ["pyspark==3.4.0"]
+# dask = ["dask==2024.9.0"]
