@@ -329,3 +329,40 @@ def compare_results_nwb_and_h5_dir(
         hdf_nwb["cell"]["00001"]["timeseries"][:],
         hdf_h5["cell"]["00001"]["timeseries"][:],
     ), "Different cell weights between NWB and h5 results"
+
+
+@pytest.mark.order(9)
+def test_nwb_remote(tmp_path):
+    """
+    Test for remote NWB files.
+    """
+    # Define parameters and paths
+    parameters = voluseg.parameter_dictionary()
+
+    # Using this file: https://dandiarchive.org/dandiset/000350/0.240822.1759/files?location=sub-20161022-1&page=1
+    parameters["dir_input"] = "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
+    parameters["dir_ants"] = os.environ.get("ANTS_PATH")
+
+    # Use pytest's tmp_path fixture for output
+    parameters["dir_output"] = str(tmp_path)
+
+    # Other parameters
+    parameters["registration"] = "high"
+    parameters["diam_cell"] = 5.0
+    parameters["f_volume"] = 2.0
+    parameters['timepoints'] = 20
+
+    print("Process parameters")
+    parameters = voluseg.step0_process_parameters(parameters)
+
+    print("Process volumes.")
+    voluseg.step1_process_volumes(parameters)
+
+    output_files = [
+        p
+        for p in (Path(parameters["dir_output"]) / "volumes/0/").glob("*.nii.gz")
+    ]
+    n_files_output = len(output_files)
+    assert (
+        n_files_output == parameters['timepoints']
+    ), f"Number of output files ({n_files_output}) does not match number of timepoints ({parameters['timepoints']})"
