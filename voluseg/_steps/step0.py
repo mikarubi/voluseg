@@ -9,7 +9,7 @@ from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 from voluseg._tools.parameters import load_parameters, save_parameters
 from voluseg._tools.parameters_models import ParametersModel
-from voluseg._tools.nwb import open_nwbfile_local, find_nwbfile_volume_object_name
+from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
 
 
 def process_parameters(initial_parameters: dict) -> dict:
@@ -145,14 +145,23 @@ def process_parameters(initial_parameters: dict) -> dict:
                 "the names of last directories in 'dir_input' must be sorted."
             )
 
+    remote = False
     volume_fullnames_input = []
     volume_names = []
-    if ".nwb" in dir_input:
+    if (".nwb" in dir_input) or ("https://" in dir_input):
+        if "https://" in dir_input:
+            remote = True
+            aux_list = [dir_input]
+        else:
+            aux_list = dir_input.split(":")
         if len(input_dirs) > 1:
             raise Exception("Only one file path can be specified for NWB input.")
-        aux_list = dir_input.split(":")
         volume_fullnames_input = [aux_list[0]]
-        with open_nwbfile_local(file_path=volume_fullnames_input[0]) as nwbfile:
+        with open_nwbfile(
+            input_path=volume_fullnames_input[0],
+            remote=remote,
+            output_path=dir_output,
+        ) as nwbfile:
             if len(aux_list) == 2:
                 volume_name = [aux_list[1]]
             else:
@@ -255,6 +264,7 @@ def process_parameters(initial_parameters: dict) -> dict:
     parameters["lt"] = lt
     parameters["affine_matrix"] = affine_matrix
     parameters["timepoints"] = tp
+    parameters["remote"] = remote
 
     os.makedirs(dir_output, exist_ok=True)
     save_parameters(parameters=parameters, filename=filename_parameters)

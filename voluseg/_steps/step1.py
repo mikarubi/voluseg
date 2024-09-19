@@ -6,7 +6,7 @@ from voluseg._tools.save_volume import save_volume
 from voluseg._tools.get_volume_name import get_volume_name
 from voluseg._tools.constants import ori, ali, nii, hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
-from voluseg._tools.nwb import open_nwbfile_local, get_nwbfile_volume
+from voluseg._tools.nwb import open_nwbfile, get_nwbfile_volume
 
 
 def process_volumes(parameters: dict) -> None:
@@ -130,8 +130,10 @@ def process_volumes(parameters: dict) -> None:
                 fullname_volume_input = tuple_fullname_volume_input[1]
                 acquisition_name, time_index = fullname_volume_input.split("_")
                 time_index = int(time_index)
-                with open_nwbfile_local(
-                    file_path=p.volume_fullnames_input[0]
+                with open_nwbfile(
+                    input_path=p.volume_fullnames_input[0],
+                    remote=p.remote,
+                    output_path=p.dir_output,
                 ) as nwbfile:
                     nwb_volume = get_nwbfile_volume(
                         nwbfile=nwbfile,
