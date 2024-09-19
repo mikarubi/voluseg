@@ -232,7 +232,7 @@ def process_parameters(initial_parameters: dict) -> dict:
                 warn(
                     "specified number of timepoints is greater than the number of volumes, overriding."
                 )
-                tp = 0
+                tp = lt
         elif parameters["type_timepoints"] in ["custom"]:
             tp = np.unique(tp)
             if not (
