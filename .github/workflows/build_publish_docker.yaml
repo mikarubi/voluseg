@@ -38,7 +38,9 @@ jobs:
           BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
           echo "tag=${BRANCH_NAME}" >> $GITHUB_ENV
         fi
-        echo "tag name is $tag"
+
+    - name: Output Docker Image Tag
+      run: echo "Docker image tag is ${{ env.tag }}"
 
     - name: Build and push docker image
       uses: docker/build-push-action@v3
