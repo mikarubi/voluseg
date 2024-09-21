@@ -170,6 +170,10 @@ class ParametersModel(BaseModel):
         default=False,
         description="Remote file",
     )
+    output_to_nwb : Optional[bool] = Field(
+        default=False,
+        description="Save results to a new NWB file",
+    )
 
     @model_validator(mode="before")
     def convert_array_to_list(cls, values):
