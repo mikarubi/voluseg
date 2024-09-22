@@ -8,7 +8,7 @@ docker pull ghcr.io/mikarubi/voluseg/voluseg:latest
 Run with access to your local data and pass user-defined parameters values:
 ```bash
 docker run \
--v $(pwd)/sample_data:/voluseg/data \
+-v $(pwd)/local_data:/voluseg/data \
 -v $(pwd)/output:/voluseg/output \
 voluseg \
 python3 /voluseg/app/app.py \
@@ -26,9 +26,27 @@ DOCKER_BUILDKIT=1 docker build -t voluseg .
 Run with local data volume mount, default parameters values and hot reload for the voluseg package (useful for development):
 ```bash
 docker run \
--v $(pwd)/sample_data:/voluseg/data \
+-v $(pwd)/local_data:/voluseg/data \
 -v $(pwd)/output:/voluseg/output \
 -v $(pwd)/voluseg:/voluseg/voluseg \
 -v $(pwd)/app:/voluseg/app \
 voluseg
+```
+
+## Apptainer
+
+Pull the image from GHCR:
+```bash
+apptainer pull docker://ghcr.io/mikarubi/voluseg/voluseg:latest
+```
+
+Run with access to your local data and pass user-defined parameters values:
+```bash
+apptainer exec \
+--bind $(pwd)/local_data:/voluseg/data \
+--bind $(pwd)/output:/voluseg/output  \
+voluseg_latest.sif \
+python3 /voluseg/app/app.py \
+--registration high \
+--diam-cell 5.0
 ```
