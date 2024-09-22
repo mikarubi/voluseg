@@ -162,6 +162,14 @@ class ParametersModel(BaseModel):
         default=None,
         description="Affine matrix",
     )
+    dim_order: Optional[str] = Field(
+        default="zyx",
+        description="Dimensions order. Examples: 'zyx', 'xyz'",
+    )
+    remote: Optional[bool] = Field(
+        default=False,
+        description="Remote file",
+    )
 
     @model_validator(mode="before")
     def convert_array_to_list(cls, values):

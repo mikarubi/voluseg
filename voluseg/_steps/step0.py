@@ -9,6 +9,7 @@ from voluseg._tools.parameter_dictionary import parameter_dictionary
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 from voluseg._tools.parameters import load_parameters, save_parameters
 from voluseg._tools.parameters_models import ParametersModel
+from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
 
 
 def process_parameters(initial_parameters: dict) -> dict:
@@ -54,7 +55,7 @@ def process_parameters(initial_parameters: dict) -> dict:
     # check strings
     for i in [
         "dir_ants",
-        "dir_input",
+        # "dir_input",
         "dir_output",
         "dir_transform",
         "registration",
@@ -144,48 +145,75 @@ def process_parameters(initial_parameters: dict) -> dict:
                 "the names of last directories in 'dir_input' must be sorted."
             )
 
+    remote = False
     volume_fullnames_input = []
     volume_names = []
-    for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
-        # get volume extension, volume names and number of segmentation timepoints
-        file_names = [i.split(".", 1) for i in os.listdir(dir_input_h) if "." in i]
-        file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
-        ext = "." + file_exts[np.argmax(counts)]
-        volume_names_input_h = sorted([i for i, j in file_names if "." + j == ext])
-        volume_fullnames_input_h = [
-            os.path.join(dir_input_h, i) for i in volume_names_input_h
-        ]
-
-        # adjust parameters for packed planes data
-        if parameters["planes_packed"]:
-            parameters["res_z"] = parameters["diam_cell"]
-
-            def get_plane_names(tuple_fullname_volume_input):
-                fullname_volume_input = tuple_fullname_volume_input[1]
-                lp = len(load_volume(fullname_volume_input + ext))
-                return [
-                    get_volume_name(fullname_volume_input, dir_prefix_h, pi)
-                    for pi in range(lp)
-                ]
-
-            volume_names_h = (
-                evenly_parallelize(volume_fullnames_input_h)
-                .map(get_plane_names)
-                .collect()
-            )
-            volume_names_h = [pi for ni in volume_names_h for pi in ni]
+    if (".nwb" in dir_input) or ("https://" in dir_input):
+        if "https://" in dir_input:
+            remote = True
+            aux_list = [dir_input]
         else:
-            volume_names_h = [
-                get_volume_name(i, dir_prefix_h) for i in volume_names_input_h
+            aux_list = dir_input.split(":")
+        if len(input_dirs) > 1:
+            raise Exception("Only one file path can be specified for NWB input.")
+        volume_fullnames_input = [aux_list[0]]
+        with open_nwbfile(
+            input_path=volume_fullnames_input[0],
+            remote=remote,
+            output_path=dir_output,
+        ) as nwbfile:
+            if len(aux_list) == 2:
+                volume_name = [aux_list[1]]
+            else:
+                volume_name = [find_nwbfile_volume_object_name(nwbfile)]
+            lt = nwbfile.acquisition[volume_name[0]].data.shape[0]
+            if parameters["timepoints"]:
+                lt = min(lt, parameters["timepoints"])
+        for ii in range(lt):
+            volume_names.append(volume_name[0] + "_%d" % ii)
+        ext = ".nwb"
+        parameters["dim_order"] = "xyz"
+    else:
+        for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
+            # get volume extension, volume names and number of segmentation timepoints
+            file_names = [i.split(".", 1) for i in os.listdir(dir_input_h) if "." in i]
+            file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
+            ext = "." + file_exts[np.argmax(counts)]
+            volume_names_input_h = sorted([i for i, j in file_names if "." + j == ext])
+            volume_fullnames_input_h = [
+                os.path.join(dir_input_h, i) for i in volume_names_input_h
             ]
 
-        # grow volume-name lists
-        volume_fullnames_input += volume_fullnames_input_h
-        volume_names += volume_names_h
+            # adjust parameters for packed planes data
+            if parameters["planes_packed"]:
+                parameters["res_z"] = parameters["diam_cell"]
 
-    volume_fullnames_input = np.array(volume_fullnames_input)
-    volume_names = np.array(volume_names)
-    lt = len(volume_names)
+                def get_plane_names(tuple_fullname_volume_input):
+                    fullname_volume_input = tuple_fullname_volume_input[1]
+                    lp = len(load_volume(fullname_volume_input + ext))
+                    return [
+                        get_volume_name(fullname_volume_input, dir_prefix_h, pi)
+                        for pi in range(lp)
+                    ]
+
+                volume_names_h = (
+                    evenly_parallelize(volume_fullnames_input_h)
+                    .map(get_plane_names)
+                    .collect()
+                )
+                volume_names_h = [pi for ni in volume_names_h for pi in ni]
+            else:
+                volume_names_h = [
+                    get_volume_name(i, dir_prefix_h) for i in volume_names_input_h
+                ]
+
+            # grow volume-name lists
+            volume_fullnames_input += volume_fullnames_input_h
+            volume_names += volume_names_h
+
+        volume_fullnames_input = np.array(volume_fullnames_input)
+        volume_names = np.array(volume_names)
+        lt = len(volume_names)
 
     # check timepoints
     parameters["type_timepoints"] = parameters["type_timepoints"].lower()
@@ -204,7 +232,7 @@ def process_parameters(initial_parameters: dict) -> dict:
                 warn(
                     "specified number of timepoints is greater than the number of volumes, overriding."
                 )
-                tp = 0
+                tp = lt
         elif parameters["type_timepoints"] in ["custom"]:
             tp = np.unique(tp)
             if not (
@@ -236,6 +264,7 @@ def process_parameters(initial_parameters: dict) -> dict:
     parameters["lt"] = lt
     parameters["affine_matrix"] = affine_matrix
     parameters["timepoints"] = tp
+    parameters["remote"] = remote
 
     os.makedirs(dir_output, exist_ok=True)
     save_parameters(parameters=parameters, filename=filename_parameters)

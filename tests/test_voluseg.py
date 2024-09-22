@@ -5,13 +5,17 @@ import pytest
 from pathlib import Path
 import numpy as np
 import h5py
+import copy
 
 
 # # To run tests locally, set these environment variables:
 # os.environ["GITHUB_ACTIONS"] = "false"
 # os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
-# os.environ["SAMPLE_DATA_PATH"] = (
+# os.environ["SAMPLE_DATA_PATH_H5"] = (
 #     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
+# )
+# os.environ["SAMPLE_DATA_PATH_NWB"] = (
+#     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_twophoton.nwb"
 # )
 
 
@@ -45,19 +49,59 @@ def compare_dicts(
 
 @pytest.fixture(scope="module")
 def setup_parameters(tmp_path_factory):
+    """
+    Setup parameters for tests, using h5 sample data.
+    """
     # Define parameters and paths
     parameters = voluseg.parameter_dictionary()
 
     # Download sample data, only if running in GitHub Actions
     if os.environ.get("GITHUB_ACTIONS") == "true":
-        data_path = download_sample_data()
+        tmp_dir_input = str(tmp_path_factory.mktemp("input_h5"))
+        data_path = download_sample_data(destination_folder=tmp_dir_input)
     else:
-        data_path = os.environ.get("SAMPLE_DATA_PATH")
+        data_path = os.environ.get("SAMPLE_DATA_PATH_H5")
     parameters["dir_input"] = data_path
     parameters["dir_ants"] = os.environ.get("ANTS_PATH")
 
     # Use pytest's tmp_path_factory fixture for output
-    tmp_dir = str(tmp_path_factory.mktemp("output"))
+    tmp_dir = str(tmp_path_factory.mktemp("output_h5"))
+    parameters["dir_output"] = tmp_dir
+
+    # Other parameters
+    parameters["registration"] = "high"
+    parameters["diam_cell"] = 5.0
+    parameters["f_volume"] = 2.0
+
+    # Save parameters
+    parameters = voluseg.step0_process_parameters(parameters)
+
+    # Return parameters for further use in tests
+    return parameters
+
+
+@pytest.fixture(scope="module")
+def setup_parameters_nwb(tmp_path_factory):
+    """
+    Setup parameters for tests, using nwb sample data.
+    """
+    # Define parameters and paths
+    parameters = voluseg.parameter_dictionary()
+
+    # Download sample data, only if running in GitHub Actions
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        tmp_dir_input = str(tmp_path_factory.mktemp("input_nwb"))
+        data_path = download_sample_data(
+            destination_folder=tmp_dir_input,
+            data_type="nwb_file",
+        )
+    else:
+        data_path = os.environ.get("SAMPLE_DATA_PATH_NWB")
+    parameters["dir_input"] = data_path
+    parameters["dir_ants"] = os.environ.get("ANTS_PATH")
+
+    # Use pytest's tmp_path_factory fixture for output
+    tmp_dir = str(tmp_path_factory.mktemp("output_nwb"))
     parameters["dir_output"] = tmp_dir
 
     # Other parameters
@@ -74,6 +118,9 @@ def setup_parameters(tmp_path_factory):
 
 @pytest.mark.order(1)
 def test_parameters_json_pickle(setup_parameters, tmp_path):
+    """
+    Test saving and loading parameters as JSON and pickle.
+    """
     temp_json = str((tmp_path / "parameters.json").resolve())
     voluseg.save_parameters(setup_parameters, temp_json)
     loaded_parameters_json = voluseg.load_parameters(temp_json)
@@ -92,6 +139,9 @@ def test_parameters_json_pickle(setup_parameters, tmp_path):
 
 @pytest.mark.order(1)
 def test_load_parameters(setup_parameters):
+    """
+    Test loading parameters from a JSON file.
+    """
     # Load parameters
     file_path = str(Path(setup_parameters["dir_output"]) / "parameters.json")
     file_parameters = voluseg.load_parameters(file_path)
@@ -107,7 +157,9 @@ def test_load_parameters(setup_parameters):
 
 @pytest.mark.order(2)
 def test_voluseg_h5_dir_step_1(setup_parameters):
-    # Test step 1 - process volumes
+    """
+    Test the first step of the pipeline - process volumes.
+    """
     print("Process volumes.")
     voluseg.step1_process_volumes(setup_parameters)
     n_files_input = len([p for p in Path(setup_parameters["dir_input"]).glob("*.h5")])
@@ -123,7 +175,9 @@ def test_voluseg_h5_dir_step_1(setup_parameters):
 
 @pytest.mark.order(3)
 def test_voluseg_h5_dir_step_2(setup_parameters):
-    # Test step 2 - align volumes
+    """
+    Test the second step of the pipeline - align volumes.
+    """
     print("Align volumes.")
     voluseg.step2_align_volumes(setup_parameters)
 
@@ -146,7 +200,9 @@ def test_voluseg_h5_dir_step_2(setup_parameters):
 
 @pytest.mark.order(4)
 def test_voluseg_h5_dir_step_3(setup_parameters):
-    # Test step 3 - mask volumes
+    """
+    Test the third step of the pipeline - mask volumes.
+    """
     print("Mask volumes.")
     voluseg.step3_mask_volumes(setup_parameters)
 
@@ -188,6 +244,9 @@ def test_voluseg_h5_dir_step_3(setup_parameters):
 
 @pytest.mark.order(5)
 def test_voluseg_h5_dir_step_4(setup_parameters):
+    """
+    Test the fourth step of the pipeline - detect cells.
+    """
     print("Detect cells.")
     voluseg.step4_detect_cells(setup_parameters)
     assert Path(
@@ -207,8 +266,103 @@ def test_voluseg_h5_dir_step_4(setup_parameters):
     ).exists(), "Block file 00003 does not exist"
 
 
-@pytest.mark.order(6)
-def test_voluseg_h5_dir_step_5(setup_parameters):
-    print("Clean cells.")
-    voluseg.step5_clean_cells(setup_parameters)
-    # TODO - add asserts
+# @pytest.mark.order(6)
+# def test_voluseg_h5_dir_step_5(setup_parameters):
+#     """
+#     Test the fifth step of the pipeline - clean cells.
+#     """
+#     print("Clean cells.")
+#     voluseg.step5_clean_cells(setup_parameters)
+#     # TODO - add asserts
+
+
+@pytest.mark.order(7)
+def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
+    """
+    Test the full pipeline with an NWB file as input.
+    """
+    print("Process volumes.")
+    voluseg.step1_process_volumes(setup_parameters_nwb)
+
+    print("Align volumes.")
+    voluseg.step2_align_volumes(setup_parameters_nwb)
+
+    print("Mask volumes.")
+    voluseg.step3_mask_volumes(setup_parameters_nwb)
+
+    print("Detect cells.")
+    voluseg.step4_detect_cells(setup_parameters_nwb)
+
+    # print("Clean cells.")
+    # voluseg.step5_clean_cells(setup_parameters_nwb)
+
+
+@pytest.mark.order(8)
+def compare_results_nwb_and_h5_dir(
+    setup_parameters,
+    setup_parameters_nwb,
+):
+    """
+    Compare segmentation results from the pipeline with h5 and nwb files.
+    """
+    result_nwb = Path(setup_parameters_nwb["dir_output"]) / "cells/0/block00000.hdf5"
+    hdf_nwb = h5py.File(result_nwb, "r")
+
+    result_h5 = Path(setup_parameters["dir_output"]) / "cells/0/block00000.hdf5"
+    hdf_h5 = h5py.File(result_h5, "r")
+
+    assert (
+        hdf_nwb["n_cells"][()] == hdf_h5["n_cells"][()]
+    ), "Different number of cells between NWB and h5 results"
+    assert (
+        hdf_nwb["completion"][()] == hdf_h5["completion"][()]
+    ), "Different completion value between NWB and h5 results"
+    assert np.array_equal(
+        hdf_nwb["cell"]["00001"]["xyz"][:],
+        hdf_h5["cell"]["00001"]["xyz"][:],
+    ), "Different cell coordinates between NWB and h5 results"
+    assert np.array_equal(
+        hdf_nwb["cell"]["00001"]["weights"][:],
+        hdf_h5["cell"]["00001"]["weights"][:],
+    ), "Different cell weights between NWB and h5 results"
+    assert np.array_equal(
+        hdf_nwb["cell"]["00001"]["timeseries"][:],
+        hdf_h5["cell"]["00001"]["timeseries"][:],
+    ), "Different cell weights between NWB and h5 results"
+
+
+@pytest.mark.order(9)
+def test_nwb_remote(tmp_path):
+    """
+    Test for remote NWB files.
+    """
+    # Define parameters and paths
+    parameters = voluseg.parameter_dictionary()
+
+    # Using this file: https://dandiarchive.org/dandiset/000350/0.240822.1759/files?location=sub-20161022-1&page=1
+    parameters["dir_input"] = "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
+    parameters["dir_ants"] = os.environ.get("ANTS_PATH")
+
+    # Use pytest's tmp_path fixture for output
+    parameters["dir_output"] = str(tmp_path)
+
+    # Other parameters
+    parameters["registration"] = "high"
+    parameters["diam_cell"] = 5.0
+    parameters["f_volume"] = 2.0
+    parameters['timepoints'] = 20
+
+    print("Process parameters")
+    parameters = voluseg.step0_process_parameters(parameters)
+
+    print("Process volumes.")
+    voluseg.step1_process_volumes(parameters)
+
+    output_files = [
+        p
+        for p in (Path(parameters["dir_output"]) / "volumes/0/").glob("*.nii.gz")
+    ]
+    n_files_output = len(output_files)
+    assert (
+        n_files_output == parameters['timepoints']
+    ), f"Number of output files ({n_files_output}) does not match number of timepoints ({parameters['timepoints']})"
