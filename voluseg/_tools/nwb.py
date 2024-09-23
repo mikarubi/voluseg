@@ -246,6 +246,7 @@ def write_nwbfile(
         data=cell_timeseries.T,
         rois=rt_region,
         unit="lumens",
+        rate=1.0,  # TODO - where can we get the rate from?
     )
     fl = pynwb.ophys.Fluorescence(roi_response_series=roi_resp_series)
     ophys_module.add(fl)
