@@ -367,11 +367,11 @@ def test_save_result_as_nwb(setup_parameters):
     hdf_h5 = h5py.File(clean_cells_file, "r")
     write_nwbfile(
         output_path=str(Path(setup_parameters["dir_output"]) / "cells0_clean.nwb"),
-        cell_x=hdf_h5["cell_x"],
-        cell_y=hdf_h5["cell_y"],
-        cell_z=hdf_h5["cell_z"],
-        cell_weights=hdf_h5["cell_weights"],
-        cell_timeseries=hdf_h5["cell_timeseries"],
+        cell_x=hdf_h5["cell_x"][:],
+        cell_y=hdf_h5["cell_y"][:],
+        cell_z=hdf_h5["cell_z"][:],
+        cell_weights=hdf_h5["cell_weights"][:],
+        cell_timeseries=hdf_h5["cell_timeseries"][:],
     )
     # Check if the file was created
     assert (
