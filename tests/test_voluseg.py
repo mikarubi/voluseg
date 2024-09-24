@@ -266,16 +266,6 @@ def test_voluseg_h5_dir_step_4(setup_parameters):
     ).exists(), "Block file 00003 does not exist"
 
 
-# @pytest.mark.order(6)
-# def test_voluseg_h5_dir_step_5(setup_parameters):
-#     """
-#     Test the fifth step of the pipeline - clean cells.
-#     """
-#     print("Clean cells.")
-#     voluseg.step5_clean_cells(setup_parameters)
-#     # TODO - add asserts
-
-
 @pytest.mark.order(7)
 def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
     """
@@ -331,7 +321,65 @@ def compare_results_nwb_and_h5_dir(
     ), "Different cell weights between NWB and h5 results"
 
 
+
 @pytest.mark.order(9)
+def test_voluseg_h5_dir_step_5(setup_parameters):
+    """
+    Test the fifth step of the pipeline - clean cells.
+    """
+    print("Clean cells.")
+    voluseg.step5_clean_cells(setup_parameters)
+
+    clean_cells_file = Path(setup_parameters["dir_output"]) / "cells0_clean.hdf5"
+    assert clean_cells_file.exists(), "Cleaned cells file does not exist"
+
+    hdf_h5 = h5py.File(clean_cells_file, "r")
+    keys = [
+        'background',
+        'cell_baseline',
+        'cell_block_id',
+        'cell_timeseries',
+        'cell_timeseries_raw',
+        'cell_weights',
+        'cell_x',
+        'cell_y',
+        'cell_z',
+        'n',
+        't',
+        'volume_id',
+        'volume_weight',
+        'x',
+        'y',
+        'z'
+    ]
+    for k in keys:
+        assert k in hdf_h5.keys(), f"Key '{k}' is missing in cleaned cells file"
+
+
+@pytest.mark.order(10)
+def test_save_result_as_nwb(setup_parameters):
+    """
+    Test saving results as an NWB file.
+    """
+    from voluseg._tools.nwb import write_nwbfile
+
+    clean_cells_file = Path(setup_parameters["dir_output"]) / "cells0_clean.hdf5"
+    hdf_h5 = h5py.File(clean_cells_file, "r")
+    write_nwbfile(
+        output_path=str(Path(setup_parameters["dir_output"]) / "cells0_clean.nwb"),
+        cell_x=hdf_h5["cell_x"][:],
+        cell_y=hdf_h5["cell_y"][:],
+        cell_z=hdf_h5["cell_z"][:],
+        cell_weights=hdf_h5["cell_weights"][:],
+        cell_timeseries=hdf_h5["cell_timeseries"][:],
+    )
+    # Check if the file was created
+    assert (
+        Path(setup_parameters["dir_output"]) / "cells0_clean.nwb"
+    ).exists(), "NWB file was not created"
+
+
+@pytest.mark.order(11)
 def test_nwb_remote(tmp_path):
     """
     Test for remote NWB files.
