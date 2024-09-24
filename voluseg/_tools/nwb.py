@@ -192,24 +192,24 @@ def write_nwbfile(
     nwbfile = pynwb.NWBFile(
         session_description="voluseg results",
         identifier=str(uuid4()),
-        session_start_time=datetime.now(tzlocal()),
+        session_start_time=datetime.now(tzlocal()),  # TODO - get the correct metadata
     )
     device = nwbfile.create_device(name="Microscope")
     optical_channel = pynwb.ophys.OpticalChannel(
         name="OpticalChannel",
         description="an optical channel",
-        emission_lambda=500.0,
+        emission_lambda=500.0,  # TODO - get the correct metadata
     )
     imaging_plane = nwbfile.create_imaging_plane(
         name="ImagingPlane",
         optical_channel=optical_channel,
-        description="a very interesting part of the brain",
+        description="Imaging plane",
         device=device,
-        excitation_lambda=600.0,
-        indicator="GFP",
-        location="V1",
-        grid_spacing=[0.01, 0.01],
-        grid_spacing_unit="meters",
+        excitation_lambda=600.0,  # TODO - get the correct metadata
+        indicator="GFP",  # TODO - get the correct metadata
+        location="V1",  # TODO - get the correct metadata
+        grid_spacing=[0.01, 0.01],  # TODO - get the correct metadata
+        grid_spacing_unit="meters",  # TODO - get the correct metadata
     )
 
     # Create segmentation objects
@@ -245,8 +245,8 @@ def write_nwbfile(
         description="Fluorescence responses for ROIs",
         data=cell_timeseries.T,
         rois=rt_region,
-        unit="lumens",
-        rate=1.0,  # TODO - where can we get the rate from?
+        unit="lumens",  # TODO - get the correct metadata
+        rate=1.0,  # TODO - get the correct metadata
     )
     fl = pynwb.ophys.Fluorescence(roi_response_series=roi_resp_series)
     ophys_module.add(fl)
