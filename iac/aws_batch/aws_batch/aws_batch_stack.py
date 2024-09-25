@@ -50,8 +50,8 @@ class AwsBatchStack(Stack):
         vpc_id = f"{stack_id}-Vpc"
         security_group_id = f"{stack_id}-SecurityGroup"
         launch_template_id = f"{stack_id}-LaunchTemplate"
-        compute_env_cpu_id = f"{stack_id}-compute-env-cpu"
-        job_queue_cpu_id = f"{stack_id}-job-queue-cpu"
+        compute_env_id = f"{stack_id}-compute-env"
+        job_queue_id = f"{stack_id}-job-queue"
         job_definition_id = f"{stack_id}-job-definition"
         tag_key_name = stack_id
 
@@ -152,50 +152,50 @@ class AwsBatchStack(Stack):
         multipart_user_data.add_commands("mkdir -p /tmp")
         multipart_user_data.add_commands("mount /dev/xvda /tmp")
 
-        launch_template_cpu = ec2.LaunchTemplate(
+        launch_template = ec2.LaunchTemplate(
             scope=self,
-            id=launch_template_id + "-cpu",
-            launch_template_name=launch_template_id + "-cpu",
+            id=launch_template_id,
+            launch_template_name=launch_template_id,
             block_devices=[block_device_2T],
-            machine_image=ec2.MachineImage.generic_linux(ami_map=ami_map_cpu),
+            machine_image=ec2.MachineImage.generic_linux(ami_map=ami_map),
             ebs_optimized=True,
             user_data=multipart_user_data,
         )
-        Tags.of(launch_template_cpu).add("AWSBatchService", "batch")
+        Tags.of(launch_template).add("AWSBatchService", "batch")
 
-        # Compute environment for CPU
-        ecs_machine_image_cpu = batch.EcsMachineImage(
-            image=ec2.MachineImage.generic_linux(ami_map=ami_map_cpu),
+        # Compute environment
+        ecs_machine_image = batch.EcsMachineImage(
+            image=ec2.MachineImage.generic_linux(ami_map=ami_map),
             image_type=batch.EcsMachineImageType.ECS_AL2,
         )
-        compute_env_cpu = batch.ManagedEc2EcsComputeEnvironment(
+        compute_env = batch.ManagedEc2EcsComputeEnvironment(
             scope=self,
-            id=compute_env_cpu_id,
+            id=compute_env_id,
             vpc=vpc,
             instance_types=[ec2.InstanceType("optimal")],
-            images=[ecs_machine_image_cpu],
+            images=[ecs_machine_image],
             maxv_cpus=128,
             minv_cpus=0,
             security_groups=[security_group],
             service_role=batch_service_role,  # type: ignore because Role implements IRole
             instance_role=ecs_instance_role,  # type: ignore because Role implements IRole
-            launch_template=launch_template_cpu,
+            launch_template=launch_template,
         )
-        Tags.of(compute_env_cpu).add(tag_key_name, f"{stack_id}-compute-env")
+        Tags.of(compute_env).add(tag_key_name, f"{stack_id}-compute-env")
 
-        # Job queue for CPU
-        job_queue_cpu = batch.JobQueue(
+        # Job queue
+        job_queue = batch.JobQueue(
             scope=self,
-            id=job_queue_cpu_id,
-            job_queue_name=job_queue_cpu_id,
+            id=job_queue_id,
+            job_queue_name=job_queue_id,
             priority=1,
             compute_environments=[
                 batch.OrderedComputeEnvironment(
-                    compute_environment=compute_env_cpu, order=1
+                    compute_environment=compute_env, order=1
                 )
             ],
         )
-        Tags.of(job_queue_cpu).add(tag_key_name, f"{stack_id}-job-queue")
+        Tags.of(job_queue).add(tag_key_name, f"{stack_id}-job-queue")
 
         # Batch job definition
         docker_image = ecs.ContainerImage.from_registry(
@@ -227,10 +227,7 @@ class AwsBatchStack(Stack):
         Tags.of(job_definition).add(tag_key_name, f"{stack_id}-job-definition")
 
 
-# generated using ../devel/create_ami_map.py
-# not able to get image ID for some regions due to invalid security token.
-# used this command: aws ssm get-parameter --name /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended --region us-east-1 --output json
-ami_map_cpu = {
+ami_map = {
     "ap-south-1": "ami-0ac26d07e5b3dee2c",
     "ap-southeast-1": "ami-04c2b121d2518d721",
     "ap-southeast-2": "ami-0a6407061c6f43c25",

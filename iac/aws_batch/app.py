@@ -7,7 +7,6 @@ from aws_batch.aws_batch_stack import AwsBatchStack
 # --------------------------------------------------------------
 # User defined values
 # --------------------------------------------------------------
-stack_id = "VolusegBatchStack"
 ebs_volume_size = 3000
 
 # --------------------------------------------------------------
@@ -17,7 +16,7 @@ app = cdk.App()
 
 AwsBatchStack(
     scope=app,
-    stack_id=stack_id,
+    stack_id="VolusegBatchStack",
     ebs_volume_size=ebs_volume_size,
 )
 
