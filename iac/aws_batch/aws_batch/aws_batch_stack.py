@@ -3,10 +3,12 @@ from aws_cdk import (
     Stack,
     Tags,
     Size,
+    RemovalPolicy,
     aws_iam as iam,
     aws_ec2 as ec2,
     aws_batch as batch,
     aws_ecs as ecs,
+    aws_s3 as s3,
 )
 import boto3
 
@@ -26,7 +28,7 @@ class AwsBatchStack(Stack):
         scope: Construct,
         stack_id: str = "VolusegBatchStack",
         ebs_volume_size: int = 3000,
-        **kwargs
+        **kwargs,
     ) -> None:
 
         # get the default aws region
@@ -225,6 +227,27 @@ class AwsBatchStack(Stack):
             retry_attempts=1,
         )
         Tags.of(job_definition).add(tag_key_name, f"{stack_id}-job-definition")
+
+        # S3 bucket
+        s3_bucket = s3.Bucket(
+            scope=self,
+            id=f"{stack_id}-Bucket",
+            bucket_name=f"{stack_id.lower()}-bucket",
+            removal_policy=RemovalPolicy.DESTROY,
+        )
+
+        # Add S3 permissions to the batch jobs access role
+        batch_jobs_access_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:ListBucket",
+                    "s3:DeleteObject",
+                ],
+                resources=[s3_bucket.bucket_arn, f"{s3_bucket.bucket_arn}/*"],
+            )
+        )
 
 
 ami_map = {
