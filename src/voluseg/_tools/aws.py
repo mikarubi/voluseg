@@ -54,7 +54,7 @@ def run_job_in_aws_batch(
     aws_batch_job_definition = f"{stack_id}-job-definition"
     aws_batch_job_queue = f'{stack_id}-job-queue'
 
-    iso_string = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    iso_string = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(":", "-").replace("+", "Z")
     job_id = f'{job_name}-{iso_string}'
 
     job_def_resp = client.describe_job_definitions(jobDefinitionName=aws_batch_job_definition)
@@ -91,12 +91,12 @@ def run_job_in_aws_batch(
 def export_to_s3(
     local_path: str,
     bucket_name: str,
-    s3_path: str,
+    object_name: str,
 ):
     s3 = boto3.client('s3')
     s3.upload_file(
         Filename=local_path,
         Bucket=bucket_name,
-        Key=s3_path,
+        Key=object_name,
     )
-    print(f'File uploaded to s3://{bucket_name}/{s3_path}')
+    print(f'File uploaded to s3://{bucket_name}/{object_name}')

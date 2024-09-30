@@ -108,11 +108,13 @@ def run_pipeline(
     print("Save results to S3...")
     stack_id = "VolusegBatchStack"
     bucket_name = f"{stack_id}-Bucket"
-    s3_path = str(os.path.join(dir_output, "cells0_clean.hdf5"))
+    job_id = os.environ.get("VOLUSEG_JOB_ID")
+    local_file = str(os.path.join(dir_output, "cells0_clean.hdf5"))
+    object_name = f"{job_id}/cells0_clean.hdf5"
     export_to_s3(
-        local_path=parameters["dir_output"],
+        local_path=local_file,
         bucket_name=bucket_name,
-        s3_path=s3_path,
+        object_name=object_name,
     )
 
 
