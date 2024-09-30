@@ -218,7 +218,7 @@ class AwsBatchStack(Stack):
                 volumes=[
                     batch.EcsVolume.host(
                         host_path="/tmp",
-                        container_path="/tmp",
+                        container_path="/tmp/voluseg_output",
                         name=f"{stack_id}-volume",
                         readonly=False,
                     )

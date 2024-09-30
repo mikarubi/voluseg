@@ -10,16 +10,28 @@ app = typer.Typer()
 @app.command()
 def run_pipeline(
     detrending: Annotated[str, typer.Option(envvar="VOLUSEG_DETRENDING")] = "standard",
-    registration: Annotated[str, typer.Option(envvar="VOLUSEG_REGISTRATION")] = "medium",
-    registration_restrict: Annotated[str, typer.Option(envvar="VOLUSEG_REGISTRATION_RESTRICT")] = "",
+    registration: Annotated[
+        str, typer.Option(envvar="VOLUSEG_REGISTRATION")
+    ] = "medium",
+    registration_restrict: Annotated[
+        str, typer.Option(envvar="VOLUSEG_REGISTRATION_RESTRICT")
+    ] = "",
     diam_cell: Annotated[float, typer.Option(envvar="VOLUSEG_DIAM_CELL")] = 6.0,
     ds: Annotated[int, typer.Option(envvar="VOLUSEG_DS")] = 2,
     planes_pad: Annotated[int, typer.Option(envvar="VOLUSEG_PLANES_PAD")] = 0,
-    planes_packed: Annotated[bool, typer.Option(envvar="VOLUSEG_PLANES_PACKED")] = False,
-    parallel_clean: Annotated[bool, typer.Option(envvar="VOLUSEG_PARALLEL_CLEAN")] = False,
-    parallel_volume: Annotated[bool, typer.Option(envvar="VOLUSEG_PARALLEL_VOLUME")] = False,
+    planes_packed: Annotated[
+        bool, typer.Option(envvar="VOLUSEG_PLANES_PACKED")
+    ] = False,
+    parallel_clean: Annotated[
+        bool, typer.Option(envvar="VOLUSEG_PARALLEL_CLEAN")
+    ] = False,
+    parallel_volume: Annotated[
+        bool, typer.Option(envvar="VOLUSEG_PARALLEL_VOLUME")
+    ] = False,
     save_volume: Annotated[bool, typer.Option(envvar="VOLUSEG_SAVE_VOLUME")] = False,
-    type_timepoints: Annotated[str, typer.Option(envvar="VOLUSEG_TYPE_TIMEPOINTS")] = "dff",
+    type_timepoints: Annotated[
+        str, typer.Option(envvar="VOLUSEG_TYPE_TIMEPOINTS")
+    ] = "dff",
     type_mask: Annotated[str, typer.Option(envvar="VOLUSEG_TYPE_MASK")] = "geomean",
     timepoints: Annotated[int, typer.Option(envvar="VOLUSEG_TIMEPOINTS")] = 1000,
     f_hipass: Annotated[float, typer.Option(envvar="VOLUSEG_F_HIPASS")] = 0,
@@ -32,13 +44,18 @@ def run_pipeline(
     t_baseline: Annotated[int, typer.Option(envvar="VOLUSEG_T_BASELINE")] = 300,
     t_section: Annotated[float, typer.Option(envvar="VOLUSEG_T_SECTION")] = 0.01,
     thr_mask: Annotated[float, typer.Option(envvar="VOLUSEG_THR_MASK")] = 0.5,
-    dir_input: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_INPUT")] = "/voluseg/data/",
+    dir_input: Annotated[
+        str, typer.Option(envvar="VOLUSEG_DIR_INPUT")
+    ] = "/voluseg/data/",
+    dir_output: Annotated[
+        str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")
+    ] = "/tmp/voluseg_output",
 ):
     # set and save parameters
     parameters0 = voluseg.parameter_dictionary()
     parameters0["dir_ants"] = "/ants-2.5.3/bin/"
     parameters0["dir_input"] = dir_input
-    parameters0["dir_output"] = "/voluseg/output/"
+    parameters0["dir_output"] = dir_output
 
     # user-defined parameters
     parameters0["detrending"] = detrending
@@ -70,21 +87,32 @@ def run_pipeline(
         os.path.join(parameters0["dir_output"], "parameters.json")
     )
     parameters = voluseg.load_parameters(filename_parameters)
+    print("Parameters:\n", parameters)
 
-    print("process volumes.")
+    print("Process volumes...")
     voluseg.step1_process_volumes(parameters)
 
-    print("align volumes.")
+    print("Align volumes...")
     voluseg.step2_align_volumes(parameters)
 
-    print("mask volumes.")
+    print("Mask volumes...")
     voluseg.step3_mask_volumes(parameters)
 
-    print("detect cells.")
+    print("Detect cells...")
     voluseg.step4_detect_cells(parameters)
 
-    print("clean cells.")
+    print("Clean cells...")
     voluseg.step5_clean_cells(parameters)
+
+    print("Save results to S3...")
+    stack_id = "VolusegBatchStack"
+    bucket_name = f"{stack_id}-Bucket"
+    s3_path = str(os.path.join(dir_output, "cells0_clean.hdf5"))
+    voluseg._tools.aws.export_to_s3(
+        local_path=parameters["dir_output"],
+        bucket_name=bucket_name,
+        s3_path=s3_path,
+    )
 
 
 if __name__ == "__main__":
