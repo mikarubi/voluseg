@@ -30,6 +30,20 @@ Other useful CDK commands:
 - `cdk destroy` - destroy the stack.
 - `cdk docs` - open CDK documentation.
 
+This deployment will create the following AWS resources in your account:
+
+- IAM roles:
+    - Batch service role
+    - ECS instance role
+    - Batch jobs access role
+- VPC
+- Security group
+- EC2 Launch template
+- Batch Compute environment
+- Batch Job queue
+- Batch Job definition
+- S3 bucket
+
 
 ## Step 2. Submit jobs to AWS Batch
 
@@ -50,3 +64,5 @@ print(r)
 ```
 
 Once submitted, you can monitor the job status in the AWS Batch console.
+
+The results of the job will be stored in the S3 bucket created by the CDK stack. You can access the results by navigating to the S3 bucket in the AWS console.
