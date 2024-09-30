@@ -1,7 +1,8 @@
 import os
-import voluseg
 import typer
 from typing_extensions import Annotated
+import voluseg
+from voluseg._tools.aws import export_to_s3
 
 
 app = typer.Typer()
@@ -108,7 +109,7 @@ def run_pipeline(
     stack_id = "VolusegBatchStack"
     bucket_name = f"{stack_id}-Bucket"
     s3_path = str(os.path.join(dir_output, "cells0_clean.hdf5"))
-    voluseg._tools.aws.export_to_s3(
+    export_to_s3(
         local_path=parameters["dir_output"],
         bucket_name=bucket_name,
         s3_path=s3_path,
