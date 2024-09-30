@@ -1,4 +1,4 @@
-# AWS Batch Infrastructure as Code (IaC)
+# Running Voluseg on AWS Batch
 
 Here we provide instructions for setting up your Voluseg service to run jobs in AWS Batch. First you will need to provision the base AWS Batch infrastructure using CDK. This includes IAM roles, VPC, Security Group, Batch Compute Environments and Batch Job Queues. Next you will need to configure your compute resource controller to submit jobs to AWS Batch. Finally, when you submit jobs from the web interface, you must select aws_batch as the run method.
 
@@ -29,3 +29,24 @@ Other useful CDK commands:
 - `cdk diff` - compare deployed stack with current state.
 - `cdk destroy` - destroy the stack.
 - `cdk docs` - open CDK documentation.
+
+
+## Step 2. Submit jobs to AWS Batch
+
+Voluseg provides an utility function to submit jobs to AWS Batch. You can use this function to submit jobs from your local machine. You must provide the url of the remote file stored in S3, plus any other voluseg arguments you want to pass to the job. Example:
+
+```python
+from voluseg._tools.aws import run_job_in_aws_batch
+
+r = run_job_in_aws_batch(
+    job_name="my-voluseg-job",
+    voluseg_kwargs={
+        "dir_input": "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6b0/7b0/6b07b076-e4f2-4123-b8e5-08cec3e72aeb",
+        "timepoints": 2000,
+    },
+    aws_local_profile="default",  # optional - if not provided, the default profile will be used
+)
+print(r)
+```
+
+Once submitted, you can monitor the job status in the AWS Batch console.
