@@ -35,7 +35,7 @@ def format_voluseg_kwargs(voluseg_kwargs: dict) -> dict:
         "dir_output": "VOLUSEG_DIR_OUTPUT",
     }
     formatted_kwargs = {
-        parameter_to_env_var[key]: value
+        parameter_to_env_var[key]: str(value)
         for key, value in voluseg_kwargs.items()
         if key in parameter_to_env_var
     }
