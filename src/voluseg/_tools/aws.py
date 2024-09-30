@@ -45,8 +45,10 @@ def format_voluseg_kwargs(voluseg_kwargs: dict) -> dict:
 def run_job_in_aws_batch(
     job_name: str,
     voluseg_kwargs: dict,
+    aws_local_profile: str = None,
 ):
-    client = boto3.client('batch')
+    session = boto3.Session(profile_name=aws_local_profile)
+    client = session.client("batch")
 
     stack_id = "VolusegBatchStack"
     aws_batch_job_definition = f"{stack_id}-job-definition"
@@ -65,7 +67,7 @@ def run_job_in_aws_batch(
     env_vars["VOLUSEG_JOB_ID"] = job_id
 
     response = client.submit_job(
-        jobName=job_name,
+        jobName=job_id,
         jobQueue=aws_batch_job_queue,
         jobDefinition=aws_batch_job_definition,
         containerOverrides={
@@ -75,26 +77,6 @@ def run_job_in_aws_batch(
                     'value': v
                 }
                 for k, v in env_vars.items()
-            ],
-        },
-        ecsPropertiesOverride={
-            'taskProperties': [
-                {
-                    'containers': [
-                        {
-                            'ResourceRequirements': [
-                                {
-                                    'type': 'VCPU',
-                                    'value': '32'
-                                },
-                                {
-                                    'type': 'MEMORY',
-                                    'value': '65536'
-                                },
-                            ],
-                        },
-                    ],
-                },
             ],
         },
     )
