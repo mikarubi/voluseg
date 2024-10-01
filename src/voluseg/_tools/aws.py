@@ -43,11 +43,38 @@ def format_voluseg_kwargs(voluseg_kwargs: dict) -> dict:
 
 
 def run_job_in_aws_batch(
-    job_name: str,
+    job_name_prefix: str,
     voluseg_kwargs: dict,
     aws_local_profile: str = None,
+    vcpus: int = 32,
+    memory: int = 65536,
 ):
-    session = boto3.Session(profile_name=aws_local_profile)
+    """
+    Submit a Voluseg job to AWS Batch.
+
+    Parameters
+    ----------
+    job_name_prefix : str
+        Job name prefix, it will be concatenated with the current timestamp.
+        Example: "my-voluseg-job" -> "my-voluseg-job-2024-10-01T06-39-10Z00-00"
+    voluseg_kwargs : dict
+        Voluseg parameters.
+    aws_local_profile : str
+        AWS profile name. Default is None.
+    vcpus : int
+        Number of vCPUs. Default is 32.
+    memory : int
+        Memory in MB. Default is 65536.
+
+    Returns
+    -------
+    dict
+        Dictionary with the job_name and batch_job_id.
+    """
+    if aws_local_profile is None:
+        session = boto3.Session()
+    else:
+        session = boto3.Session(profile_name=aws_local_profile)
     client = session.client("batch")
 
     stack_id = "VolusegBatchStack"
@@ -55,7 +82,7 @@ def run_job_in_aws_batch(
     aws_batch_job_queue = f'{stack_id}-job-queue'
 
     iso_string = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(":", "-").replace("+", "Z")
-    job_id = f'{job_name}-{iso_string}'
+    job_name = f'{job_name_prefix}-{iso_string}'
 
     job_def_resp = client.describe_job_definitions(jobDefinitionName=aws_batch_job_definition)
     job_defs = job_def_resp['jobDefinitions']
@@ -64,26 +91,36 @@ def run_job_in_aws_batch(
 
     env_vars = format_voluseg_kwargs(voluseg_kwargs)
     env_vars["VOLUSEG_DIR_OUTPUT"] = "/tmp/voluseg-jobs"
-    env_vars["VOLUSEG_JOB_ID"] = job_id
+    env_vars["VOLUSEG_JOB_ID"] = job_name
 
     response = client.submit_job(
-        jobName=job_id,
+        jobName=job_name,
         jobQueue=aws_batch_job_queue,
         jobDefinition=aws_batch_job_definition,
         containerOverrides={
-            'environment': [
+            "environment": [
                 {
-                    'name': k,
-                    'value': v
+                    "name": k,
+                    "value": v
                 }
                 for k, v in env_vars.items()
+            ],
+            "resourceRequirements": [
+                {
+                    "type": "MEMORY",
+                    "value": str(memory)
+                },
+                {
+                    "type": "VCPU",
+                    "value": str(vcpus)
+                },
             ],
         },
     )
     batch_job_id = response['jobId']
-    print(f'AWS Batch job submitted: {job_id} {batch_job_id}')
+    print(f'AWS Batch job submitted: {job_name} {batch_job_id}')
     return {
-        'job_id': job_id,
+        'job_name': job_name,
         'batch_job_id': batch_job_id,
     }
 
