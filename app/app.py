@@ -3,6 +3,7 @@ import typer
 from typing_extensions import Annotated
 import voluseg
 from voluseg._tools.aws import export_to_s3
+from voluseg._tools.logger import create_logger
 
 
 app = typer.Typer()
@@ -52,7 +53,12 @@ def run_pipeline(
         str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")
     ] = "/tmp/voluseg_output",
 ):
+
+    logs_base_path = dir_output + "/logs"
+    logger = create_logger()
+
     # set and save parameters
+    logger.change_output_file(logs_base_path + "/0_setup.log")
     parameters0 = voluseg.parameter_dictionary()
     parameters0["dir_ants"] = "/ants-2.5.3/bin/"
     parameters0["dir_input"] = dir_input
@@ -88,24 +94,30 @@ def run_pipeline(
         os.path.join(parameters0["dir_output"], "parameters.json")
     )
     parameters = voluseg.load_parameters(filename_parameters)
-    print("Parameters:\n", parameters)
+    logger.info(f"Parameters:\n{parameters}")
 
-    print("Process volumes...")
+    logger.change_output_file(logs_base_path + "/1_process_volumes.log")
+    logger.info("Process volumes...")
     voluseg.step1_process_volumes(parameters)
 
-    print("Align volumes...")
+    logger.change_output_file(logs_base_path + "/2_align_volumes.log")
+    logger.info("Align volumes...")
     voluseg.step2_align_volumes(parameters)
 
-    print("Mask volumes...")
+    logger.change_output_file(logs_base_path + "/3_mask_volumes.log")
+    logger.info("Mask volumes...")
     voluseg.step3_mask_volumes(parameters)
 
-    print("Detect cells...")
+    logger.change_output_file(logs_base_path + "/4_detect_cells.log")
+    logger.info("Detect cells...")
     voluseg.step4_detect_cells(parameters)
 
-    print("Clean cells...")
+    logger.change_output_file(logs_base_path + "/5_clean_cells.log")
+    logger.info("Clean cells...")
     voluseg.step5_clean_cells(parameters)
 
-    print("Save results to S3...")
+    logger.change_output_file(logs_base_path + "/6_save_results.log")
+    logger.info("Save results to S3...")
     stack_id = "VolusegBatchStack"
     bucket_name = f"{stack_id}-bucket".lower()
     job_id = os.environ.get("VOLUSEG_JOB_ID")
