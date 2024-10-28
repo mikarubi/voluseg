@@ -26,9 +26,8 @@ COPY requirements-docker.txt /voluseg/requirements-docker.txt
 RUN pip install --no-cache-dir -r requirements-docker.txt
 
 # Install voluseg
-COPY README.md /voluseg/README.md
-COPY setup.py /voluseg/setup.py
-COPY voluseg /voluseg/voluseg
+COPY src/voluseg /voluseg/src/voluseg
+COPY pyproject.toml /voluseg/pyproject.toml
 COPY app /voluseg/app
 RUN pip install --no-cache-dir -e .
 
