@@ -1,0 +1,172 @@
+---
+title: Pipeline Parameters
+sidebar_position: 5
+---
+
+## Parameters dictionary
+To run the Voluseg pipeline, you need to set up the parameters. The parameters are stored in a dictionary and can be modified to fit your specific needs. The parameters are used to control the behavior of the pipeline, such as the type of detrending, registration quality, cell diameter, and resolution.
+
+**detrending** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+  Type of detrending: 'standard', 'robust', or 'none' (default is 'standard').
+</div>
+
+**registration** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Quality of registration: 'high', 'medium', 'low' or 'none' (default is 'medium').
+</div>
+
+**registration_restrict** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Restrict registration (e.g. 1x1x1x1x1x1x0x0x0x1x1x0) (default is an empty string).
+</div>
+
+**diam_cell** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Cell diameter in microns (default is 6.0).
+</div>
+
+**dir_ants** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Path to the ANTs directory (default is an empty string).
+</div>
+
+**dir_input** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Path to input directories, separate multiple directories with ';' (default is an empty string).
+</div>
+
+**dir_output** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Path to the output directory (default is an empty string).
+</div>
+
+**dir_transform** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Path to the transform directory (default is an empty string).
+</div>
+
+**ds** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Spatial coarse-graining in x-y dimension (default is 2).
+</div>
+
+**planes_pad** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Number of planes to pad the volume with for robust registration (default is 0).
+</div>
+
+**planes_packed** (bool, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Packed planes in each volume, for single plane imaging with packed planes (default is False).
+</div>
+
+**parallel_clean** (bool, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Parallelization of final cleaning (True is fast but memory-intensive, default is True).
+</div>
+
+**parallel_volume** (bool, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Parallelization of mean-volume computation (True is fast but memory-intensive, default is True).
+</div>
+
+**save_volume** (bool, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Save registered volumes after segmentation, True keeps a copy of the volumes (default is False).
+</div>
+
+**type_timepoints** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Type of timepoints to use for cell detection: 'dff', 'periodic' or 'custom' (default is 'dff').
+</div>
+
+**type_mask** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Type of volume averaging for the mask: 'mean', 'geomean' or 'max' (default is 'geomean').
+</div>
+
+**timepoints** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Number ('dff', 'periodic') or vector ('custom') of timepoints for segmentation (default is 1000).
+</div>
+
+**f_hipass** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Frequency (Hz) for high-pass filtering of cell timeseries (default is 0).
+</div>
+
+**f_volume** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Imaging frequency in Hz (default is 2.0).
+</div>
+
+**n_cells_block** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Number of cells in a block. Small number is fast but can lead to blocky output (default is 316).
+</div>
+
+**n_colors** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Number of brain colors (2 in two-color volumes, default is 1).
+</div>
+
+**res_x** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    X resolution in microns (default is 0.40625).
+</div>
+
+**res_y** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Y resolution in microns (default is 0.40625).
+</div>
+
+**res_z** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Z resolution in microns (default is 5.0).
+</div>
+
+**t_baseline** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Interval for baseline calculation in seconds (default is 300).
+</div>
+
+**t_section** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Exposure time in seconds for slice acquisition (default is 0.01).
+</div>
+
+**thr_mask** (float, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Threshold for volume mask: 0 &lt; thr &lt;= 1 (probability) or thr &gt; 1 (intensity) (default is 0.5).
+</div>
+
+**volume_fullnames_input** (list[str], optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    List of full volume names (default is None).
+</div>
+
+**volume_names** (list[str], optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    List of volume names (default is None).
+</div>
+
+**input_dirs** (list[str], optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    List of input directories (default is None).
+</div>
+
+**ext** (str, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    File extension (default is None).
+</div>
+
+**lt** (int, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Number of volumes (default is None).
+</div>
+
+**affine_matrix** (list, optional):
+<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
+    Affine matrix (default is None).
+</div>
