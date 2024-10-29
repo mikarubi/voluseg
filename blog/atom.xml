@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://mikarubi.github.io/voluseg/blog</id>
+    <title>Voluseg Blog</title>
+    <updated>2021-08-26T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://mikarubi.github.io/voluseg/blog"/>
+    <subtitle>Voluseg Blog</subtitle>
+    <entry>
+        <title type="html"><![CDATA[Welcome]]></title>
+        <id>https://mikarubi.github.io/voluseg/blog/welcome</id>
+        <link href="https://mikarubi.github.io/voluseg/blog/welcome"/>
+        <updated>2021-08-26T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Welcome to Voluseg Blog]]></summary>
+        <content type="html"><![CDATA[<p>Welcome to Voluseg Blog</p>]]></content>
+        <author>
+            <name>Mikail Rubinov</name>
+            <uri>https://github.com/mikarubi/voluseg</uri>
+        </author>
+        <category label="blog" term="blog"/>
+        <category label="voluseg" term="voluseg"/>
+    </entry>
+</feed>
