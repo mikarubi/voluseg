@@ -6,11 +6,11 @@ from types import SimpleNamespace
 from itertools import combinations
 from pyspark.sql.session import SparkSession
 
-from voluseg._steps.step4e import collect_blocks
-from voluseg._tools.constants import hdf, dtype
-from voluseg._tools.clean_signal import clean_signal
-from voluseg._tools.evenly_parallelize import evenly_parallelize
-from voluseg._tools.nwb import write_nwbfile
+from voluseg.steps.step4e import collect_blocks
+from voluseg.tools.constants import hdf, dtype
+from voluseg.tools.clean_signal import clean_signal
+from voluseg.tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.nwb import write_nwbfile
 
 
 def clean_cells(parameters: dict) -> None:

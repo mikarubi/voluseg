@@ -16,11 +16,11 @@ with warnings.catch_warnings():
     matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from voluseg._tools.ball import ball
-from voluseg._tools.constants import ali, hdf
-from voluseg._tools.load_volume import load_volume
-from voluseg._tools.clean_signal import clean_signal
-from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.ball import ball
+from voluseg.tools.constants import ali, hdf
+from voluseg.tools.load_volume import load_volume
+from voluseg.tools.clean_signal import clean_signal
+from voluseg.tools.evenly_parallelize import evenly_parallelize
 
 
 def mask_volumes(parameters: dict) -> None:

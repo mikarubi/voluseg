@@ -2,7 +2,7 @@ import h5py
 import nibabel
 import numpy as np
 from typing import Union
-from voluseg._tools.constants import dtype
+from voluseg.tools.constants import dtype
 
 
 def save_volume(

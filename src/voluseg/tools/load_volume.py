@@ -12,7 +12,7 @@ try:
     import pyklb
 except:
     pass
-from voluseg._tools.constants import dtype
+from voluseg.tools.constants import dtype
 
 
 def load_volume(fullname_ext: str) -> Union[np.ndarray, None]:

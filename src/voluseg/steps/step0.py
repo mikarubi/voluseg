@@ -3,13 +3,13 @@ import copy
 import json
 import numpy as np
 from warnings import warn
-from voluseg._tools.load_volume import load_volume
-from voluseg._tools.get_volume_name import get_volume_name
-from voluseg._tools.parameter_dictionary import parameter_dictionary
-from voluseg._tools.evenly_parallelize import evenly_parallelize
-from voluseg._tools.parameters import load_parameters, save_parameters
-from voluseg._tools.parameters_models import ParametersModel
-from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
+from voluseg.tools.load_volume import load_volume
+from voluseg.tools.get_volume_name import get_volume_name
+from voluseg.tools.parameter_dictionary import parameter_dictionary
+from voluseg.tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.parameters import load_parameters, save_parameters
+from voluseg.tools.parameters_models import ParametersModel
+from voluseg.tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
 
 
 def process_parameters(initial_parameters: dict) -> dict:

@@ -6,8 +6,8 @@ from typing import Tuple
 import pyspark
 from pyspark.sql.session import SparkSession
 
-from voluseg._tools.constants import hdf
-from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.constants import hdf
+from voluseg.tools.evenly_parallelize import evenly_parallelize
 
 
 def collect_blocks(

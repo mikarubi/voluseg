@@ -14,7 +14,7 @@ import time
 from scipy import interpolate
 from skimage import morphology
 from types import SimpleNamespace
-from voluseg._tools.constants import ali, hdf, dtype
+from voluseg.tools.constants import ali, hdf, dtype
 
 
 def process_block_data(

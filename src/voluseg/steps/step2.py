@@ -4,12 +4,12 @@ import shutil
 import numpy as np
 from scipy import io
 from types import SimpleNamespace
-from voluseg._tools.load_volume import load_volume
-from voluseg._tools.save_volume import save_volume
-from voluseg._tools.constants import ori, ali, nii, hdf, dtype
-from voluseg._tools.ants_registration import ants_registration
-from voluseg._tools.ants_transformation import ants_transformation
-from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.load_volume import load_volume
+from voluseg.tools.save_volume import save_volume
+from voluseg.tools.constants import ori, ali, nii, hdf, dtype
+from voluseg.tools.ants_registration import ants_registration
+from voluseg.tools.ants_transformation import ants_transformation
+from voluseg.tools.evenly_parallelize import evenly_parallelize
 
 
 def align_volumes(parameters: dict) -> None:

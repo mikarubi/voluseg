@@ -1,12 +1,12 @@
 import os
 from scipy import interpolate
 from types import SimpleNamespace
-from voluseg._tools.load_volume import load_volume
-from voluseg._tools.save_volume import save_volume
-from voluseg._tools.get_volume_name import get_volume_name
-from voluseg._tools.constants import ori, ali, nii, hdf
-from voluseg._tools.evenly_parallelize import evenly_parallelize
-from voluseg._tools.nwb import open_nwbfile, get_nwbfile_volume
+from voluseg.tools.load_volume import load_volume
+from voluseg.tools.save_volume import save_volume
+from voluseg.tools.get_volume_name import get_volume_name
+from voluseg.tools.constants import ori, ali, nii, hdf
+from voluseg.tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.nwb import open_nwbfile, get_nwbfile_volume
 
 
 def process_volumes(parameters: dict) -> None:

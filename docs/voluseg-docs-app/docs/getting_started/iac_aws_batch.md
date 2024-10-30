@@ -53,7 +53,7 @@ This deployment will create the following AWS resources in your account:
 Voluseg provides an utility function to submit jobs to AWS Batch. You can use this function to submit jobs from your local machine. You must provide the url of the remote file stored in S3, plus any other voluseg arguments you want to pass to the job. Example:
 
 ```python
-from voluseg._tools.aws import run_job_in_aws_batch
+from voluseg.tools.aws import run_job_in_aws_batch
 
 r = run_job_in_aws_batch(
     job_name="my-voluseg-job",

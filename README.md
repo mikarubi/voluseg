@@ -53,7 +53,7 @@ import voluseg
 voluseg.update()
 
 # Download sample data
-voluseg._tools.download_sample_data("/path/to/input/")
+voluseg.tools.download_sample_data("/path/to/input/")
 
 # set and save parameters
 parameters0 = voluseg.parameter_dictionary()
