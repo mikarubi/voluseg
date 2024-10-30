@@ -1,5 +1,9 @@
 import pynwb
 from contextlib import contextmanager
+from datetime import datetime
+from dateutil.tz import tzlocal
+from uuid import uuid4
+import numpy as np
 
 
 @contextmanager
@@ -152,3 +156,99 @@ def get_nwbfile_volume(
             f"Acquisition name '{acquisition_name}' not found in NWB file."
         )
     return nwbfile.acquisition[acquisition_name]
+
+
+def write_nwbfile(
+    output_path: str,
+    cell_x: np.ndarray,
+    cell_y: np.ndarray,
+    cell_z: np.ndarray,
+    cell_weights: np.ndarray,
+    cell_timeseries: np.ndarray,
+) -> None:
+    """
+    Write results to a local NWB file.
+
+    Parameters
+    ----------
+    output_path : str
+        Output path.
+    cell_x : np.ndarray
+        Voxel X coordinates for all cells.
+    cell_y : np.ndarray
+        Voxel Y coordinates for all cells.
+    cell_z : np.ndarray
+        Voxel Z coordinates for all cells.
+    cell_weights : np.ndarray
+        Voxel weights for all cells.
+    cell_timeseries : np.ndarray
+        Fluorescence timeseries data for all cells.
+
+    Returns
+    -------
+    None
+    """
+    # Create NWB file basics
+    nwbfile = pynwb.NWBFile(
+        session_description="voluseg results",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(tzlocal()),  # TODO - get the correct metadata
+    )
+    device = nwbfile.create_device(name="Microscope")
+    optical_channel = pynwb.ophys.OpticalChannel(
+        name="OpticalChannel",
+        description="an optical channel",
+        emission_lambda=500.0,  # TODO - get the correct metadata
+    )
+    imaging_plane = nwbfile.create_imaging_plane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        description="Imaging plane",
+        device=device,
+        excitation_lambda=600.0,  # TODO - get the correct metadata
+        indicator="GFP",  # TODO - get the correct metadata
+        location="V1",  # TODO - get the correct metadata
+        grid_spacing=[0.01, 0.01],  # TODO - get the correct metadata
+        grid_spacing_unit="meters",  # TODO - get the correct metadata
+    )
+
+    # Create segmentation objects
+    ophys_module = nwbfile.create_processing_module(
+        name="ophys",
+        description="optical physiology processed data",
+    )
+    img_seg = pynwb.ophys.ImageSegmentation()
+    ophys_module.add(img_seg)
+    ps = img_seg.create_plane_segmentation(
+        name="PlaneSegmentation",
+        description="output from voluseg",
+        imaging_plane=imaging_plane,
+    )
+    n_cells = cell_weights.shape[0]
+    for ci in range(0, n_cells):
+        n_valid_voxels = len(np.where(cell_x[ci] != -1)[0])
+        voxel_mask = np.array((
+            cell_x[ci][0:n_valid_voxels],
+            cell_y[ci][0:n_valid_voxels],
+            cell_z[ci][0:n_valid_voxels],
+            cell_weights[ci][0:n_valid_voxels],
+        )).T
+        ps.add_roi(voxel_mask=voxel_mask)
+
+    # Create response series
+    rt_region = ps.create_roi_table_region(
+        region=list(range(0, n_cells)),
+        description="ROIs table region"
+    )
+    roi_resp_series = pynwb.ophys.RoiResponseSeries(
+        name="RoiResponseSeries",
+        description="Fluorescence responses for ROIs",
+        data=cell_timeseries.T,
+        rois=rt_region,
+        unit="lumens",  # TODO - get the correct metadata
+        rate=1.0,  # TODO - get the correct metadata
+    )
+    fl = pynwb.ophys.Fluorescence(roi_response_series=roi_resp_series)
+    ophys_module.add(fl)
+    with pynwb.NWBHDF5IO(output_path, "w") as io:
+        io.write(nwbfile)
