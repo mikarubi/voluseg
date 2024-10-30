@@ -1,6 +1,6 @@
 import os
 import voluseg
-from voluseg._tools import download_sample_data
+from voluseg.tools import download_sample_data
 import pytest
 from pathlib import Path
 import numpy as np
@@ -361,7 +361,7 @@ def test_save_result_as_nwb(setup_parameters):
     """
     Test saving results as an NWB file.
     """
-    from voluseg._tools.nwb import write_nwbfile
+    from voluseg.tools.nwb import write_nwbfile
 
     clean_cells_file = Path(setup_parameters["dir_output"]) / "cells0_clean.hdf5"
     hdf_h5 = h5py.File(clean_cells_file, "r")

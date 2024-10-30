@@ -2,7 +2,7 @@ import os
 import typer
 from typing_extensions import Annotated
 import voluseg
-from voluseg._tools.aws import export_to_s3
+from voluseg.tools.aws import export_to_s3
 
 
 app = typer.Typer()
