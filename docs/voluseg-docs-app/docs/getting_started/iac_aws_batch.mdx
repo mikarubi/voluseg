@@ -1,6 +1,6 @@
 ---
 title: Running on AWS Batch
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 Here we provide instructions for setting up your Voluseg service to run jobs in AWS Batch. First you will need to provision the base AWS Batch infrastructure using CDK. This includes IAM roles, VPC, Security Group, Batch Compute Environments and Batch Job Queues. Next you will need to configure your compute resource controller to submit jobs to AWS Batch. Finally, when you submit jobs from the web interface, you must select aws_batch as the run method.
