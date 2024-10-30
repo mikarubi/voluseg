@@ -7,6 +7,14 @@ title: _tools.nwb
 
 ## contextmanager
 
+## datetime
+
+## tzlocal
+
+## uuid4
+
+## np
+
 #### open\_nwbfile\_local
 
 ```python
@@ -95,4 +103,27 @@ Get `TwoPhotonSeries` object from NWB file.
 **Returns**
 
 * `pynwb.NWBFile`: NWB file.
+
+#### write\_nwbfile
+
+```python
+def write_nwbfile(output_path: str, cell_x: np.ndarray, cell_y: np.ndarray,
+                  cell_z: np.ndarray, cell_weights: np.ndarray,
+                  cell_timeseries: np.ndarray) -> None
+```
+
+Write results to a local NWB file.
+
+**Arguments**
+
+* **output_path** (`str`): Output path.
+* **cell_x** (`np.ndarray`): Voxel X coordinates for all cells.
+* **cell_y** (`np.ndarray`): Voxel Y coordinates for all cells.
+* **cell_z** (`np.ndarray`): Voxel Z coordinates for all cells.
+* **cell_weights** (`np.ndarray`): Voxel weights for all cells.
+* **cell_timeseries** (`np.ndarray`): Fluorescence timeseries data for all cells.
+
+**Returns**
+
+* `None`
 

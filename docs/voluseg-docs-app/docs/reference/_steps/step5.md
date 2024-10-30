@@ -15,6 +15,8 @@ title: _steps.step5
 
 ## combinations
 
+## SparkSession
+
 ## collect\_blocks
 
 ## hdf
@@ -25,7 +27,7 @@ title: _steps.step5
 
 ## evenly\_parallelize
 
-## SparkSession
+## write\_nwbfile
 
 #### clean\_cells
 

@@ -141,6 +141,8 @@ class ParametersModel(BaseModel)
 
 #### remote
 
+#### output\_to\_nwb
+
 #### convert\_array\_to\_list
 
 ```python
