@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[7008],{630:t=>{t.exports=JSON.parse('{"authors":[{"name":"Mikail Rubinov","title":"Maintainer of Voluseg","url":"https://github.com/mikarubi/voluseg","imageURL":"https://avatars.githubusercontent.com/u/10106032?v=4","key":"author1","page":null,"count":1}]}')}}]);
