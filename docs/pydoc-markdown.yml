@@ -1,11 +1,8 @@
 loaders:
   - type: python
-    search_path: ["../src"]
+    search_path: ["../src/voluseg"]
 processors:
-  - type: filter
-    skip_empty_modules: true
-  - type: smart
-  - type: crossref
+  - type: numpy
 renderer:
   type: docusaurus
   docs_base_path: voluseg-docs-app/docs

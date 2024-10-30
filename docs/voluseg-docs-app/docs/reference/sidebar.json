@@ -1,47 +1,7 @@
 {
   "items": [
-    {
-      "items": [
-        "reference/voluseg/_steps/step0",
-        "reference/voluseg/_steps/step1",
-        "reference/voluseg/_steps/step2",
-        "reference/voluseg/_steps/step3",
-        "reference/voluseg/_steps/step4",
-        "reference/voluseg/_steps/step4a",
-        "reference/voluseg/_steps/step4b",
-        "reference/voluseg/_steps/step4c",
-        "reference/voluseg/_steps/step4d",
-        "reference/voluseg/_steps/step4e",
-        "reference/voluseg/_steps/step5"
-      ],
-      "label": "voluseg._steps",
-      "type": "category"
-    },
-    {
-      "items": [
-        "reference/voluseg/_tools/ants_registration",
-        "reference/voluseg/_tools/ants_transformation",
-        "reference/voluseg/_tools/aws",
-        "reference/voluseg/_tools/ball",
-        "reference/voluseg/_tools/clean_signal",
-        "reference/voluseg/_tools/evenly_parallelize",
-        "reference/voluseg/_tools/get_volume_name",
-        "reference/voluseg/_tools/load_metadata",
-        "reference/voluseg/_tools/load_volume",
-        "reference/voluseg/_tools/nwb",
-        "reference/voluseg/_tools/parameter_dictionary",
-        "reference/voluseg/_tools/parameters",
-        "reference/voluseg/_tools/parameters_models",
-        "reference/voluseg/_tools/sample_data",
-        "reference/voluseg/_tools/save_volume",
-        "reference/voluseg/_tools/sparseness",
-        "reference/voluseg/_tools/sparseness_projection"
-      ],
-      "label": "voluseg._tools",
-      "type": "category"
-    },
-    "reference/voluseg/_update"
+    "reference/__init__/__init__"
   ],
-  "label": "voluseg",
+  "label": "__init__",
   "type": "category"
 }
