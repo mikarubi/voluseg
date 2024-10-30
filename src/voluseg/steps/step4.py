@@ -5,13 +5,13 @@ import numpy as np
 from types import SimpleNamespace
 from pyspark.sql.session import SparkSession
 
-from voluseg._steps.step4a import define_blocks
-from voluseg._steps.step4b import process_block_data
-from voluseg._steps.step4c import initialize_block_cells
-from voluseg._steps.step4d import nnmf_sparse
-from voluseg._tools.ball import ball
-from voluseg._tools.constants import hdf
-from voluseg._tools.evenly_parallelize import evenly_parallelize
+from voluseg.steps.step4a import define_blocks
+from voluseg.steps.step4b import process_block_data
+from voluseg.steps.step4c import initialize_block_cells
+from voluseg.steps.step4d import nnmf_sparse
+from voluseg.tools.ball import ball
+from voluseg.tools.constants import hdf
+from voluseg.tools.evenly_parallelize import evenly_parallelize
 
 
 def detect_cells(parameters: dict) -> None:

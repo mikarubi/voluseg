@@ -10,7 +10,7 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 import numpy as np
 
 from sklearn import cluster
-from voluseg._tools.sparseness import sparseness
+from voluseg.tools.sparseness import sparseness
 
 
 def initialize_block_cells(

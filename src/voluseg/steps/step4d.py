@@ -12,7 +12,7 @@ import numpy as np
 from scipy import stats
 from scipy import linalg
 from skimage import measure
-from voluseg._tools.sparseness_projection import sparseness_projection
+from voluseg.tools.sparseness_projection import sparseness_projection
 
 
 def nnmf_sparse(

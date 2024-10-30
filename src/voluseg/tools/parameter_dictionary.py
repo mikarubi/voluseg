@@ -1,5 +1,5 @@
 from typing import Union
-from voluseg._tools.parameters_models import ParametersModel
+from voluseg.tools.parameters_models import ParametersModel
 
 
 def parameter_dictionary(

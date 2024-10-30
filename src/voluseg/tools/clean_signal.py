@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from scipy import signal
 from scipy.stats.mstats import winsorize
-from voluseg._tools.constants import dtype
+from voluseg.tools.constants import dtype
 from types import SimpleNamespace
 
 

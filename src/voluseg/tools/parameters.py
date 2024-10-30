@@ -1,6 +1,6 @@
 import pickle
 import json
-from voluseg._tools.parameters_models import ParametersModel
+from voluseg.tools.parameters_models import ParametersModel
 
 
 def load_parameters(filename: str) -> dict:
