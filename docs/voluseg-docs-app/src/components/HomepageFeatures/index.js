@@ -8,16 +8,25 @@ const FeatureList = [
     // Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Voluseg provides advanced algorithms for efficient segemntation of volumetric calcium imaging data.
+        Voluseg provides advanced algorithms for automatic segmentation of volumetric calcium imaging data.
       </>
     ),
   },
   {
-    title: 'Automatic Cell extraction pipeline',
+    title: 'Efficient for large datasets',
     // Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Voluseg provides advanced algorithms for efficient segemntation of volumetric calcium imaging data.
+        Voluseg is designed to handle whole brain volumetric data with ease. It is optimized for parallel processing using Spark.
+      </>
+    ),
+  },
+  {
+    title: 'Open-source and easy to run',
+    // Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    description: (
+      <>
+        Voluseg is open-source and easy to run with containers. It can be run on any cloud platform or on-premises.
       </>
     ),
   },
