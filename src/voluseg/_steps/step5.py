@@ -4,11 +4,13 @@ import shutil
 import numpy as np
 from types import SimpleNamespace
 from itertools import combinations
+from pyspark.sql.session import SparkSession
+
 from voluseg._steps.step4e import collect_blocks
 from voluseg._tools.constants import hdf, dtype
 from voluseg._tools.clean_signal import clean_signal
 from voluseg._tools.evenly_parallelize import evenly_parallelize
-from pyspark.sql.session import SparkSession
+from voluseg._tools.nwb import write_nwbfile
 
 
 def clean_cells(parameters: dict) -> None:
@@ -158,6 +160,16 @@ def clean_cells(parameters: dict) -> None:
             file_handle["cell_timeseries"] = cell_timeseries1
             file_handle["cell_baseline"] = cell_baseline1
             file_handle["background"] = background
+
+        if p.output_to_nwb:
+            write_nwbfile(
+                output_path=os.path.join(p.dir_output, "cells%s_clean" % (color_i) + ".nwb"),
+                cell_x=cell_x,
+                cell_y=cell_y,
+                cell_z=cell_z,
+                cell_weights=cell_weights,
+                cell_timeseries=cell_timeseries1,
+            )
 
     # clean up
     completion = 1
