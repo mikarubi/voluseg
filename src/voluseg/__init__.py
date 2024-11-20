@@ -11,4 +11,4 @@ from voluseg.tools.parameter_dictionary import parameter_dictionary
 from voluseg.tools.parameters import load_parameters, save_parameters
 from voluseg.tools.load_metadata import load_metadata
 
-from src.voluseg.update import voluseg_update as update
+# from src.voluseg.update import voluseg_update as update
