@@ -4,10 +4,10 @@ import numpy as np
 from types import SimpleNamespace
 from typing import Tuple
 import pyspark
-from pyspark.sql.session import SparkSession
 
 from voluseg.tools.constants import hdf
 from voluseg.tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.spark import get_spark_context
 
 
 def collect_blocks(
@@ -30,8 +30,7 @@ def collect_blocks(
         Tuple of cell block id, cell xyz, cell weights, cell timeseries, and cell lengths.
     """
 
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    sc = get_spark_context()
 
     p = SimpleNamespace(**parameters)
 

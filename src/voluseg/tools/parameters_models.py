@@ -4,6 +4,25 @@ from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 
 
+class SparkConfig(BaseModel):
+    driver_memory: str = Field(
+        default="4g",
+        description="Set driver memory",
+    )
+    executor_memory: str = Field(
+        default="8g",
+        description="Set executor memory",
+    )
+    executor_cores: str = Field(
+        default="1",
+        description="Number of cores per executor",
+    )
+    num_executors: str = Field(
+        default="4",
+        description="Total number of executors",
+    )
+
+
 class Detrending(str, Enum):
     standard = "standard"
     robust = "robust"
@@ -173,6 +192,10 @@ class ParametersModel(BaseModel):
     output_to_nwb : Optional[bool] = Field(
         default=False,
         description="Save results to a new NWB file",
+    )
+    spark_config: Optional[SparkConfig] = Field(
+        default=SparkConfig(),
+        description="Spark configuration",
     )
 
     @model_validator(mode="before")

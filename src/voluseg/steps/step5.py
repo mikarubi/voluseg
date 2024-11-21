@@ -4,13 +4,13 @@ import shutil
 import numpy as np
 from types import SimpleNamespace
 from itertools import combinations
-from pyspark.sql.session import SparkSession
 
 from voluseg.steps.step4e import collect_blocks
 from voluseg.tools.constants import hdf, dtype
 from voluseg.tools.clean_signal import clean_signal
 from voluseg.tools.evenly_parallelize import evenly_parallelize
 from voluseg.tools.nwb import write_nwbfile
+from voluseg.tools.spark import get_spark_context
 
 
 def clean_cells(parameters: dict) -> None:
@@ -26,8 +26,7 @@ def clean_cells(parameters: dict) -> None:
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    sc = get_spark_context()
 
     p = SimpleNamespace(**parameters)
 
