@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - spark-memory
   pull_request:
     branches:
       - master

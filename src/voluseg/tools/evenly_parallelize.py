@@ -1,6 +1,7 @@
 import numpy as np
-from pyspark.sql.session import SparkSession
 from pyspark.rdd import RDD
+
+from voluseg.tools.spark import get_spark_context
 
 
 def evenly_parallelize(input_list: list) -> RDD:
@@ -17,8 +18,7 @@ def evenly_parallelize(input_list: list) -> RDD:
     RDD
         Spark resilient distributed dataset (RDD).
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    sc = get_spark_context()
 
     n_input = len(input_list)
     n_parts = sc.parallelize(input_list).getNumPartitions()

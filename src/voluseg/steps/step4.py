@@ -3,7 +3,6 @@ import h5py
 import time
 import numpy as np
 from types import SimpleNamespace
-from pyspark.sql.session import SparkSession
 
 from voluseg.steps.step4a import define_blocks
 from voluseg.steps.step4b import process_block_data
@@ -12,6 +11,7 @@ from voluseg.steps.step4d import nnmf_sparse
 from voluseg.tools.ball import ball
 from voluseg.tools.constants import hdf
 from voluseg.tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.spark import get_spark_context
 
 
 def detect_cells(parameters: dict) -> None:
@@ -27,8 +27,7 @@ def detect_cells(parameters: dict) -> None:
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    sc = get_spark_context()
 
     p = SimpleNamespace(**parameters)
 

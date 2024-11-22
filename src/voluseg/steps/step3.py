@@ -7,7 +7,6 @@ from sklearn import mixture
 from skimage import morphology
 from types import SimpleNamespace
 from scipy.ndimage.filters import median_filter
-from pyspark.sql.session import SparkSession
 import warnings
 import matplotlib
 
@@ -21,6 +20,7 @@ from voluseg.tools.constants import ali, hdf
 from voluseg.tools.load_volume import load_volume
 from voluseg.tools.clean_signal import clean_signal
 from voluseg.tools.evenly_parallelize import evenly_parallelize
+from voluseg.tools.spark import get_spark_context
 
 
 def mask_volumes(parameters: dict) -> None:
@@ -38,8 +38,7 @@ def mask_volumes(parameters: dict) -> None:
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    sc = get_spark_context()
 
     p = SimpleNamespace(**parameters)
 
