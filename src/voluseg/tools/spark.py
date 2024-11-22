@@ -32,8 +32,8 @@ def get_spark_context(
     """
     total_cores = psutil.cpu_count(logical=True)
     if auto:
-        # Use (n_cores - 2), minimum 1 core
-        num_executors = max((total_cores - 2) / executor_cores, 1)
+        # Use (n_cores - 2), minimum 1 executor
+        num_executors = max(int((total_cores - 2) / executor_cores), 1)
 
         # Get available system memory in GB
         available_memory_gb = psutil.virtual_memory().available // (1024**3)
@@ -41,6 +41,7 @@ def get_spark_context(
         # Set memory for driver and executors
         # 20% of available memory for driver
         driver_memory = max(int(available_memory_gb * 0.2), 2)
+
         # 70% split among executors
         executor_memory = max(int(available_memory_gb * 0.7 / num_executors), 1)
 
@@ -61,6 +62,7 @@ def get_spark_context(
         .config("spark.dynamicAllocation.enabled", "true")
         .config("spark.dynamicAllocation.minExecutors", "1")
         .config("spark.dynamicAllocation.maxExecutors", num_executors)
+        .config("spark.driver.maxResultSize", f"{int(driver_memory * 0.8)}g") # 80% of driver memory
         .getOrCreate()
     )
 
