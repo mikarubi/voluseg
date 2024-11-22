@@ -30,7 +30,7 @@ def collect_blocks(
         Tuple of cell block id, cell xyz, cell weights, cell timeseries, and cell lengths.
     """
 
-    sc = get_spark_context()
+    sc = get_spark_context(**parameters.get("spark_config", {}))
 
     p = SimpleNamespace(**parameters)
 
@@ -82,7 +82,10 @@ def collect_blocks(
             return [cell_block_id, cell_xyz, cell_weights, cell_timeseries]
 
     if p.parallel_clean:
-        evenly_parallelize(np.argwhere(block_valids).T[0]).foreach(add_data)
+        evenly_parallelize(
+            input_list=np.argwhere(block_valids).T[0],
+            parameters=parameters,
+        ).foreach(add_data)
         cell_block_id, cell_xyz, cell_weights, cell_timeseries = cell_data.value
     else:
         idx_block_valids = np.argwhere(block_valids).T[0]

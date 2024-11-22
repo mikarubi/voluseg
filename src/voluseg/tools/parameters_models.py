@@ -193,7 +193,7 @@ class ParametersModel(BaseModel):
         default=False,
         description="Remote file",
     )
-    output_to_nwb : Optional[bool] = Field(
+    output_to_nwb: Optional[bool] = Field(
         default=False,
         description="Save results to a new NWB file",
     )

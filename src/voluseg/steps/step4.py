@@ -27,7 +27,7 @@ def detect_cells(parameters: dict) -> None:
     -------
     None
     """
-    sc = get_spark_context()
+    sc = get_spark_context(**parameters.get("spark_config", {}))
 
     p = SimpleNamespace(**parameters)
 
@@ -242,6 +242,9 @@ def detect_cells(parameters: dict) -> None:
                 file_handle["completion"] = 1
 
         if block_valids.any():
-            evenly_parallelize(block_ixyz01).foreach(detect_cells_block)
+            evenly_parallelize(
+                input_list=block_ixyz01,
+                parameters=parameters,
+            ).foreach(detect_cells_block)
 
         # collect_blocks(color_i, parameters, lxyz)

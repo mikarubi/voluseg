@@ -26,7 +26,7 @@ def clean_cells(parameters: dict) -> None:
     -------
     None
     """
-    sc = get_spark_context()
+    sc = get_spark_context(**parameters.get("spark_config", {}))
 
     p = SimpleNamespace(**parameters)
 
@@ -110,7 +110,14 @@ def clean_cells(parameters: dict) -> None:
 
         if p.parallel_clean:
             print("Computing baseline in parallel mode... ", end="")
-            timebase = evenly_parallelize(cell_timeseries).map(get_timebase).collect()
+            timebase = (
+                evenly_parallelize(
+                    input_list=cell_timeseries,
+                    parameters=parameters,
+                )
+                .map(get_timebase)
+                .collect()
+            )
         else:
             print("Computing baseline in serial mode... ", end="")
             timeseries_tuple = zip([[]] * len(cell_timeseries), cell_timeseries)
@@ -162,7 +169,9 @@ def clean_cells(parameters: dict) -> None:
 
         if p.output_to_nwb:
             write_nwbfile(
-                output_path=os.path.join(p.dir_output, "cells%s_clean" % (color_i) + ".nwb"),
+                output_path=os.path.join(
+                    p.dir_output, "cells%s_clean" % (color_i) + ".nwb"
+                ),
                 cell_x=cell_x,
                 cell_y=cell_y,
                 cell_z=cell_z,

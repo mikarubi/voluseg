@@ -32,7 +32,10 @@ def align_volumes(parameters: dict) -> None:
 
     p = SimpleNamespace(**parameters)
 
-    volume_nameRDD = evenly_parallelize(p.volume_names)
+    volume_nameRDD = evenly_parallelize(
+        input_list=p.volume_names
+        parameters=parameters,
+    )
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, "volume%d" % (color_i))
         if os.path.isfile(fullname_volmean + hdf):

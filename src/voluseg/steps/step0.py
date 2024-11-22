@@ -197,7 +197,10 @@ def process_parameters(initial_parameters: dict) -> dict:
                     ]
 
                 volume_names_h = (
-                    evenly_parallelize(volume_fullnames_input_h)
+                    evenly_parallelize(
+                        input_list=volume_fullnames_input_h,
+                        parameters=parameters,
+                    )
                     .map(get_plane_names)
                     .collect()
                 )

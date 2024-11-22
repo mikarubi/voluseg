@@ -38,13 +38,16 @@ def mask_volumes(parameters: dict) -> None:
     -------
     None
     """
-    sc = get_spark_context()
+    sc = get_spark_context(**parameters.get("spark_config", {}))
 
     p = SimpleNamespace(**parameters)
 
     # compute mean timeseries and ranked dff
     fullname_timemean = os.path.join(p.dir_output, "mean_timeseries")
-    volume_nameRDD = evenly_parallelize(p.volume_names)
+    volume_nameRDD = evenly_parallelize(
+        input_list=p.volume_names,
+        parameters=parameters,
+    )
     if not os.path.isfile(fullname_timemean + hdf):
         dff_rank = np.zeros(p.lt)
         mean_timeseries_raw = np.zeros((p.n_colors, p.lt))
@@ -150,7 +153,10 @@ def mask_volumes(parameters: dict) -> None:
             volume_accum.add(volume)
 
         if p.parallel_volume:
-            evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
+            evenly_parallelize(
+                input_list=p.volume_names[timepoints],
+                parameters=parameters,
+            ).foreach(add_volume)
         else:
             for name_volume in p.volume_names[timepoints]:
                 add_volume(([], name_volume))

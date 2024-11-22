@@ -27,9 +27,15 @@ def process_volumes(parameters: dict) -> None:
     p = SimpleNamespace(**parameters)
 
     if parameters.get("ext") == ".nwb":
-        volume_fullname_inputRDD = evenly_parallelize(p.volume_names)
+        volume_fullname_inputRDD = evenly_parallelize(
+            input_list=p.volume_names,
+            parameters=parameters,
+        )
     else:
-        volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
+        volume_fullname_inputRDD = evenly_parallelize(
+            input_list=p.volume_fullnames_input,
+            parameters=parameters,
+        )
 
     for color_i in range(p.n_colors):
         fullname_volmean = os.path.join(p.dir_output, "volume%d" % (color_i))

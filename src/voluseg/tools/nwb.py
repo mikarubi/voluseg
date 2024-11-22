@@ -60,8 +60,8 @@ def open_nwbfile_remote(s3_url: str, output_path: str):
     io = None
     try:
         with fs.open(s3_url, "rb") as f:
-            file = h5py.File(f, 'r')
-            io = pynwb.NWBHDF5IO(file=file, mode='r')
+            file = h5py.File(f, "r")
+            io = pynwb.NWBHDF5IO(file=file, mode="r")
             nwbfile = io.read()
             yield nwbfile
     except Exception as e:
@@ -227,18 +227,19 @@ def write_nwbfile(
     n_cells = cell_weights.shape[0]
     for ci in range(0, n_cells):
         n_valid_voxels = len(np.where(cell_x[ci] != -1)[0])
-        voxel_mask = np.array((
-            cell_x[ci][0:n_valid_voxels],
-            cell_y[ci][0:n_valid_voxels],
-            cell_z[ci][0:n_valid_voxels],
-            cell_weights[ci][0:n_valid_voxels],
-        )).T
+        voxel_mask = np.array(
+            (
+                cell_x[ci][0:n_valid_voxels],
+                cell_y[ci][0:n_valid_voxels],
+                cell_z[ci][0:n_valid_voxels],
+                cell_weights[ci][0:n_valid_voxels],
+            )
+        ).T
         ps.add_roi(voxel_mask=voxel_mask)
 
     # Create response series
     rt_region = ps.create_roi_table_region(
-        region=list(range(0, n_cells)),
-        description="ROIs table region"
+        region=list(range(0, n_cells)), description="ROIs table region"
     )
     roi_resp_series = pynwb.ophys.RoiResponseSeries(
         name="RoiResponseSeries",
