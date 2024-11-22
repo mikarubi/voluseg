@@ -9,20 +9,20 @@ class SparkConfig(BaseModel):
         default=True,
         description="Automatically configure Spark resources",
     )
-    driver_memory: str = Field(
-        default="4g",
-        description="Set driver memory",
+    driver_memory: int = Field(
+        default=4,
+        description="Set driver memory in GB",
     )
-    executor_memory: str = Field(
-        default="8g",
-        description="Set executor memory",
+    executor_memory: int = Field(
+        default=8,
+        description="Set executor memory in GB",
     )
-    executor_cores: str = Field(
-        default="1",
+    executor_cores: int = Field(
+        default=1,
         description="Number of cores per executor",
     )
-    num_executors: str = Field(
-        default="4",
+    num_executors: int = Field(
+        default=4,
         description="Total number of executors",
     )
 

@@ -4,10 +4,10 @@ import psutil
 
 def get_spark_context(
     auto: bool = True,
-    driver_memory: str = "4g",
-    executor_memory: str = "8g",
-    executor_cores: str = "1",
-    num_executors: str = "4",
+    driver_memory: int = 4,
+    executor_memory: int = 8,
+    executor_cores: int = 1,
+    num_executors: int = 4,
 ):
     """
     Get or create a Spark context.
@@ -16,13 +16,13 @@ def get_spark_context(
     -----------
     auto : bool
         Automatically configure Spark resources.
-    driver_memory : str
+    driver_memory : int
         Set driver memory.
-    executor_memory : str
+    executor_memory : int
         Set executor memory.
-    executor_cores : str
+    executor_cores : int
         Number of cores per executor.
-    num_executors : str
+    num_executors : int
         Total number of executors.
 
     Returns:
