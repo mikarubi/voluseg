@@ -5,6 +5,10 @@ from typing import Optional
 
 
 class SparkConfig(BaseModel):
+    auto: bool = Field(
+        default=True,
+        description="Automatically configure Spark resources",
+    )
     driver_memory: str = Field(
         default="4g",
         description="Set driver memory",
