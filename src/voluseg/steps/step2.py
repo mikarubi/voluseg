@@ -33,7 +33,7 @@ def align_volumes(parameters: dict) -> None:
     p = SimpleNamespace(**parameters)
 
     volume_nameRDD = evenly_parallelize(
-        input_list=p.volume_names
+        input_list=p.volume_names,
         parameters=parameters,
     )
     for color_i in range(p.n_colors):
