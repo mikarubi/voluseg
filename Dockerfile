@@ -1,7 +1,5 @@
 FROM python:3.12.4-slim
 
-USER root
-
 WORKDIR /voluseg
 
 RUN apt-get update && apt-get install -y wget unzip && \

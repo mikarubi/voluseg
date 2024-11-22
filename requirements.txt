@@ -10,3 +10,4 @@ pandas>=0.2
 pydantic>=2.8.0
 pynwb>=2.8.0
 loguru==0.7.2
+psutil>=6.1.0
