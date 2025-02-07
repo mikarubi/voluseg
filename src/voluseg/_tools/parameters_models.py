@@ -1,7 +1,23 @@
 from enum import Enum
 import numpy as np
 from pydantic import BaseModel, Field, model_validator
-from typing import Optional
+from pydantic.types import (
+    NonNegativeInt,
+    NonNegativeFloat,
+    PositiveInt,
+    PositiveFloat,
+    DirectoryPath,
+)
+from typing import List
+
+
+class DimOrder(str, Enum):
+    xyz = "xyz"
+    xzy = "xzy"
+    yxz = "yxz"
+    yzx = "yzx"
+    zxy = "zxy"
+    zyx = "zyx"
 
 
 class Detrending(str, Enum):
@@ -15,6 +31,7 @@ class Registration(str, Enum):
     medium = "medium"
     low = "low"
     none = "none"
+    transform = "transform"
 
 
 class TypeTimepoints(str, Enum):
@@ -31,48 +48,37 @@ class TypeMask(str, Enum):
 
 class ParametersModel(BaseModel):
     detrending: Detrending = Field(
-        default=Detrending.standard,
+        default=Detrending.standard.value,
         description="Type of detrending: 'standard', 'robust', or 'none'",
     )
     registration: Registration = Field(
-        default=Registration.medium,
-        description="Quality of registration: 'high', 'medium', 'low' or 'none'",
+        default=Registration.medium.value,
+        description="Quality of registration: 'high', 'medium', 'low', 'none' or 'transform'",
     )
-    registration_restrict: Optional[str] = Field(
-        default="",
-        description="Restrict registration (e.g. 1x1x1x1x1x1x0x0x0x1x1x0)",
+    registration_restrict: dict = Field(
+        default={},
+        description="ANTs registration options",
     )
-    diam_cell: float = Field(
+    diam_cell: PositiveFloat = Field(
         default=6.0,
         description="Cell diameter in microns",
     )
-    dir_ants: str = Field(
-        default="",
-        description="Path to ANTs directory",
-    )
-    dir_input: str = Field(
-        default="",
+    input_dirs: List[DirectoryPath] = Field(
         description="Path to input directory/ies (separate multiple directories by ';')",
     )
-    dir_output: str = Field(
-        default="",
+    dir_output: DirectoryPath = Field(
         description="Path to output directory",
     )
-    dir_transform: str = Field(
-        default="",
+    dir_transform: DirectoryPath = Field(
         description="Path to transform directory",
     )
-    ds: int = Field(
+    ds: PositiveInt = Field(
         default=2,
         description="Spatial coarse-graining in x-y dimension",
     )
-    planes_pad: int = Field(
+    planes_pad: NonNegativeInt = Field(
         default=0,
         description="Number of planes to pad the volume with for robust registration",
-    )
-    planes_packed: bool = Field(
-        default=False,
-        description="Packed planes in each volume (for single plane imaging with packed planes)",
     )
     parallel_clean: bool = Field(
         default=True,
@@ -87,92 +93,52 @@ class ParametersModel(BaseModel):
         description="Save registered volumes after segmentation (True keeps a copy of the volumes)",
     )
     type_timepoints: TypeTimepoints = Field(
-        default=TypeTimepoints.dff,
+        default=TypeTimepoints.dff.value,
         description="Type of timepoints to use for cell detection: 'dff', 'periodic' or 'custom'",
     )
     type_mask: TypeMask = Field(
-        default=TypeMask.geomean,
+        default=TypeMask.geomean.value,
         description="Type of volume averaging for mask: 'mean', 'geomean' or 'max'",
     )
-    timepoints: int = Field(
-        default=1000,
-        description="Number ('dff', 'periodic') or vector ('custom') of timepoints for segmentation",
-    )
-    f_hipass: float = Field(
+    f_hipass: NonNegativeFloat = Field(
         default=0,
         description="Frequency (Hz) for high-pass filtering of cell timeseries",
     )
-    f_volume: float = Field(
+    f_volume: PositiveFloat = Field(
         default=2.0,
         description="Imaging frequency in Hz",
     )
-    n_cells_block: int = Field(
+    n_cells_block: PositiveInt = Field(
         default=316,
         description="Number of cells in a block. Small number is fast but can lead to blocky output",
     )
-    n_colors: int = Field(
-        default=1,
-        description="Number of brain colors (2 in two-color volumes)",
-    )
-    res_x: float = Field(
+    res_x: PositiveFloat = Field(
         default=0.40625,
         description="X resolution in microns",
     )
-    res_y: float = Field(
+    res_y: PositiveFloat = Field(
         default=0.40625,
         description="Y resolution in microns",
     )
-    res_z: float = Field(
+    res_z: PositiveFloat = Field(
         default=5.0,
         description="Z resolution in microns",
     )
-    t_baseline: int = Field(
+    t_baseline: PositiveInt = Field(
         default=300,
         description="Interval for baseline calculation in seconds",
     )
-    t_section: float = Field(
+    t_section: PositiveFloat = Field(
         default=0.01,
         description="Exposure time in seconds for slice acquisition",
     )
-    thr_mask: float = Field(
+    thr_mask: NonNegativeFloat = Field(
         default=0.5,
         description="Threshold for volume mask: 0 < thr <= 1 (probability) or thr > 1 (intensity)",
     )
-    volume_fullnames_input: Optional[list[str]] = Field(
-        default=None,
-        description="List of full volume names",
-    )
-    volume_names: Optional[list[str]] = Field(
-        default=None,
-        description="List of volume names",
-    )
-    input_dirs: Optional[list[str]] = Field(
-        default=None,
-        description="List of input directories",
-    )
-    ext: Optional[str] = Field(
-        default=None,
-        description="File extension",
-    )
-    lt: Optional[int] = Field(
-        default=None,
-        description="Number of volumes",
-    )
-    affine_matrix: Optional[list] = Field(
-        default=None,
-        description="Affine matrix",
-    )
-    dim_order: Optional[str] = Field(
-        default="zyx",
+    dim_order: DimOrder = Field(
+        default=DimOrder.zyx.value,
         description="Dimensions order. Examples: 'zyx', 'xyz'",
-    )
-    remote: Optional[bool] = Field(
-        default=False,
-        description="Remote file",
-    )
-    output_to_nwb : Optional[bool] = Field(
-        default=False,
-        description="Save results to a new NWB file",
     )
 
     @model_validator(mode="before")
@@ -185,34 +151,5 @@ class ParametersModel(BaseModel):
                 values[field] = v.tolist()
         return values
 
-    def model_dump(
-        self,
-        use_np_array: bool = True,
-        *args,
-        **kwargs,
-    ):
-        """
-        Override the model_dump method to convert lists to NumPy arrays (if use_np_array is True)
-        and Enums to their values.
-
-        Parameters
-        ----------
-        use_np_array : bool, optional
-            Convert lists to NumPy arrays (default is True)
-        *args
-            Positional arguments to pass to the parent class
-        **kwargs
-            Keyword arguments to pass to the parent class
-
-        Returns
-        -------
-        dict
-            A dictionary of the model's data
-        """
-        data = super().model_dump(*args, **kwargs)
-        for key, value in data.items():
-            if isinstance(value, list) and use_np_array:
-                data[key] = np.array(value)
-            if isinstance(value, Enum):
-                data[key] = value.value
-        return data
+    class Config:
+        extra = "allow"

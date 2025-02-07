@@ -25,13 +25,8 @@ def load_parameters(filename: str) -> dict:
             parameters = json.load(file_handle)
     else:
         raise Exception("Parameters file must be either a pickle or a json file.")
-    # Validate parameters
-    try:
-        parameters_model = ParametersModel(**parameters)
-    except Exception as e:
-        raise Exception(f"Parameters file is not valid: {e}.")
-    print("Parameters file successfully loaded and validated.")
-    return parameters_model.model_dump(use_np_array=True)
+
+    return parameters
 
 
 def save_parameters(parameters: dict, filename: str) -> None:
@@ -49,12 +44,6 @@ def save_parameters(parameters: dict, filename: str) -> None:
     -------
     None
     """
-    # Validate parameters
-    try:
-        parameters_model = ParametersModel(**parameters)
-        parameters = parameters_model.model_dump(use_np_array=False)
-    except Exception as e:
-        raise Exception(f"Parameters are not valid: {e}.")
     if filename.split(".")[-1] in ["pickle", "pkl"]:
         with open(filename, "wb") as file_handle:
             pickle.dump(parameters, file_handle)

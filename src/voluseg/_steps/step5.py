@@ -163,7 +163,9 @@ def clean_cells(parameters: dict) -> None:
 
         if p.output_to_nwb:
             write_nwbfile(
-                output_path=os.path.join(p.dir_output, "cells%s_clean" % (color_i) + ".nwb"),
+                output_path=os.path.join(
+                    p.dir_output, "cells%s_clean" % (color_i) + ".nwb"
+                ),
                 cell_x=cell_x,
                 cell_y=cell_y,
                 cell_z=cell_z,

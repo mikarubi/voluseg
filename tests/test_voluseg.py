@@ -321,7 +321,6 @@ def compare_results_nwb_and_h5_dir(
     ), "Different cell weights between NWB and h5 results"
 
 
-
 @pytest.mark.order(9)
 def test_voluseg_h5_dir_step_5(setup_parameters):
     """
@@ -335,22 +334,22 @@ def test_voluseg_h5_dir_step_5(setup_parameters):
 
     hdf_h5 = h5py.File(clean_cells_file, "r")
     keys = [
-        'background',
-        'cell_baseline',
-        'cell_block_id',
-        'cell_timeseries',
-        'cell_timeseries_raw',
-        'cell_weights',
-        'cell_x',
-        'cell_y',
-        'cell_z',
-        'n',
-        't',
-        'volume_id',
-        'volume_weight',
-        'x',
-        'y',
-        'z'
+        "background",
+        "cell_baseline",
+        "cell_block_id",
+        "cell_timeseries",
+        "cell_timeseries_raw",
+        "cell_weights",
+        "cell_x",
+        "cell_y",
+        "cell_z",
+        "n",
+        "t",
+        "volume_id",
+        "volume_weight",
+        "x",
+        "y",
+        "z",
     ]
     for k in keys:
         assert k in hdf_h5.keys(), f"Key '{k}' is missing in cleaned cells file"
@@ -388,7 +387,9 @@ def test_nwb_remote(tmp_path):
     parameters = voluseg.parameter_dictionary()
 
     # Using this file: https://dandiarchive.org/dandiset/000350/0.240822.1759/files?location=sub-20161022-1&page=1
-    parameters["dir_input"] = "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
+    parameters["dir_input"] = (
+        "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
+    )
     parameters["dir_ants"] = os.environ.get("ANTS_PATH")
 
     # Use pytest's tmp_path fixture for output
@@ -398,7 +399,7 @@ def test_nwb_remote(tmp_path):
     parameters["registration"] = "high"
     parameters["diam_cell"] = 5.0
     parameters["f_volume"] = 2.0
-    parameters['timepoints'] = 20
+    parameters["timepoints"] = 20
 
     print("Process parameters")
     parameters = voluseg.step0_process_parameters(parameters)
@@ -407,10 +408,9 @@ def test_nwb_remote(tmp_path):
     voluseg.step1_process_volumes(parameters)
 
     output_files = [
-        p
-        for p in (Path(parameters["dir_output"]) / "volumes/0/").glob("*.nii.gz")
+        p for p in (Path(parameters["dir_output"]) / "volumes/0/").glob("*.nii.gz")
     ]
     n_files_output = len(output_files)
     assert (
-        n_files_output == parameters['timepoints']
+        n_files_output == parameters["timepoints"]
     ), f"Number of output files ({n_files_output}) does not match number of timepoints ({parameters['timepoints']})"

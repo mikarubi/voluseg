@@ -7,6 +7,7 @@ def parameter_dictionary(
     registration: str = "medium",
     registration_restrict: str = "",
     diam_cell: float = 6.0,
+    dim_order: str = "zyx",
     dir_ants: str = "",
     dir_input: str = "",
     dir_output: str = "",

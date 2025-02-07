@@ -79,15 +79,25 @@ def run_job_in_aws_batch(
 
     stack_id = "VolusegBatchStack"
     aws_batch_job_definition = f"{stack_id}-job-definition"
-    aws_batch_job_queue = f'{stack_id}-job-queue'
+    aws_batch_job_queue = f"{stack_id}-job-queue"
 
-    iso_string = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(":", "-").replace("+", "Z")
-    job_name = f'{job_name_prefix}-{iso_string}'
+    iso_string = (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace(":", "-")
+        .replace("+", "Z")
+    )
+    job_name = f"{job_name_prefix}-{iso_string}"
 
-    job_def_resp = client.describe_job_definitions(jobDefinitionName=aws_batch_job_definition)
-    job_defs = job_def_resp['jobDefinitions']
+    job_def_resp = client.describe_job_definitions(
+        jobDefinitionName=aws_batch_job_definition
+    )
+    job_defs = job_def_resp["jobDefinitions"]
     if len(job_defs) == 0:
-        raise JobDefinitionException(f'Job definition not found: {aws_batch_job_definition}')
+        raise JobDefinitionException(
+            f"Job definition not found: {aws_batch_job_definition}"
+        )
 
     env_vars = format_voluseg_kwargs(voluseg_kwargs)
     env_vars["VOLUSEG_DIR_OUTPUT"] = "/tmp/voluseg-jobs"
@@ -98,30 +108,18 @@ def run_job_in_aws_batch(
         jobQueue=aws_batch_job_queue,
         jobDefinition=aws_batch_job_definition,
         containerOverrides={
-            "environment": [
-                {
-                    "name": k,
-                    "value": v
-                }
-                for k, v in env_vars.items()
-            ],
+            "environment": [{"name": k, "value": v} for k, v in env_vars.items()],
             "resourceRequirements": [
-                {
-                    "type": "MEMORY",
-                    "value": str(memory)
-                },
-                {
-                    "type": "VCPU",
-                    "value": str(vcpus)
-                },
+                {"type": "MEMORY", "value": str(memory)},
+                {"type": "VCPU", "value": str(vcpus)},
             ],
         },
     )
-    batch_job_id = response['jobId']
-    print(f'AWS Batch job submitted: {job_name} {batch_job_id}')
+    batch_job_id = response["jobId"]
+    print(f"AWS Batch job submitted: {job_name} {batch_job_id}")
     return {
-        'job_name': job_name,
-        'batch_job_id': batch_job_id,
+        "job_name": job_name,
+        "batch_job_id": batch_job_id,
     }
 
 
@@ -130,10 +128,10 @@ def export_to_s3(
     bucket_name: str,
     object_name: str,
 ):
-    s3 = boto3.client('s3')
+    s3 = boto3.client("s3")
     s3.upload_file(
         Filename=local_path,
         Bucket=bucket_name,
         Key=object_name,
     )
-    print(f'File uploaded to s3://{bucket_name}/{object_name}')
+    print(f"File uploaded to s3://{bucket_name}/{object_name}")
