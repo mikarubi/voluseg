@@ -1,32 +1,32 @@
 def parameter_dictionary(
-    detrending = "standard",
-    registration = "medium",
-    registration_restrict = "",
-    diam_cell = 6.0,
-    dim_order = "zyx",
-    dir_ants = "",
-    dir_input = "",
-    dir_output = "",
-    dir_transform = "",
-    ds = 2,
-    planes_pad = 0,
-    planes_packed = False,
-    parallel_clean = True,
-    parallel_volume = True,
-    save_volume = False,
-    type_timepoints = "dff",
-    type_mask = "geomean",
-    timepoints = 1000,
-    f_hipass = 0,
-    f_volume = 2.0,
-    n_cells_block = 316,
-    n_colors = 1,
-    res_x = 0.40625,
-    res_y = 0.40625,
-    res_z = 5.0,
-    t_baseline = 300,
-    t_section = 0.01,
-    thr_mask = 0.5,
+    detrending="standard",
+    registration="medium",
+    registration_restrict={},
+    diam_cell=6.0,
+    dim_order="zyx",
+    dir_ants="",
+    dir_input="",
+    dir_output="",
+    dir_transform="",
+    ds=2,
+    planes_pad=0,
+    planes_packed=False,
+    parallel_clean=True,
+    parallel_volume=True,
+    save_volume=False,
+    type_timepoints="dff",
+    type_mask="geomean",
+    timepoints=1000,
+    f_hipass=0,
+    f_volume=2.0,
+    n_cells_block=316,
+    n_colors=1,
+    res_x=0.40625,
+    res_y=0.40625,
+    res_z=5.0,
+    t_baseline=300,
+    t_section=0.01,
+    thr_mask=0.5,
 ) -> dict:
     """
     Return a parameter dictionary with specified defaults.
@@ -106,7 +106,5 @@ def parameter_dictionary(
         A dictionary of validated parameters with their default values.
     """
     # Return parameters
-    parameters = {
-        key: value for key, value in locals().items()
-    }
+    parameters = {key: value for key, value in locals().items()}
     return parameters

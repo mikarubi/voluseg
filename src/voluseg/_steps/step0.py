@@ -14,7 +14,7 @@ from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
 
 def process_parameters(initial_parameters: dict) -> None:
     """
-    Process parameters and create parameter file (pickle).
+    Process parameters and create parameter file.
 
     Parameters
     ----------
@@ -46,8 +46,9 @@ def process_parameters(initial_parameters: dict) -> None:
         print("Parameter file exists at: %s, aborting." % (filename_parameters))
         return None
 
-    # check parameters file
-    parameters = ParametersModel(**parameters).model_dump()
+    # check parameters file, get json, and then convert to string
+    parameters = ParametersModel(**parameters).model_dump_json()
+    parameters = json.loads(parameters)
 
     # check plane padding
     if (parameters["registration"] == "none") and not ((parameters["planes_pad"] == 0)):
@@ -162,6 +163,11 @@ def process_parameters(initial_parameters: dict) -> None:
     parameters["affine_matrix"] = affine_matrix
     parameters["timepoints"] = tp
     parameters["remote"] = remote
+
+    # convert numpy arrays to lists for json compatibility
+    for key, val in parameters.items():
+        if isinstance(val, np.ndarray):
+            parameters[key] = val.tolist()
 
     os.makedirs(dir_output, exist_ok=True)
     save_parameters(parameters=parameters, filename=filename_parameters)
