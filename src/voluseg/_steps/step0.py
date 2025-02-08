@@ -1,60 +1,101 @@
 import os
-import copy
 import json
 import numpy as np
 from warnings import warn
-from voluseg._tools.load_volume import load_volume
 from voluseg._tools.get_volume_name import get_volume_name
-from voluseg._tools.parameter_dictionary import parameter_dictionary
-from voluseg._tools.evenly_parallelize import evenly_parallelize
-from voluseg._tools.parameters import load_parameters, save_parameters
+from voluseg._tools.parameters import save_parameters
 from voluseg._tools.parameters_models import ParametersModel
 from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
 
 
-def process_parameters(initial_parameters: dict) -> None:
+def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
     """
-    Process parameters and create parameter file.
+    Create and save a parameter dictionary with specified defaults.
 
-    Parameters
-    ----------
-    initial_parameters : dict
-        Initial parameter dictionary
+    Required arguments:
+        dir_input: Name of input directory/ies, separate multiple directories with ';'
+        dir_output: Name of output directory (default is an empty string).
+
+    Optional arguments:
+        detrending: Type of detrending
+            'standard', 'robust', or 'none' (default is 'standard').
+
+        registration: Registration type or quality
+            'high', 'medium', 'low', 'none' or 'transform' (default is 'medium').
+
+        registration_opts: Dictionary of ANTs registration options
+
+        diam_cell: Cell diameter in microns (default is 6.0).
+
+        dir_transform: Path to the transform directory (required for 'transform' registration).
+
+        nwb_output: Output in NWB format (default is False).
+
+        ds: Spatial coarse-graining in x-y dimension (default is 2).
+
+        planes_pad: Number of planes to pad the volume with for robust registration (default is 0).
+
+        parallel_extra: Additional Parallelization that may be memory-intensive (default is True).
+
+        save_volume: Save registered volumes after segmentation to check registration (default is False).
+
+        type_mask: Type of volume averaging for the mask:
+            'mean', 'geomean' or 'max' (default is 'geomean').
+            
+        type_timepoints: Type of timepoints to use for segmentation
+            'dff', 'periodic' or 'custom' (default is 'dff').
+
+        timepoints:
+            Number of timepoints for segmenttaion (if type_timepoints is 'dff', 'periodic')
+            Vector of timepoints for segmenttaion (if type_timepoints is 'custom')
+            Default is 1000.
+
+        f_hipass: Frequency (Hz) for high-pass filtering of cell timeseries (default is 0).
+
+        f_volume: Imaging frequency in Hz (default is 2.0).
+
+        n_cells_block: Number of cells in a segmentation block. (default is 316)
+            Small number is fast but can lead to blocky output.
+
+        Number of brain colors (default is 1). Use 2 in two-color volumes.
+
+        res_x:  X resolution in microns (default is 0.40625).
+
+        res_y:  Y resolution in microns (default is 0.40625).
+
+        res_z:  Z resolution in microns (default is 5.0).
+
+        t_baseline: Interval for baseline calculation in seconds (default is 300).
+
+        t_section: Exposure time in seconds for slice acquisition (default is 0.01).
+
+        thr_mask: Threshold for volume mask (default is 0.5).
+            0 < thr <= 1 (probability threshold)
+            thr > 1 (intensity threshold)
+
+        overwrite: Overwrite existing parameter file (default is False).
     """
-    parameters = copy.deepcopy(initial_parameters)
 
-    # check that parameter input is a dictionary
-    if not isinstance(parameters, dict):
-        raise Exception("specify parameter dictionary as input.")
-
-    # check if any parameters are missing
-    missing_parameters = set(parameter_dictionary()) - set(parameters)
-    if missing_parameters:
-        raise Exception("missing parameters '%s'." % ("', '".join(missing_parameters)))
-
-    # get input directories
-    dir_input = parameters["dir_input"]
+    # get input directories and output directory
     input_dirs = [os.path.normpath(h) for h in dir_input.split(";")]
-    parameters["input_dirs"] = input_dirs
+    dir_output = os.path.normpath(dir_output)
 
-    # get output directory and parameter filename
-    dir_output = parameters["dir_output"]
+    # check parameters, get json, and then convert to string
+    parameters = ParametersModel(input_dirs=input_dirs, dir_output=dir_output, **kwargs)
+    parameters = json.loads(parameters.model_dump_json())
+
+    # check if parameter file exists and act accordingly
     filename_parameters = os.path.join(dir_output, "parameters.json")
-
-    # load parameters from file, if it already exists
     if os.path.isfile(filename_parameters):
-        print("Parameter file exists at: %s, aborting." % (filename_parameters))
-        return None
+        print("%s exists" %(filename_parameters), end=", ")
+        if parameters["overwrite"]:
+            print("overwriting.")
+        else:
+            print("aborting (set overwrite=True to overwrite).")
+            return None
+    del parameters["overwrite"]
 
-    # check parameters file, get json, and then convert to string
-    parameters = ParametersModel(**parameters).model_dump_json()
-    parameters = json.loads(parameters)
-
-    # check plane padding
-    if (parameters["registration"] == "none") and not ((parameters["planes_pad"] == 0)):
-        raise Exception("'planes_pad' must be 0 if 'registration' is None.")
-
-    # convert dir_input into a list to account for multiple directories
+    # process input directories
     if len(input_dirs) == 1:
         prefix_dirs = [None]
     else:
@@ -119,11 +160,6 @@ def process_parameters(initial_parameters: dict) -> None:
         lt = len(volume_names)
 
     # check timepoints
-    parameters["type_timepoints"] = parameters["type_timepoints"].lower()
-    print(
-        "checking 'timepoints' for 'type_timepoints'='%s'."
-        % parameters["type_timepoints"]
-    )
     tp = parameters["timepoints"]
     if parameters["type_timepoints"] in ["dff", "periodic"]:
         if not (np.isscalar(tp) and (tp >= 0) and (tp == np.round(tp))):
