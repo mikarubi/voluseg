@@ -4,7 +4,6 @@ import shutil
 import numpy as np
 from types import SimpleNamespace
 from itertools import combinations
-# from pyspark.sql.session import SparkSession
 
 from voluseg._steps.step4e import collect_blocks
 from voluseg._tools.constants import hdf, dtype
@@ -26,8 +25,6 @@ def clean_cells(parameters: dict) -> None:
     -------
     None
     """
-    # spark = SparkSession.builder.getOrCreate()
-    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -109,7 +106,6 @@ def clean_cells(parameters: dict) -> None:
             "f_hipass",
             "f_volume",
             "detrending",
-            "parallel_clean",
             "lt",
         ]
         filtered_parameters = {key: parameters[key] for key in keys}
@@ -117,7 +113,7 @@ def clean_cells(parameters: dict) -> None:
         def get_timebase(timeseries):
             return clean_signal(filtered_parameters, timeseries)
 
-        if p.parallel_clean:
+        if p.parallel_extra:
             print("Computing baseline in parallel mode... ", end="")
             timebase = evenly_parallelize(cell_timeseries).map(get_timebase).compute()
         else:
@@ -150,25 +146,7 @@ def clean_cells(parameters: dict) -> None:
         with h5py.File(fullname_volmean + hdf, "r") as file_handle:
             background = file_handle["background"][()]
 
-        with h5py.File(fullname_cells + hdf, "w") as file_handle:
-            file_handle["n"] = n
-            file_handle["t"] = p.lt
-            file_handle["x"] = x
-            file_handle["y"] = y
-            file_handle["z"] = z
-            file_handle["cell_x"] = cell_x
-            file_handle["cell_y"] = cell_y
-            file_handle["cell_z"] = cell_z
-            file_handle["cell_block_id"] = cell_block_id
-            file_handle["volume_id"] = volume_id
-            file_handle["volume_weight"] = volume_weight
-            file_handle["cell_weights"] = cell_weights
-            file_handle["cell_timeseries_raw"] = cell_timeseries
-            file_handle["cell_timeseries"] = cell_timeseries1
-            file_handle["cell_baseline"] = cell_baseline1
-            file_handle["background"] = background
-
-        if p.output_to_nwb:
+        if p.nwb_output:
             write_nwbfile(
                 output_path=os.path.join(
                     p.dir_output, "cells%s_clean" % (color_i) + ".nwb"
@@ -179,6 +157,24 @@ def clean_cells(parameters: dict) -> None:
                 cell_weights=cell_weights,
                 cell_timeseries=cell_timeseries1,
             )
+        else:
+            with h5py.File(fullname_cells + hdf, "w") as file_handle:
+                file_handle["n"] = n
+                file_handle["t"] = p.lt
+                file_handle["x"] = x
+                file_handle["y"] = y
+                file_handle["z"] = z
+                file_handle["cell_x"] = cell_x
+                file_handle["cell_y"] = cell_y
+                file_handle["cell_z"] = cell_z
+                file_handle["cell_block_id"] = cell_block_id
+                file_handle["volume_id"] = volume_id
+                file_handle["volume_weight"] = volume_weight
+                file_handle["cell_weights"] = cell_weights
+                file_handle["cell_timeseries_raw"] = cell_timeseries
+                file_handle["cell_timeseries"] = cell_timeseries1
+                file_handle["cell_baseline"] = cell_baseline1
+                file_handle["background"] = background
 
     # clean up
     completion = 1

@@ -4,9 +4,6 @@ import numpy as np
 from types import SimpleNamespace
 from typing import Tuple
 
-# import pyspark
-# from pyspark.sql.session import SparkSession
-
 from voluseg._tools.constants import hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 
@@ -30,9 +27,6 @@ def collect_blocks(
     Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
         Tuple of cell block id, cell xyz, cell weights, cell timeseries, and cell lengths.
     """
-
-    # spark = SparkSession.builder.getOrCreate()
-    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -74,7 +68,7 @@ def collect_blocks(
     # cumulate collected cells
     init_data = [[]] * 4
     idx_block_valids = np.argwhere(block_valids).T[0]
-    if p.parallel_clean:
+    if p.parallel_extra:
         block_validsRDD = evenly_parallelize(idx_block_valids)
         cell_dataRDD = block_validsRDD.map(get_data)
         cell_data = cell_dataRDD.fold(accum_data, initial=init_data).compute()

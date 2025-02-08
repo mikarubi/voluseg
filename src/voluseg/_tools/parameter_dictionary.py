@@ -1,18 +1,16 @@
 def parameter_dictionary(
     detrending="standard",
     registration="medium",
-    registration_restrict={},
+    registration_opts={},
     diam_cell=6.0,
     dim_order="zyx",
-    dir_ants="",
     dir_input="",
     dir_output="",
     dir_transform="",
+    nwb_output=False,
     ds=2,
     planes_pad=0,
-    planes_packed=False,
-    parallel_clean=True,
-    parallel_volume=True,
+    parallel_extra=True,
     save_volume=False,
     type_timepoints="dff",
     type_mask="geomean",
@@ -37,7 +35,7 @@ def parameter_dictionary(
         Type of detrending = 'standard', 'robust', or 'none' (default is 'standard').
     registration  = str, optional
         Quality of registration = 'high', 'medium', 'low' or 'none' (default is 'medium').
-    registration_restrict  = str, optional
+    registration_opts  = str, optional
         Restrict registration (e.g. 1x1x1x1x1x1x0x0x0x1x1x0) (default is an empty string).
     diam_cell  = float, optional
         Cell diameter in microns (default is 6.0).
@@ -53,12 +51,8 @@ def parameter_dictionary(
         Spatial coarse-graining in x-y dimension (default is 2).
     planes_pad  = int, optional
         Number of planes to pad the volume with for robust registration (default is 0).
-    planes_packed  = bool, optional
-        Packed planes in each volume, for single plane imaging with packed planes (default is False).
-    parallel_clean  = bool, optional
-        Parallelization of final cleaning (True is fast but memory-intensive, default is True).
-    parallel_volume  = bool, optional
-        Parallelization of mean-volume computation (True is fast but memory-intensive, default is True).
+    parallel_extra  = bool, optional
+        Additional Parallelization (True is fast but more memory-intensive, default is True).
     save_volume  = bool, optional
         Save registered volumes after segmentation, True keeps a copy of the volumes (default is False).
     type_timepoints  = str, optional

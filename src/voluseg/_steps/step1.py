@@ -152,18 +152,8 @@ def process_volumes(parameters: dict) -> None:
                         os.path.split(fullname_volume_input)[0]
                     )
 
-                # process output volumes
-                if p.planes_packed:
-                    for pi, volume_pi in enumerate(volume):
-                        name_volume_pi = get_volume_name(
-                            fullname_volume_input,
-                            dir_prefix,
-                            pi,
-                        )
-                        make_output_volume(name_volume_pi, volume_pi)
-                else:
-                    name_volume = get_volume_name(fullname_volume_input, dir_prefix)
-                    make_output_volume(name_volume, volume)
+                name_volume = get_volume_name(fullname_volume_input, dir_prefix)
+                make_output_volume(name_volume, volume)
 
         # end initial_processing
 

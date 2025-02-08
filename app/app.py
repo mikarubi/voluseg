@@ -14,20 +14,14 @@ def run_pipeline(
     registration: Annotated[
         str, typer.Option(envvar="VOLUSEG_REGISTRATION")
     ] = "medium",
-    registration_restrict: Annotated[
-        str, typer.Option(envvar="VOLUSEG_REGISTRATION_RESTRICT")
+    registration_opts: Annotated[
+        str, typer.Option(envvar="VOLUSEG_REGISTRATION_OPTS")
     ] = "",
     diam_cell: Annotated[float, typer.Option(envvar="VOLUSEG_DIAM_CELL")] = 6.0,
     ds: Annotated[int, typer.Option(envvar="VOLUSEG_DS")] = 2,
     planes_pad: Annotated[int, typer.Option(envvar="VOLUSEG_PLANES_PAD")] = 0,
-    planes_packed: Annotated[
-        bool, typer.Option(envvar="VOLUSEG_PLANES_PACKED")
-    ] = False,
-    parallel_clean: Annotated[
-        bool, typer.Option(envvar="VOLUSEG_PARALLEL_CLEAN")
-    ] = False,
-    parallel_volume: Annotated[
-        bool, typer.Option(envvar="VOLUSEG_PARALLEL_VOLUME")
+    parallel_extra: Annotated[
+        bool, typer.Option(envvar="VOLUSEG_PARALLEL_EXTRA")
     ] = False,
     save_volume: Annotated[bool, typer.Option(envvar="VOLUSEG_SAVE_VOLUME")] = False,
     type_timepoints: Annotated[
@@ -61,13 +55,11 @@ def run_pipeline(
     # user-defined parameters
     parameters0["detrending"] = detrending
     parameters0["registration"] = registration
-    parameters0["registration_restrict"] = registration_restrict
+    parameters0["registration_opts"] = registration_opts
     parameters0["diam_cell"] = diam_cell
     parameters0["ds"] = ds
     parameters0["planes_pad"] = planes_pad
-    parameters0["planes_packed"] = planes_packed
-    parameters0["parallel_clean"] = parallel_clean
-    parameters0["parallel_volume"] = parallel_volume
+    parameters0["parallel_extra"] = parallel_extra
     parameters0["save_volume"] = save_volume
     parameters0["type_timepoints"] = type_timepoints
     parameters0["type_mask"] = type_mask

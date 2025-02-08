@@ -55,7 +55,7 @@ class ParametersModel(BaseModel):
         default=Registration.medium.value,
         description="Quality of registration: 'high', 'medium', 'low', 'none' or 'transform'",
     )
-    registration_restrict: dict = Field(
+    registration_opts: dict = Field(
         default={},
         description="ANTs registration options",
     )
@@ -80,13 +80,9 @@ class ParametersModel(BaseModel):
         default=0,
         description="Number of planes to pad the volume with for robust registration",
     )
-    parallel_clean: bool = Field(
+    parallel_extra: bool = Field(
         default=True,
-        description="Parallelization of final cleaning (True is fast but memory intensive)",
-    )
-    parallel_volume: bool = Field(
-        default=True,
-        description="Parallelization of mean-volume computation (True is fast but memory intensive)",
+        description="Additional parallelization (True is faster but memory intensive)",
     )
     save_volume: bool = Field(
         default=False,

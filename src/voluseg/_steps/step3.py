@@ -1,17 +1,15 @@
 import os
 import h5py
-
-# import pyspark
+import warnings
+import matplotlib
 import numpy as np
+
 from scipy import stats
 from sklearn import mixture
 from skimage import morphology
 from types import SimpleNamespace
 from scipy.ndimage.filters import median_filter
 
-# from pyspark.sql.session import SparkSession
-import warnings
-import matplotlib
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -40,8 +38,6 @@ def mask_volumes(parameters: dict) -> None:
     -------
     None
     """
-    # spark = SparkSession.builder.getOrCreate()
-    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -135,7 +131,7 @@ def mask_volumes(parameters: dict) -> None:
                 return np.add(val1, val2, dtype="float")
 
         init_volume = np.zeros((lx, ly, lz))
-        if p.parallel_volume:
+        if p.parallel_extra:
             volume_nameRDD = evenly_parallelize(p.volume_names[timepoints])
             volume_dataRDD = volume_nameRDD.map(get_volume)
             volume_mean = volume_dataRDD.fold(

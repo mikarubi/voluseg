@@ -4,7 +4,6 @@ import time
 import numpy as np
 import dask.array as da
 from types import SimpleNamespace
-# from pyspark.sql.session import SparkSession
 
 from voluseg._steps.step4a import define_blocks
 from voluseg._steps.step4b import process_block_data
@@ -28,8 +27,6 @@ def detect_cells(parameters: dict) -> None:
     -------
     None
     """
-    # spark = SparkSession.builder.getOrCreate()
-    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 

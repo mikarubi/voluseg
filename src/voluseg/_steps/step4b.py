@@ -49,9 +49,9 @@ def process_block_data(
     ball_diam : np.ndarray
         The diameter of a cell-area sphere.
     bvolume_mean : h5py.Dataset
-        Spark broadcast variable: volume mean.
+        Broadcast variable: volume mean.
     bvolume_peak : h5py.Dataset
-        Spark broadcast variable: local intensity maximum volume (peak).
+        Broadcast variable: local intensity maximum volume (peak).
     timepoints : np.ndarray
         Timepoints at which segmentation will be performed.
 

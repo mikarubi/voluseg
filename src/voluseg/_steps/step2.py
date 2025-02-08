@@ -96,7 +96,7 @@ def align_volumes(parameters: dict) -> None:
                     prefix_out_tform=os.path.join(
                         dir_transform, name_volume + "_tform_"
                     ),
-                    restrict=p.registration_restrict,
+                    restrict=p.registration_opts,
                     typ="r",
                 )
                 if p.registration == "high":
