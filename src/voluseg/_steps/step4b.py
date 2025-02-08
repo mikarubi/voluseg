@@ -66,12 +66,12 @@ def process_block_data(
     # load and dilate initial voxel peak positions
     x0_, y0_, z0_ = xyz0
     x1_, y1_, z1_ = xyz1
-    voxel_peak = np.zeros_like(bvolume_peak.value)
+    voxel_peak = np.zeros_like(bvolume_peak)
     voxel_peak[x0_:x1_, y0_:y1_, z0_:z1_] = 1
-    voxel_peak = voxel_peak & bvolume_peak.value & (bvolume_mean.value > 0)
-    voxel_mask = morphology.binary_dilation(voxel_peak, ball_diam) & (
-        bvolume_mean.value > 0
-    )
+    voxel_peak = voxel_peak & bvolume_peak & (bvolume_mean > 0)
+    voxel_mask = morphology.binary_dilation(voxel_peak, ball_diam) & (bvolume_mean > 0)
+    voxel_peak = voxel_peak.compute()
+    voxel_mask = voxel_mask.compute()
 
     voxel_xyz = np.argwhere(voxel_mask)
     voxel_xyz_peak = np.argwhere(voxel_peak)

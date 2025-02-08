@@ -1,13 +1,15 @@
 import os
 import h5py
-import pyspark
+
+# import pyspark
 import numpy as np
 from scipy import stats
 from sklearn import mixture
 from skimage import morphology
 from types import SimpleNamespace
 from scipy.ndimage.filters import median_filter
-from pyspark.sql.session import SparkSession
+
+# from pyspark.sql.session import SparkSession
 import warnings
 import matplotlib
 
@@ -38,8 +40,8 @@ def mask_volumes(parameters: dict) -> None:
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    # spark = SparkSession.builder.getOrCreate()
+    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -54,7 +56,7 @@ def mask_volumes(parameters: dict) -> None:
         for color_i in range(p.n_colors):
             dir_volume = os.path.join(p.dir_output, "volumes", str(color_i))
 
-            def mean_volume(tuple_name_volume):
+            def mean_volume(name_volume):
                 # disable numpy multithreading
                 os.environ["OMP_NUM_THREADS"] = "1"
                 os.environ["MKL_NUM_THREADS"] = "1"
@@ -63,11 +65,10 @@ def mask_volumes(parameters: dict) -> None:
                 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
                 import numpy as np
 
-                name_volume = tuple_name_volume[1]
                 fullname_volume = os.path.join(dir_volume, name_volume)
                 return np.mean(load_volume(fullname_volume + ali + hdf), dtype="float")
 
-            mean_timeseries_raw[color_i] = volume_nameRDD.map(mean_volume).collect()
+            mean_timeseries_raw[color_i] = volume_nameRDD.map(mean_volume).compute()
             time, base = clean_signal(parameters, mean_timeseries_raw[color_i])
             mean_timeseries[color_i], mean_baseline[color_i] = time, base
             dff_rank += stats.rankdata((time - base) / time)
@@ -107,55 +108,44 @@ def mask_volumes(parameters: dict) -> None:
         fullname_volume = os.path.join(dir_volume, p.volume_names[0])
         lx, ly, lz = load_volume(fullname_volume + ali + hdf).T.shape
 
-        class accum_param(pyspark.accumulators.AccumulatorParam):
-            """define accumulator class"""
-
-            def zero(self, val0):
-                import os
-
-                # disable numpy multithreading
-                os.environ["OMP_NUM_THREADS"] = "1"
-                os.environ["MKL_NUM_THREADS"] = "1"
-                os.environ["NUMEXPR_NUM_THREADS"] = "1"
-                os.environ["OPENBLAS_NUM_THREADS"] = "1"
-                os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-                import numpy as np
-
-                return np.zeros(val0.shape, dtype="float")
-
-            def addInPlace(self, val1, val2):
-                import os
-
-                # disable numpy multithreading
-                os.environ["OMP_NUM_THREADS"] = "1"
-                os.environ["MKL_NUM_THREADS"] = "1"
-                os.environ["NUMEXPR_NUM_THREADS"] = "1"
-                os.environ["OPENBLAS_NUM_THREADS"] = "1"
-                os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-                import numpy as np
-
-                if p.type_mask == "max":
-                    return np.maximum(val1, val2, dtype="float")
-                else:
-                    return np.add(val1, val2, dtype="float")
-
-        # geometric mean
-        volume_accum = sc.accumulator(np.zeros((lx, ly, lz)), accum_param())
-
-        def add_volume(tuple_name_volume):
-            name_volume = tuple_name_volume[1]
+        # load volumes
+        def get_volume(name_volume):
             fullname_volume = os.path.join(dir_volume, name_volume)
             volume = load_volume(fullname_volume + ali + hdf).T
             if p.type_mask == "geomean":
                 volume = np.log10(volume)
-            volume_accum.add(volume)
 
+            return volume
+
+        # define accumulator
+        def accum_volume(val1, val2):
+            import os
+
+            # disable numpy multithreading
+            os.environ["OMP_NUM_THREADS"] = "1"
+            os.environ["MKL_NUM_THREADS"] = "1"
+            os.environ["NUMEXPR_NUM_THREADS"] = "1"
+            os.environ["OPENBLAS_NUM_THREADS"] = "1"
+            os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+            import numpy as np
+
+            if p.type_mask == "max":
+                return np.maximum(val1, val2, dtype="float")
+            else:
+                return np.add(val1, val2, dtype="float")
+
+        init_volume = np.zeros((lx, ly, lz))
         if p.parallel_volume:
-            evenly_parallelize(p.volume_names[timepoints]).foreach(add_volume)
+            volume_nameRDD = evenly_parallelize(p.volume_names[timepoints])
+            volume_dataRDD = volume_nameRDD.map(get_volume)
+            volume_mean = volume_dataRDD.fold(
+                accum_volume, initial=init_volume
+            ).compute()
         else:
+            volume_mean = init_volume
             for name_volume in p.volume_names[timepoints]:
-                add_volume(([], name_volume))
-        volume_mean = volume_accum.value
+                volume_mean = accum_volume(volume_mean, get_volume(name_volume))
+
         if p.type_mask != "max":
             volume_mean = volume_mean / len(timepoints)
         if p.type_mask == "geomean":

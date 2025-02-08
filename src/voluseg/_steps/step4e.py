@@ -3,8 +3,9 @@ import h5py
 import numpy as np
 from types import SimpleNamespace
 from typing import Tuple
-import pyspark
-from pyspark.sql.session import SparkSession
+
+# import pyspark
+# from pyspark.sql.session import SparkSession
 
 from voluseg._tools.constants import hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
@@ -30,8 +31,8 @@ def collect_blocks(
         Tuple of cell block id, cell xyz, cell weights, cell timeseries, and cell lengths.
     """
 
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    # spark = SparkSession.builder.getOrCreate()
+    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -41,21 +42,8 @@ def collect_blocks(
     with h5py.File(fullname_volmean + hdf, "r") as file_handle:
         block_valids = file_handle["block_valids"][()]
 
-    class accum_data(pyspark.accumulators.AccumulatorParam):
-        """define accumulator class"""
-
-        def zero(self, val0):
-            return [[]] * 4
-
-        def addInPlace(self, val1, val2):
-            return [val1[i] + val2[i] for i in range(4)]
-
-    # cumulate collected cells
-    if p.parallel_clean:
-        cell_data = sc.accumulator([[]] * 4, accum_data())
-
-    def add_data(tuple_ii):
-        ii = tuple_ii[1]
+    # define function to get data
+    def get_data(ii):
 
         cell_block_id = []
         cell_xyz = []
@@ -77,26 +65,26 @@ def collect_blocks(
         except IOError:
             print("block %d does not exist." % ii)
 
-        if p.parallel_clean:
-            cell_data.add([cell_block_id, cell_xyz, cell_weights, cell_timeseries])
-        else:
-            return [cell_block_id, cell_xyz, cell_weights, cell_timeseries]
+        return [cell_block_id, cell_xyz, cell_weights, cell_timeseries]
 
+    # define accumulator
+    def accum_data(val1, val2):
+        return [val1[i] + val2[i] for i in range(4)]
+
+    # cumulate collected cells
+    init_data = [[]] * 4
+    idx_block_valids = np.argwhere(block_valids).T[0]
     if p.parallel_clean:
-        evenly_parallelize(np.argwhere(block_valids).T[0]).foreach(add_data)
-        cell_block_id, cell_xyz, cell_weights, cell_timeseries = cell_data.value
+        block_validsRDD = evenly_parallelize(idx_block_valids)
+        cell_dataRDD = block_validsRDD.map(get_data)
+        cell_data = cell_dataRDD.fold(accum_data, initial=init_data).compute()
     else:
-        idx_block_valids = np.argwhere(block_valids).T[0]
-        valids_tuple = zip([[]] * len(idx_block_valids), idx_block_valids)
-        cell_block_id, cell_xyz, cell_weights, cell_timeseries = list(
-            zip(*map(add_data, valids_tuple))
-        )
-        cell_block_id = [ii for bi in cell_block_id for ii in bi]
-        cell_xyz = [xyzi for ci in cell_xyz for xyzi in ci]
-        cell_weights = [wi for ci in cell_weights for wi in ci]
-        cell_timeseries = [ti for ci in cell_timeseries for ti in ci]
+        cell_data = init_data
+        for ii in idx_block_valids:
+            cell_data = accum_data(cell_data, get_data(ii))
 
-    # convert lists to arrays
+    # extract data
+    cell_block_id, cell_xyz, cell_weights, cell_timeseries = cell_data
     cn = len(cell_xyz)
     cell_block_id = np.array(cell_block_id)
     cell_lengths = np.array([len(i) for i in cell_weights])

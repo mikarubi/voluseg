@@ -27,7 +27,7 @@ def align_volumes(parameters: dict) -> None:
     None
     """
     # do not run if registration is set to none
-    if not parameters["registration"]:
+    if parameters["registration"] == "none":
         return
 
     p = SimpleNamespace(**parameters)
@@ -70,7 +70,7 @@ def align_volumes(parameters: dict) -> None:
             # disable ITK multithreading
             os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
 
-            name_volume = tuple_name_volume[1]
+            name_volume = tuple_name_volume[0]
             fullname_volume = os.path.join(dir_volume, name_volume)
             # skip processing if aligned volume exists
             if load_volume(fullname_volume + ali + hdf) is not None:
@@ -156,7 +156,7 @@ def align_volumes(parameters: dict) -> None:
             return tform_vector
 
         # run registration and save transforms as needed
-        transforms = volume_nameRDD.map(register_volume).collect()
+        transforms = volume_nameRDD.map(register_volume).compute()
         if not p.registration == "transform":
             transforms = np.array(transforms).astype(dtype)
             fullname_tforms = os.path.join(dir_transform, "transforms%d" % (color_i))

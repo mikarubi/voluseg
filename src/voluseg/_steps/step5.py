@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 from types import SimpleNamespace
 from itertools import combinations
-from pyspark.sql.session import SparkSession
+# from pyspark.sql.session import SparkSession
 
 from voluseg._steps.step4e import collect_blocks
 from voluseg._tools.constants import hdf, dtype
@@ -26,8 +26,8 @@ def clean_cells(parameters: dict) -> None:
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    # spark = SparkSession.builder.getOrCreate()
+    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -103,19 +103,26 @@ def clean_cells(parameters: dict) -> None:
         cell_w = cell_w[cell_valids]
         ## end get valid version of cells
 
-        bparameters = sc.broadcast(parameters)
+        # filter parameters to include only those needed for clean_signal
+        keys = [
+            "t_baseline",
+            "f_hipass",
+            "f_volume",
+            "detrending",
+            "parallel_clean",
+            "lt",
+        ]
+        filtered_parameters = {key: parameters[key] for key in keys}
 
-        def get_timebase(timeseries_tuple):
-            timeseries = timeseries_tuple[1]
-            return clean_signal(bparameters.value, timeseries)
+        def get_timebase(timeseries):
+            return clean_signal(filtered_parameters, timeseries)
 
         if p.parallel_clean:
             print("Computing baseline in parallel mode... ", end="")
-            timebase = evenly_parallelize(cell_timeseries).map(get_timebase).collect()
+            timebase = evenly_parallelize(cell_timeseries).map(get_timebase).compute()
         else:
             print("Computing baseline in serial mode... ", end="")
-            timeseries_tuple = zip([[]] * len(cell_timeseries), cell_timeseries)
-            timebase = map(get_timebase, timeseries_tuple)
+            timebase = map(get_timebase, cell_timeseries)
         print("done.")
 
         cell_timeseries1, cell_baseline1 = list(zip(*timebase))

@@ -1,6 +1,6 @@
-import pickle
 import json
-from voluseg._tools.parameters_models import ParametersModel
+import pickle
+import numpy as np
 
 
 def load_parameters(filename: str) -> dict:
@@ -25,6 +25,11 @@ def load_parameters(filename: str) -> dict:
             parameters = json.load(file_handle)
     else:
         raise Exception("Parameters file must be either a pickle or a json file.")
+
+    # convert lists to numpy arrays
+    for key, val in parameters.items():
+        if isinstance(val, list):
+            parameters[key] = np.array(val)
 
     return parameters
 

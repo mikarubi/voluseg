@@ -2,8 +2,9 @@ import os
 import h5py
 import time
 import numpy as np
+import dask.array as da
 from types import SimpleNamespace
-from pyspark.sql.session import SparkSession
+# from pyspark.sql.session import SparkSession
 
 from voluseg._steps.step4a import define_blocks
 from voluseg._steps.step4b import process_block_data
@@ -27,8 +28,8 @@ def detect_cells(parameters: dict) -> None:
     -------
     None
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
+    # spark = SparkSession.builder.getOrCreate()
+    # sc = spark.sparkContext
 
     p = SimpleNamespace(**parameters)
 
@@ -64,8 +65,8 @@ def detect_cells(parameters: dict) -> None:
                 flag = 1
 
         # broadcast volume peaks (for initialization) and volume_mean (for renormalization)
-        bvolume_peak = sc.broadcast(volume_peak)
-        bvolume_mean = sc.broadcast(volume_mean)
+        bvolume_peak = da.from_array(volume_peak).persist()
+        bvolume_mean = da.from_array(volume_mean).persist()
 
         # dimensions and resolution
         lxyz = volume_mean.shape
@@ -134,7 +135,7 @@ def detect_cells(parameters: dict) -> None:
             os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
             import numpy as np
 
-            ii, xyz0, xyz1 = tuple_i_xyz0_xyz1[1]
+            ii, xyz0, xyz1 = tuple_i_xyz0_xyz1
 
             (
                 voxel_xyz,
@@ -227,7 +228,7 @@ def detect_cells(parameters: dict) -> None:
                         xyzi = voxel_xyz_valid[ix]
                         wi = cell_weights_valid[ix, ci]
                         bi = np.sum(
-                            wi * bvolume_mean.value[tuple(zip(*xyzi))]
+                            wi * bvolume_mean.vindex[tuple(zip(*xyzi))].compute()
                         ) / np.sum(wi)
                         ti = (
                             bi
@@ -243,6 +244,6 @@ def detect_cells(parameters: dict) -> None:
                 file_handle["completion"] = 1
 
         if block_valids.any():
-            evenly_parallelize(block_ixyz01).foreach(detect_cells_block)
+            evenly_parallelize(block_ixyz01).map(detect_cells_block).compute()
 
         # collect_blocks(color_i, parameters, lxyz)

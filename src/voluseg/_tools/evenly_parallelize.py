@@ -1,11 +1,9 @@
-import numpy as np
-from pyspark.sql.session import SparkSession
-from pyspark.rdd import RDD
+import dask.bag as db
 
 
-def evenly_parallelize(input_list: list) -> RDD:
+def evenly_parallelize(input_list: list) -> db.Bag:
     """
-    Return evenly partitioned spark resilient distributed dataset (RDD).
+    Return a Dask bag from the input list.
 
     Parameters
     ----------
@@ -14,14 +12,7 @@ def evenly_parallelize(input_list: list) -> RDD:
 
     Returns
     -------
-    RDD
-        Spark resilient distributed dataset (RDD).
+    db.Bag
+        Dask bag.
     """
-    spark = SparkSession.builder.getOrCreate()
-    sc = spark.sparkContext
-
-    n_input = len(input_list)
-    n_parts = sc.parallelize(input_list).getNumPartitions()
-    partitions = np.floor(np.linspace(0, n_parts, n_input, endpoint=False)).astype(int)
-
-    return sc.parallelize(zip(partitions, input_list)).partitionBy(n_parts)
+    return db.from_sequence(input_list)

@@ -26,7 +26,7 @@ def process_volumes(parameters: dict) -> None:
 
     p = SimpleNamespace(**parameters)
 
-    if parameters.get("ext") == ".nwb":
+    if p.ext == ".nwb":
         volume_fullname_inputRDD = evenly_parallelize(p.volume_names)
     else:
         volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
@@ -39,7 +39,7 @@ def process_volumes(parameters: dict) -> None:
         dir_volume = os.path.join(p.dir_output, "volumes", str(color_i))
         os.makedirs(dir_volume, exist_ok=True)
 
-        def initial_processing(tuple_fullname_volume_input):
+        def initial_processing(fullname_volume_input):
 
             def make_output_volume(name_volume, volume):
                 # disable numpy multithreading
@@ -108,7 +108,7 @@ def process_volumes(parameters: dict) -> None:
                     volume = volume_ds
 
                 # pad planes as necessary
-                if p.registration and p.planes_pad:
+                if p.planes_pad:
                     volume = np.lib.pad(
                         volume,
                         ((0, 0), (0, 0), (p.planes_pad, p.planes_pad)),
@@ -117,7 +117,7 @@ def process_volumes(parameters: dict) -> None:
                     )
 
                 # save volume in output directory
-                if p.registration:
+                if p.registration != "none":
                     save_volume(fullname_volume + ori + nii, volume, p.affine_matrix)
                 else:
                     volume = volume.T
@@ -126,8 +126,7 @@ def process_volumes(parameters: dict) -> None:
             # end make output volume
 
             # get full name of input volume, input data and list of planes
-            if parameters.get("ext") == ".nwb":
-                fullname_volume_input = tuple_fullname_volume_input[1]
+            if p.ext == ".nwb":
                 acquisition_name, time_index = fullname_volume_input.split("_")
                 time_index = int(time_index)
                 with open_nwbfile(
@@ -145,7 +144,6 @@ def process_volumes(parameters: dict) -> None:
                     volume=volume,
                 )
             else:
-                fullname_volume_input = tuple_fullname_volume_input[1]
                 volume = load_volume(fullname_volume_input + p.ext)
                 if len(p.input_dirs) == 1:
                     dir_prefix = None
@@ -169,7 +167,7 @@ def process_volumes(parameters: dict) -> None:
 
         # end initial_processing
 
-        volume_fullname_inputRDD.foreach(initial_processing)
+        volume_fullname_inputRDD.map(initial_processing).compute()
 
         # except Exception as msg:
         #     raise Exception('volume %s not processed: %s.'%(name_volume, msg))
