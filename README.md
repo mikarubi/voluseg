@@ -50,7 +50,7 @@ voluseg.update()
 voluseg._tools.download_sample_data("/path/to/input/")
 
 # set and save parameters
-filename_parameters = voluseg.step0_process_parameters(
+filename_parameters = voluseg.step0_define_parameters(
 	 dir_input='/path/to/input/downloaded_data/',
 	 dir_output='/path/to/output/directory/',
 	 registration='high',
