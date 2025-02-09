@@ -31,6 +31,5 @@ pythonpath = [".", "src"]
 testpaths = ["tests"]
 
 [project.optional-dependencies]
-pyspark = ["pyspark==3.4.0"]
 aws = ["boto3<1.35.0,>=1.34.70", "botocore<1.35.0,>=1.34.70"]
-# dask = ["dask==2024.9.0"]
+dask = ["dask==2024.9.0"]
