@@ -10,7 +10,7 @@ def format_voluseg_kwargs(voluseg_kwargs: dict) -> dict:
     parameter_to_env_var = {
         "detrending": "VOLUSEG_DETRENDING",
         "registration": "VOLUSEG_REGISTRATION",
-        "registration_opts": "VOLUSEG_REGISTRATION_OPTS",
+        "opts_ants": "VOLUSEG_REGISTRATION_OPTS",
         "diam_cell": "VOLUSEG_DIAM_CELL",
         "ds": "VOLUSEG_DS",
         "planes_pad": "VOLUSEG_PLANES_PAD",

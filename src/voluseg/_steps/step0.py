@@ -23,7 +23,7 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
         registration: Registration type or quality
             'high', 'medium', 'low', 'none' or 'transform' (default is 'medium').
 
-        registration_opts: Dictionary of ANTs registration options
+        opts_ants: Dictionary of ANTs registration options
 
         diam_cell: Cell diameter in microns (default is 6.0).
 
@@ -41,7 +41,7 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
 
         type_mask: Type of volume averaging for the mask:
             'mean', 'geomean' or 'max' (default is 'geomean').
-            
+
         type_timepoints: Type of timepoints to use for segmentation
             'dff', 'periodic' or 'custom' (default is 'dff').
 
@@ -87,7 +87,7 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
     # check if parameter file exists and act accordingly
     filename_parameters = os.path.join(dir_output, "parameters.json")
     if os.path.isfile(filename_parameters):
-        print("%s exists" %(filename_parameters), end=", ")
+        print("%s exists" % (filename_parameters), end=", ")
         if parameters["overwrite"]:
             print("overwriting.")
         else:
@@ -201,9 +201,9 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
     parameters["remote"] = remote
 
     # convert numpy arrays to lists for json compatibility
-    for key, val in parameters.items():
-        if isinstance(val, np.ndarray):
-            parameters[key] = val.tolist()
+    for key, value in parameters.items():
+        if isinstance(value, np.ndarray):
+            parameters[key] = value.tolist()
 
     os.makedirs(dir_output, exist_ok=True)
     save_parameters(parameters=parameters, filename=filename_parameters)

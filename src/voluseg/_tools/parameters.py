@@ -27,9 +27,9 @@ def load_parameters(filename: str) -> dict:
         raise Exception("Parameters file must be either a pickle or a json file.")
 
     # convert lists to numpy arrays
-    for key, val in parameters.items():
-        if isinstance(val, list):
-            parameters[key] = np.array(val)
+    for key, value in parameters.items():
+        if isinstance(value, list):
+            parameters[key] = np.array(value)
 
     return parameters
 

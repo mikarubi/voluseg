@@ -52,7 +52,7 @@ class ParametersModel(BaseModel):
     dir_transform: DirectoryPath = Field(default="")
     detrending: Detrending = Field(default=Detrending.standard)
     registration: Registration = Field(default=Registration.medium)
-    registration_opts: dict = Field(default={})
+    opts_ants: dict = Field(default={})
     diam_cell: PositiveFloat = Field(default=6.0)
     dim_order: DimOrder = Field(default=DimOrder.zyx)
     nwb_output: bool = Field(default=False)

@@ -11,22 +11,14 @@ app = typer.Typer()
 @app.command()
 def run_pipeline(
     detrending: Annotated[str, typer.Option(envvar="VOLUSEG_DETRENDING")] = "standard",
-    registration: Annotated[
-        str, typer.Option(envvar="VOLUSEG_REGISTRATION")
-    ] = "medium",
-    registration_opts: Annotated[
-        str, typer.Option(envvar="VOLUSEG_REGISTRATION_OPTS")
-    ] = "",
+    registration: Annotated[str, typer.Option(envvar="VOLUSEG_REGISTRATION")] = "medium",
+    opts_ants: Annotated[str, typer.Option(envvar="OPTIONS_ANTS")] = "",
     diam_cell: Annotated[float, typer.Option(envvar="VOLUSEG_DIAM_CELL")] = 6.0,
     ds: Annotated[int, typer.Option(envvar="VOLUSEG_DS")] = 2,
     planes_pad: Annotated[int, typer.Option(envvar="VOLUSEG_PLANES_PAD")] = 0,
-    parallel_extra: Annotated[
-        bool, typer.Option(envvar="VOLUSEG_PARALLEL_EXTRA")
-    ] = False,
+    parallel_extra: Annotated[bool, typer.Option(envvar="VOLUSEG_PARALLEL_EXTRA")] = False,
     save_volume: Annotated[bool, typer.Option(envvar="VOLUSEG_SAVE_VOLUME")] = False,
-    type_timepoints: Annotated[
-        str, typer.Option(envvar="VOLUSEG_TYPE_TIMEPOINTS")
-    ] = "dff",
+    type_timepoints: Annotated[str, typer.Option(envvar="VOLUSEG_TYPE_TIMEPOINTS")] = "dff",
     type_mask: Annotated[str, typer.Option(envvar="VOLUSEG_TYPE_MASK")] = "geomean",
     timepoints: Annotated[int, typer.Option(envvar="VOLUSEG_TIMEPOINTS")] = 1000,
     f_hipass: Annotated[float, typer.Option(envvar="VOLUSEG_F_HIPASS")] = 0,
@@ -39,12 +31,8 @@ def run_pipeline(
     t_baseline: Annotated[int, typer.Option(envvar="VOLUSEG_T_BASELINE")] = 300,
     t_section: Annotated[float, typer.Option(envvar="VOLUSEG_T_SECTION")] = 0.01,
     thr_mask: Annotated[float, typer.Option(envvar="VOLUSEG_THR_MASK")] = 0.5,
-    dir_input: Annotated[
-        str, typer.Option(envvar="VOLUSEG_DIR_INPUT")
-    ] = "/voluseg/data/",
-    dir_output: Annotated[
-        str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")
-    ] = "/tmp/voluseg_output",
+    dir_input: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_INPUT")] = "/voluseg/data/",
+    dir_output: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")] = "/tmp/voluseg_output",
 ):
     # set and save parameters
     parameters0 = voluseg.parameter_dictionary()
@@ -54,7 +42,7 @@ def run_pipeline(
     # user-defined parameters
     parameters0["detrending"] = detrending
     parameters0["registration"] = registration
-    parameters0["registration_opts"] = registration_opts
+    parameters0["opts_ants"] = opts_ants
     parameters0["diam_cell"] = diam_cell
     parameters0["ds"] = ds
     parameters0["planes_pad"] = planes_pad
