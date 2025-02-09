@@ -8,7 +8,7 @@ from voluseg._tools.parameters_models import ParametersModel
 from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
 
 
-def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
+def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
     """
     Create and save a parameter dictionary with specified defaults.
 
@@ -92,7 +92,7 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
             print("overwriting.")
         else:
             print("aborting (set overwrite=True to overwrite).")
-            return None
+            return filename_parameters
     del parameters["overwrite"]
 
     # process input directories
@@ -207,3 +207,5 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> None:
 
     os.makedirs(dir_output, exist_ok=True)
     save_parameters(parameters=parameters, filename=filename_parameters)
+
+    return filename_parameters

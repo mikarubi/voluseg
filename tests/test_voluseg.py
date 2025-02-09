@@ -52,8 +52,6 @@ def setup_parameters(tmp_path_factory):
     """
     Setup parameters for tests, using h5 sample data.
     """
-    # Define parameters and paths
-    parameters = voluseg.parameter_dictionary()
 
     # Download sample data, only if running in GitHub Actions
     if os.environ.get("GITHUB_ACTIONS") == "true":
@@ -61,21 +59,21 @@ def setup_parameters(tmp_path_factory):
         data_path = download_sample_data(destination_folder=tmp_dir_input)
     else:
         data_path = os.environ.get("SAMPLE_DATA_PATH_H5")
-    parameters["dir_input"] = data_path
 
     # Use pytest's tmp_path_factory fixture for output
     tmp_dir = str(tmp_path_factory.mktemp("output_h5"))
-    parameters["dir_output"] = tmp_dir
-
-    # Other parameters
-    parameters["registration"] = "high"
-    parameters["diam_cell"] = 5.0
-    parameters["f_volume"] = 2.0
 
     # Save parameters
-    parameters = voluseg.step0_process_parameters(parameters)
+    filename_parameters = voluseg.step0_define_parameters(
+        dir_input = data_path,
+        dir_output = tmp_dir,
+        registration = "high",
+        diam_cell = 5.0,
+        f_volume = 2.0,
+    )
 
-    # Return parameters for further use in tests
+    # Load and return parameters for further use in tests
+    parameters = voluseg.load_parameters(filename_parameters)
     return parameters
 
 
@@ -84,9 +82,6 @@ def setup_parameters_nwb(tmp_path_factory):
     """
     Setup parameters for tests, using nwb sample data.
     """
-    # Define parameters and paths
-    parameters = voluseg.parameter_dictionary()
-
     # Download sample data, only if running in GitHub Actions
     if os.environ.get("GITHUB_ACTIONS") == "true":
         tmp_dir_input = str(tmp_path_factory.mktemp("input_nwb"))
@@ -96,21 +91,21 @@ def setup_parameters_nwb(tmp_path_factory):
         )
     else:
         data_path = os.environ.get("SAMPLE_DATA_PATH_NWB")
-    parameters["dir_input"] = data_path
 
     # Use pytest's tmp_path_factory fixture for output
     tmp_dir = str(tmp_path_factory.mktemp("output_nwb"))
-    parameters["dir_output"] = tmp_dir
-
-    # Other parameters
-    parameters["registration"] = "high"
-    parameters["diam_cell"] = 5.0
-    parameters["f_volume"] = 2.0
 
     # Save parameters
-    parameters = voluseg.step0_process_parameters(parameters)
+    filename_parameters = voluseg.step0_define_parameters(
+        dir_input = data_path,
+        dir_output = tmp_dir,
+        registration = "high",
+        diam_cell = 5.0,
+        f_volume = 2.0,
+    )
 
-    # Return parameters for further use in tests
+    # Load and return parameters for further use in tests
+    parameters = voluseg.load_parameters(filename_parameters)
     return parameters
 
 
@@ -381,25 +376,23 @@ def test_nwb_remote(tmp_path):
     """
     Test for remote NWB files.
     """
-    # Define parameters and paths
-    parameters = voluseg.parameter_dictionary()
-
     # Using this file: https://dandiarchive.org/dandiset/000350/0.240822.1759/files?location=sub-20161022-1&page=1
-    parameters["dir_input"] = (
-        "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
+    data_path = "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
+
+    # Use pytest's tmp_path_factory fixture for output
+    tmp_dir = str(tmp_path_factory.mktemp("output_h5"))
+
+    # Save parameters
+    filename_parameters = voluseg.step0_define_parameters(
+        dir_input = data_path,
+        dir_output = tmp_dir,
+        registration = "high",
+        diam_cell = 5.0,
+        f_volume = 2.0,
     )
 
-    # Use pytest's tmp_path fixture for output
-    parameters["dir_output"] = str(tmp_path)
-
-    # Other parameters
-    parameters["registration"] = "high"
-    parameters["diam_cell"] = 5.0
-    parameters["f_volume"] = 2.0
-    parameters["timepoints"] = 20
-
-    print("Process parameters")
-    parameters = voluseg.step0_process_parameters(parameters)
+    # Load and return parameters for further use in tests
+    parameters = voluseg.load_parameters(filename_parameters)
 
     print("Process volumes.")
     voluseg.step1_process_volumes(parameters)

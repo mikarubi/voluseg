@@ -4,9 +4,7 @@ from typing_extensions import Annotated
 import voluseg
 from voluseg._tools.aws import export_to_s3
 
-
 app = typer.Typer()
-
 
 @app.command()
 def run_pipeline(
@@ -35,37 +33,32 @@ def run_pipeline(
     dir_output: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")] = "/tmp/voluseg_output",
 ):
     # set and save parameters
-    parameters0 = voluseg.parameter_dictionary()
-    parameters0["dir_input"] = dir_input
-    parameters0["dir_output"] = dir_output
-
-    # user-defined parameters
-    parameters0["detrending"] = detrending
-    parameters0["registration"] = registration
-    parameters0["opts_ants"] = opts_ants
-    parameters0["diam_cell"] = diam_cell
-    parameters0["ds"] = ds
-    parameters0["planes_pad"] = planes_pad
-    parameters0["parallel_extra"] = parallel_extra
-    parameters0["save_volume"] = save_volume
-    parameters0["type_timepoints"] = type_timepoints
-    parameters0["type_mask"] = type_mask
-    parameters0["timepoints"] = timepoints
-    parameters0["f_hipass"] = f_hipass
-    parameters0["f_volume"] = f_volume
-    parameters0["n_cells_block"] = n_cells_block
-    parameters0["n_colors"] = n_colors
-    parameters0["res_x"] = res_x
-    parameters0["res_y"] = res_y
-    parameters0["res_z"] = res_z
-    parameters0["t_baseline"] = t_baseline
-    parameters0["t_section"] = t_section
-    parameters0["thr_mask"] = thr_mask
-
-    voluseg.step0_process_parameters(parameters0)
-    filename_parameters = str(
-        os.path.join(parameters0["dir_output"], "parameters.json")
+    filename_parameters = voluseg.step0_define_parameters(
+        dir_input=dir_input,
+        dir_output=dir_output,
+        detrending=detrending,
+        registration=registration,
+        opts_ants=opts_ants,
+        diam_cell=diam_cell,
+        ds=ds,
+        planes_pad=planes_pad,
+        parallel_extra=parallel_extra,
+        save_volume=save_volume,
+        type_timepoints=type_timepoints,
+        type_mask=type_mask,
+        timepoints=timepoints,
+        f_hipass=f_hipass,
+        f_volume=f_volume,
+        n_cells_block=n_cells_block,
+        n_colors=n_colors,
+        res_x=res_x,
+        res_y=res_y,
+        res_z=res_z,
+        t_baseline=t_baseline,
+        t_section=t_section,
+        thr_mask=thr_mask,
     )
+
     parameters = voluseg.load_parameters(filename_parameters)
     print("Parameters:\n", parameters)
 
