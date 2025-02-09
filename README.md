@@ -15,11 +15,9 @@ Instructions [here](https://github.com/mikarubi/voluseg/blob/master/README-docke
 
 # dependencies
 
-- Apache Spark
+- h5py, dask, scipy, scikit-image, scikit-learn, matplotlib, nibabel, requests, numpy, pandas, pydantic>=2.8.0, pynwb>=2.8.0, loguru==0.7.2
 
-- Advanced Normalization Tools (ANTs)
-
-- h5py, matplotlib, nibabel, numpy, pandas, scipy, scikit-image, scikit-learn
+- Advanced Normalization Tools (ANTs) for registration (can install via conda)
 
 # installation
 
@@ -31,11 +29,7 @@ Instructions [here](https://github.com/mikarubi/voluseg/blob/master/README-docke
 
 	https://www.dropbox.com/sh/psrj9lusohj7epu/AAAbj8Jbb3o__pyKTTDxPvIKa?dl=0
 
-- Launch IPython with Spark.
-
 - Import package and load default parameters.
-
-- Set and save parameters (see `voluseg.parameter_dictionary??` for details).
 
 - Execute code sequentially to perform cell detection.
 
@@ -56,17 +50,15 @@ voluseg.update()
 voluseg._tools.download_sample_data("/path/to/input/")
 
 # set and save parameters
-parameters0 = voluseg.parameter_dictionary()
-parameters0['dir_ants'] = '/path/to/ants/bin/'
-parameters0['dir_input'] = '/path/to/input/downloaded_data/'
-parameters0['dir_output'] = '/path/to/output/directory/'
-parameters0['registration'] = 'high'
-parameters0['diam_cell'] = 5.0
-parameters0['f_volume'] = 2.0
-voluseg.step0_process_parameters(parameters0)
+filename_parameters = step0_process_parameters(
+	dir_input = '/path/to/input/downloaded_data/'
+	dir_output = '/path/to/output/directory/'
+	registration = 'high'
+	diam_cell = 5.0
+	f_volume = 2.0
+	)
 
 # load and print parameters
-filename_parameters = os.path.join(parameters0['dir_output'], 'parameters.pickle')
 parameters = voluseg.load_parameters(filename_parameters)
 pprint.pprint(parameters)
 
@@ -88,11 +80,11 @@ voluseg.step5_clean_cells(parameters)
 
 # pipeline output
 
-## parameters.pickle
+## parameters.json
 
 - parameter dictionary.
 
-- `parameters = voluseg.load_parameters('parameters.pickle')`
+- `parameters = voluseg.load_parameters('parameters.json')`
 
 - required as input to individual pipeline steps.
 

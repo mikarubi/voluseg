@@ -1,6 +1,3 @@
-import os
-
-
 def ants_transformation(
     in_nii: str,
     ref_nii: str,

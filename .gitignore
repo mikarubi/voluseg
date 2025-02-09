@@ -1,6 +1,7 @@
 build/
 __pycache__/
 .idea/
+.vscode
 *.pyc
 *.egg-info
 

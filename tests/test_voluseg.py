@@ -5,12 +5,10 @@ import pytest
 from pathlib import Path
 import numpy as np
 import h5py
-import copy
 
 
 # # To run tests locally, set these environment variables:
 # os.environ["GITHUB_ACTIONS"] = "false"
-# os.environ["ANTS_PATH"] = "/home/luiz/Downloads/ants-2.5.2/bin/"
 # os.environ["SAMPLE_DATA_PATH_H5"] = (
 #     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_data"
 # )
