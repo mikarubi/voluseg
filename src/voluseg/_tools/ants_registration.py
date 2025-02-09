@@ -2,7 +2,6 @@ import os
 
 
 def ants_registration(
-    dir_ants: str,
     in_nii: str,
     ref_nii: str,
     out_nii: str,
@@ -16,8 +15,6 @@ def ants_registration(
 
     Parameters
     ----------
-    dir_ants : str
-        Path to ANTs directory.
     in_nii : str
         Input nifti file.
     ref_nii : str
@@ -59,7 +56,7 @@ def ants_registration(
     initial_moving_transform = in_tform if in_tform else "[%s,%s,1]" % (ref_nii, in_nii)
     antsRegistration_call = " ".join(
         [
-            os.path.join(dir_ants, "antsRegistration"),
+            "antsRegistration",
             (
                 "--initial-moving-transform " + initial_moving_transform
                 if not restrict

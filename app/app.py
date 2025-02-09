@@ -48,7 +48,6 @@ def run_pipeline(
 ):
     # set and save parameters
     parameters0 = voluseg.parameter_dictionary()
-    parameters0["dir_ants"] = "/ants-2.5.3/bin/"
     parameters0["dir_input"] = dir_input
     parameters0["dir_output"] = dir_output
 

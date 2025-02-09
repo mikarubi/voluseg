@@ -2,7 +2,6 @@ import os
 
 
 def ants_transformation(
-    dir_ants: str,
     in_nii: str,
     ref_nii: str,
     out_nii: str,
@@ -14,8 +13,6 @@ def ants_transformation(
 
     Parameters
     ----------
-    dir_ants : str
-        Path to ANTs binaries.
     in_nii : str
         Path to input nifti file.
     ref_nii : str
@@ -34,7 +31,7 @@ def ants_transformation(
     """
     antsTransformation_call = " ".join(
         [
-            os.path.join(dir_ants, "antsApplyTransforms"),
+            "antsApplyTransforms",
             "--dimensionality 3",
             "--input",
             in_nii,

@@ -62,7 +62,6 @@ def setup_parameters(tmp_path_factory):
     else:
         data_path = os.environ.get("SAMPLE_DATA_PATH_H5")
     parameters["dir_input"] = data_path
-    parameters["dir_ants"] = os.environ.get("ANTS_PATH")
 
     # Use pytest's tmp_path_factory fixture for output
     tmp_dir = str(tmp_path_factory.mktemp("output_h5"))
@@ -98,7 +97,6 @@ def setup_parameters_nwb(tmp_path_factory):
     else:
         data_path = os.environ.get("SAMPLE_DATA_PATH_NWB")
     parameters["dir_input"] = data_path
-    parameters["dir_ants"] = os.environ.get("ANTS_PATH")
 
     # Use pytest's tmp_path_factory fixture for output
     tmp_dir = str(tmp_path_factory.mktemp("output_nwb"))
@@ -390,7 +388,6 @@ def test_nwb_remote(tmp_path):
     parameters["dir_input"] = (
         "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
     )
-    parameters["dir_ants"] = os.environ.get("ANTS_PATH")
 
     # Use pytest's tmp_path fixture for output
     parameters["dir_output"] = str(tmp_path)

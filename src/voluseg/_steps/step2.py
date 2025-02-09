@@ -80,7 +80,6 @@ def align_volumes(parameters: dict) -> None:
             # setup registration\
             if p.registration == "transform":
                 cmd = ants_transformation(
-                    dir_ants=p.dir_ants,
                     in_nii=fullname_volume + ori + nii,
                     ref_nii=fullname_reference + nii,
                     out_nii=fullname_volume + ali + nii,
@@ -89,7 +88,6 @@ def align_volumes(parameters: dict) -> None:
                 )
             else:
                 cmd = ants_registration(
-                    dir_ants=p.dir_ants,
                     in_nii=fullname_volume + ori + nii,
                     ref_nii=fullname_reference + nii,
                     out_nii=fullname_volume + ali + nii,
