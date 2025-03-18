@@ -57,7 +57,7 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
         n_cells_block: Number of cells in a segmentation block. (default is 316)
             Small number is fast but can lead to blocky output.
 
-        Number of brain colors (default is 1). Use 2 in two-color volumes.
+        n_colors: Number of brain colors (default is 1). Use 2 in two-color volumes.
 
         res_x:  X resolution in microns (default is 0.40625).
 
