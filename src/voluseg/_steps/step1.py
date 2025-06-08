@@ -1,4 +1,5 @@
 import os
+import numpy as np 
 from scipy import interpolate
 from types import SimpleNamespace
 from voluseg._tools.load_volume import load_volume
@@ -59,6 +60,7 @@ def process_volumes(parameters: dict) -> None:
                     return
 
                 # fix dimensionality
+
                 if volume.ndim == 2:
                     volume = volume[None, :, :]
 
@@ -98,9 +100,13 @@ def process_volumes(parameters: dict) -> None:
                     # get downsampled volume
                     volume_ds = np.zeros((len(sx_ds), len(sy_ds), lz))
                     for zi in np.arange(lz):
+                        slice_zi = volume[:, :, zi]
+                        if slice_zi.shape[0] == 0 or slice_zi.shape[1] == 0:
+                            print(f"[Skip slice] {name_volume} zi={zi} shape={slice_zi.shape}")
+                            continue
                         interpolation_fx = interpolate.RegularGridInterpolator(
                             (np.arange(lx), np.arange(ly)),
-                            volume[:, :, zi],
+                            slice_zi,
                             method="linear",
                         )
                         volume_ds[:, :, zi] = interpolation_fx(xy_grid_ds)
@@ -125,6 +131,7 @@ def process_volumes(parameters: dict) -> None:
 
             # end make output volume
 
+            # get full name of input volume, input data and list of planes
             # get full name of input volume, input data and list of planes
             if p.ext == ".nwb":
                 acquisition_name, time_index = fullname_volume_input.split("_")
@@ -154,7 +161,6 @@ def process_volumes(parameters: dict) -> None:
 
                 name_volume = get_volume_name(fullname_volume_input, dir_prefix)
                 make_output_volume(name_volume, volume)
-
         # end initial_processing
 
         volume_fullname_inputRDD.map(initial_processing).compute()

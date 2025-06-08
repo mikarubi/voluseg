@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 from pydantic import BaseModel, Field, model_validator
+from pathlib import Path
 from pydantic.types import (
     NonNegativeInt,
     NonNegativeFloat,
@@ -47,7 +48,7 @@ class TypeMask(str, Enum):
 
 
 class ParametersModel(BaseModel):
-    input_dirs: List[DirectoryPath]
+    input_dirs: List[Path]
     dir_output: DirectoryPath
     dir_transform: DirectoryPath = Field(default="")
     detrending: Detrending = Field(default=Detrending.standard)
