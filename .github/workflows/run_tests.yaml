@@ -78,7 +78,9 @@ jobs:
       # Run .h5 tests
       - name: Run .h5 tests
         run: |
+          export PATH="$HOME/ants-2.5.3/bin:$PATH"
           coverage run --source=voluseg -m pytest -m h5 -s -v --tb=short
+
 
       # Archive only block00000.hdf5 for NWB comparison
       - name: Archive minimal .h5 output for comparison
@@ -98,7 +100,9 @@ jobs:
       # Run .nwb tests
       - name: Run .nwb tests
         run: |
+          export PATH="$HOME/ants-2.5.3/bin:$PATH"
           coverage run --append -m pytest -m nwb -s -v --tb=short
+
 
       # Final cleanup
       - name: Final cleanup
