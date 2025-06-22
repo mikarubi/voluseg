@@ -93,7 +93,6 @@ jobs:
           mkdir -p h5_minimal
           find "$TMPDIR" -path "*/cells/0/block00000.hdf5" -exec cp --parents {} h5_minimal \;
           tar -czf output_h5_min.tar.gz -C h5_minimal .
-          rm -rf "$TMPDIR"
           rm -rf h5_minimal
 
       # Restore minimal .h5 output before running .nwb tests
