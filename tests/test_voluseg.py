@@ -111,6 +111,7 @@ def setup_parameters_nwb(tmp_path_factory):
 
     # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
+    parameters["timepoints"] = 10
     return parameters
 
 @pytest.mark.order(1)
