@@ -76,47 +76,12 @@ jobs:
       - name: Clear previous coverage data
         run: coverage erase
 
-      # Run .h5 tests
-      - name: Run .h5 tests
+      - name: Run tests with pytest on Unix-like systems
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        env:
+          ANTS_PATH: "$HOME/ants-2.5.3/bin"
         run: |
-          export PATH="$HOME/ants-2.5.3/bin:$PATH"
-          coverage run --source=voluseg -m pytest -m h5 -s -v --tb=short
-
-
-      # Archive only block00000.hdf5 for NWB comparison
-      - name: Archive minimal .h5 output for comparison
-        run: |
-         TMPDIR=$(find /tmp -maxdepth 1 -type d -name 'pytest-of-*' | head -n 1)
-          if [ -z "$TMPDIR" ]; then
-            echo "No pytest tmpdir found"; exit 1
-          fi
-          mkdir -p h5_minimal
-          find "$TMPDIR" -path "*/cells/0/block00000.hdf5" -exec cp --parents {} h5_minimal \;
-          tar -czf output_h5_min.tar.gz -C h5_minimal .
-          rm -rf h5_minimal
-
-      # Restore minimal .h5 output before running .nwb tests
-      - name: Restore .h5 output for .nwb comparison
-        run: |
-          TMPDIR=$(find /tmp -maxdepth 1 -type d -name 'pytest-of-*' | head -n 1)
-          if [ -z "$TMPDIR" ]; then
-            echo "No pytest tmpdir found"; exit 1
-          fi
-          tar -xzf output_h5_min.tar.gz -C "$TMPDIR"
-
-
-      # Run .nwb tests
-      - name: Run .nwb tests
-        run: |
-          export PATH="$HOME/ants-2.5.3/bin:$PATH"
-          coverage run --append -m pytest -m nwb -s -v --tb=short
-
-      # Final cleanup
-      - name: Final cleanup
-        if: always()
-        run: |
-          rm -f output_h5_min.tar.gz
-          rm -rf .pytest_cache
+          coverage run -m pytest -s -v --tb=short
 
       # - name: Run tests with pytest on Windows
       #   if: startsWith(matrix.os, 'windows')
