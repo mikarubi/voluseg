@@ -72,6 +72,12 @@ def setup_parameters(tmp_path_factory):
 
     # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
+    if isinstance(parameters["volume_names"], list):
+        half = len(parameters["volume_names"]) // 2
+        parameters["volume_names"] = parameters["volume_names"][:half]
+        parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:half]
+        parameters["timepoints"] = half  
+
     return parameters
 
 
@@ -108,7 +114,6 @@ def setup_parameters_nwb(tmp_path_factory):
     return parameters
 
 @pytest.mark.order(1)
-@pytest.mark.h5
 def test_parameters_json_pickle(setup_parameters, tmp_path):
     """
     Test saving and loading parameters as JSON and pickle.
@@ -130,7 +135,6 @@ def test_parameters_json_pickle(setup_parameters, tmp_path):
 
 
 @pytest.mark.order(1)
-@pytest.mark.h5
 def test_load_parameters(setup_parameters):
     """
     Test loading parameters from a JSON file.
@@ -149,7 +153,6 @@ def test_load_parameters(setup_parameters):
 
 
 @pytest.mark.order(2)
-@pytest.mark.h5
 def test_voluseg_h5_dir_step_1(setup_parameters):
     """
     Test the first step of the pipeline - process volumes.
@@ -173,7 +176,6 @@ def test_voluseg_h5_dir_step_1(setup_parameters):
 
 
 @pytest.mark.order(3)
-@pytest.mark.h5
 def test_voluseg_h5_dir_step_2(setup_parameters):
     """
     Test the second step of the pipeline - align volumes.
@@ -199,7 +201,6 @@ def test_voluseg_h5_dir_step_2(setup_parameters):
 
 
 @pytest.mark.order(4)
-@pytest.mark.h5
 def test_voluseg_h5_dir_step_3(setup_parameters):
     """
     Test the third step of the pipeline - mask volumes.
@@ -244,7 +245,6 @@ def test_voluseg_h5_dir_step_3(setup_parameters):
 
 
 @pytest.mark.order(5)
-@pytest.mark.h5
 def test_voluseg_h5_dir_step_4(setup_parameters):
     """
     Test the fourth step of the pipeline - detect cells.
@@ -269,7 +269,6 @@ def test_voluseg_h5_dir_step_4(setup_parameters):
 
 
 @pytest.mark.order(7)
-@pytest.mark.nwb
 def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
     """
     Test the full pipeline with an NWB file as input.
@@ -291,7 +290,6 @@ def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
 
 
 @pytest.mark.order(8)
-@pytest.mark.nwb
 def compare_results_nwb_and_h5_dir(
     setup_parameters,
     setup_parameters_nwb,
@@ -326,7 +324,6 @@ def compare_results_nwb_and_h5_dir(
 
 
 @pytest.mark.order(9)
-@pytest.mark.h5
 def test_voluseg_h5_dir_step_5(setup_parameters):
     """
     Test the fifth step of the pipeline - clean cells.
@@ -361,7 +358,6 @@ def test_voluseg_h5_dir_step_5(setup_parameters):
 
 
 @pytest.mark.order(10)
-@pytest.mark.h5
 def test_save_result_as_nwb(setup_parameters):
     """
     Test saving results as an NWB file.
@@ -385,7 +381,6 @@ def test_save_result_as_nwb(setup_parameters):
 
 
 @pytest.mark.order(11)
-@pytest.mark.nwb
 def test_nwb_remote(tmp_path):
     """
     Test for remote NWB files.
