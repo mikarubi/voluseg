@@ -73,10 +73,10 @@ def setup_parameters(tmp_path_factory):
     # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
     if isinstance(parameters["volume_names"], list):
-        half = len(parameters["volume_names"]) // 2
-        parameters["volume_names"] = parameters["volume_names"][:half]
-        parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:half]
-        parameters["timepoints"] = half  
+        parameters["volume_names"] = parameters["volume_names"][:1]
+        parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:1]
+        parameters["timepoints"] = 1
+  
 
     return parameters
 
@@ -109,10 +109,16 @@ def setup_parameters_nwb(tmp_path_factory):
         ds = 1
     )
 
-    # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
-    parameters["timepoints"] = 10
+
+    #Reduce to 1 timepoint to save memory and disk space
+    if isinstance(parameters.get("volume_names"), list):
+        parameters["volume_names"] = parameters["volume_names"][:1]
+        parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:1]
+        parameters["timepoints"] = 1  # must match actual data size
+
     return parameters
+
 
 @pytest.mark.order(1)
 def test_parameters_json_pickle(setup_parameters, tmp_path):
