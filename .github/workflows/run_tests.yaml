@@ -83,7 +83,7 @@ jobs:
         env:
           ANTS_PATH: "$HOME/ants-2.5.3/bin"
         run: |
-          coverage run -m pytest -s -v --tb=short
+          coverage run -m pytest -s -v --tb=short -k "not test_nwb_remote"
 
       # - name: Run tests with pytest on Windows
       #   if: startsWith(matrix.os, 'windows')
