@@ -1,0 +1,13 @@
+.features {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  /* Increase padding for better spacing */
+}
+
+.featureSvg {
+  height: 150px;
+  /* Adjust height to fit the new images */
+  width: auto;
+}

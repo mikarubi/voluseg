@@ -1,0 +1,63 @@
+name: Build and Publish Docs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - docs
+      - master
+
+jobs:
+  build-and-publish:
+    name: Build and Publish Docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install docs dependencies.
+        run: pip install -r docs/requirements-docs.txt
+
+      - name: Auto generate API Reference.
+        run: cd docs && pydoc-markdown
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+          working-directory: docs/voluseg-docs-app
+          cache-dependency-path: docs/voluseg-docs-app/yarn.lock
+
+      - name: Install dependencies
+        run: cd docs/voluseg-docs-app && yarn install --frozen-lockfile
+
+      - name: Build website
+        run: cd docs/voluseg-docs-app && yarn build
+
+      - name: Commit pydoc-markdown files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          GIT_STATUS=$(git status -s)
+          [[ ! -z "$GIT_STATUS" ]] && git add docs/* && git commit -m "auto-commit-docs" -a || echo "No changes to commit"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      # Popular action to deploy to GitHub Pages:
+      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/voluseg-docs-app/build
