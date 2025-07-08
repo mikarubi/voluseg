@@ -61,7 +61,7 @@ class ParametersModel(BaseModel):
     parallel_extra: bool = Field(default=True)
     save_volume: bool = Field(default=False)
     type_timepoints: TypeTimepoints = Field(default=TypeTimepoints.dff)
-    timepoints: Union[PositiveInt, List[PositiveInt]] = Field(default=1000)
+    timepoints: Union[NonNegativeInt, List[NonNegativeInt]] = Field(default=1000)
     type_mask: TypeMask = Field(default=TypeMask.geomean)
     f_hipass: NonNegativeFloat = Field(default=0)
     f_volume: PositiveFloat = Field(default=2.0)
