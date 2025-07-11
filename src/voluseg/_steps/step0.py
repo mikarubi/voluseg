@@ -194,7 +194,7 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
     # save parameters
     parameters["volume_fullnames_input"] = volume_fullnames_input
     parameters["volume_names"] = volume_names
-    parameters["dirs_input"] = input_dirs
+    parameters["input_dirs"] = input_dirs
     parameters["ext"] = ext
     parameters["lt"] = lt
     parameters["affine_matrix"] = affine_matrix
