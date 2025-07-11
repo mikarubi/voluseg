@@ -9,7 +9,7 @@ from pydantic.types import (
     PositiveFloat,
     DirectoryPath,
 )
-from typing import List
+from typing import List, Union
 
 
 class DimOrder(str, Enum):
@@ -48,8 +48,8 @@ class TypeMask(str, Enum):
 
 
 class ParametersModel(BaseModel):
-    input_dirs: List[Path]
-    dir_output: DirectoryPath
+    input_dirs: List[DirectoryPath]
+    dir_output: str
     dir_transform: DirectoryPath = Field(default="")
     detrending: Detrending = Field(default=Detrending.standard)
     registration: Registration = Field(default=Registration.medium)
@@ -62,7 +62,7 @@ class ParametersModel(BaseModel):
     parallel_extra: bool = Field(default=True)
     save_volume: bool = Field(default=False)
     type_timepoints: TypeTimepoints = Field(default=TypeTimepoints.dff)
-    timepoints: PositiveInt = Field(default=1000)
+    timepoints: Union[NonNegativeInt, List[NonNegativeInt]] = Field(default=1000)
     type_mask: TypeMask = Field(default=TypeMask.geomean)
     f_hipass: NonNegativeFloat = Field(default=0)
     f_volume: PositiveFloat = Field(default=2.0)

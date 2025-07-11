@@ -1,0 +1,85 @@
+---
+title: Running Voluseg Pipeline
+sidebar_position: 2
+---
+
+
+## Pipeline Overview
+The Voluseg pipeline consists of an initial setup of parameters followed by five consecutive steps:
+
+1. Process volumes
+2. Align volumes
+3. Mask volumes
+4. Detect cells
+5. Clean cells
+
+
+## Running a demo workflow
+To get familiar with Voluseg, let's run a simple example with a demo dataset.
+
+
+### Download the sample data
+To run the demo you will need start by downloading the sample data to your local machine:
+
+```python
+import voluseg
+
+# Download sample data
+voluseg.tools.download_sample_data("/path/to/input/")
+```
+
+### Setup pipeline parameters
+Voluseg provides a dictionary with default parameters that can be modified to fit your specific needs. You can read more about the parameters in the [Parameters](/docs/getting_started/parameters) section. You can access the default parameters dictionary, edit and process it by running:
+
+```python
+# Set parameters
+parameters_0 = voluseg.parameter_dictionary()
+parameters_0['dir_ants'] = '/path/to/ants/bin/'
+parameters_0['dir_input'] = '/path/to/input/downloaded_data/'
+parameters_0['dir_output'] = '/path/to/output/directory/'
+parameters_0['registration'] = 'high'
+parameters_0['diam_cell'] = 5.0
+parameters_0['f_volume'] = 2.0
+
+# Process parameters
+parameters = voluseg.step0_process_parameters(parameters_0)
+```
+
+A parameters file will be saved in the output directory with the name `parameters.json`.
+
+### Step 1. Process volumes
+The first step of the pipeline is to process the input volumes and to save them as nifti files. This step will perform downsampling and padding if specified in parameters.
+
+```python
+voluseg.step1_process_volumes(parameters)
+```
+
+
+#### Step 2. Align volumes
+In the second step, the volumes are aligned to a reference volume. This step will generate ANTs transform files (.mat).
+
+```python
+voluseg.step2_align_volumes(parameters)
+```
+
+### Step 3. Mask volumes
+In the third step, the volumes are masked to create an intensity mask from the average registered volume. This step will produce figures with masks and histograms, and will save `mean_timeseries.hdf5` and `volume0.hdf5` files.
+
+```python
+voluseg.step3_mask_volumes(parameters)
+```
+
+### Step 4. Detect cells
+In the fourth step, cells are detected in volumetric blocks.
+
+```python
+voluseg.step4_detect_cells(parameters)
+```
+
+### Step 5. Clean cells
+In the final step, the detected cells are cleaned by removing noisy cells, detrending and detecting a baseline signal.
+
+```python
+voluseg.step5_clean_cells(parameters)
+```
+
