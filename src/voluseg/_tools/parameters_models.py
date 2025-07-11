@@ -1,7 +1,6 @@
 from enum import Enum
 import numpy as np
 from pydantic import BaseModel, Field, model_validator
-from pathlib import Path
 from pydantic.types import (
     NonNegativeInt,
     NonNegativeFloat,

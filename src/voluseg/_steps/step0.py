@@ -79,11 +79,11 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
     # get input directories and output directory
     input_dirs = [os.path.normpath(h) for h in dir_input.split(";")]
     dir_output = os.path.normpath(dir_output)
-    
+
     # check parameters, get json, and then convert to string
     parameters = ParametersModel(input_dirs=input_dirs, dir_output=dir_output, **kwargs)
     parameters = json.loads(parameters.model_dump_json())
-    
+
     # check if parameter file exists and act accordingly
     filename_parameters = os.path.join(dir_output, "parameters.json")
     if os.path.isfile(filename_parameters):
@@ -134,12 +134,11 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
                 lt = min(lt, parameters["timepoints"])
         for ii in range(lt):
             volume_names.append(volume_name[0] + "_%d" % ii)
-        volume_names = [f"{volume_name[0]}_{i}" for i in range(lt)]
         ext = ".nwb"
         parameters["dim_order"] = "xyz"
     else:
         for dir_input_h, dir_prefix_h in zip(input_dirs, prefix_dirs):
-            # get volume extension, volume names and number of segmentation timepoints 
+            # get volume extension, volume names and number of segmentation timepoints
             file_names = [i.split(".", 1) for i in os.listdir(dir_input_h) if "." in i]
             file_exts, counts = np.unique(list(zip(*file_names))[1], return_counts=True)
             ext = "." + file_exts[np.argmax(counts)]

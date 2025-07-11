@@ -60,7 +60,6 @@ def process_volumes(parameters: dict) -> None:
                     return
 
                 # fix dimensionality
-
                 if volume.ndim == 2:
                     volume = volume[None, :, :]
 
@@ -132,7 +131,6 @@ def process_volumes(parameters: dict) -> None:
             # end make output volume
 
             # get full name of input volume, input data and list of planes
-            # get full name of input volume, input data and list of planes
             if p.ext == ".nwb":
                 acquisition_name, time_index = fullname_volume_input.split("_")
                 time_index = int(time_index)
@@ -161,6 +159,7 @@ def process_volumes(parameters: dict) -> None:
 
                 name_volume = get_volume_name(fullname_volume_input, dir_prefix)
                 make_output_volume(name_volume, volume)
+
         # end initial_processing
 
         volume_fullname_inputRDD.map(initial_processing).compute()
