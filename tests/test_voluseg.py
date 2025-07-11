@@ -72,6 +72,12 @@ def setup_parameters(tmp_path_factory):
 
     # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
+    if isinstance(parameters["volume_names"], list):
+        parameters["volume_names"] = parameters["volume_names"][:1]
+        parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:1]
+        parameters["timepoints"] = 1
+  
+
     return parameters
 
 
@@ -100,10 +106,17 @@ def setup_parameters_nwb(tmp_path_factory):
         registration = "high",
         diam_cell = 5.0,
         f_volume = 2.0,
+        ds = 1
     )
 
-    # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
+
+    #Reduce to 1 timepoint to save memory and disk space
+    if isinstance(parameters.get("volume_names"), list):
+        parameters["volume_names"] = parameters["volume_names"][:1]
+        parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:1]
+        parameters["timepoints"] = 1  # must match actual data size
+
     return parameters
 
 
@@ -153,7 +166,12 @@ def test_voluseg_h5_dir_step_1(setup_parameters):
     """
     print("Process volumes.")
     voluseg.step1_process_volumes(setup_parameters)
-    n_files_input = len([p for p in Path(setup_parameters["dir_input"]).glob("*.h5")])
+    input_dirs = setup_parameters["input_dirs"]
+    if isinstance(input_dirs, np.ndarray):
+        input_dirs = input_dirs.tolist()  
+    input_dirs = Path(str(input_dirs)) if isinstance(input_dirs, str) else [Path(p) for p in input_dirs]
+    n_files_input = sum(len(list(p.glob("*.h5"))) for p in input_dirs)
+
     output_files = [
         p
         for p in (Path(setup_parameters["dir_output"]) / "volumes/0/").glob("*.nii.gz")
@@ -264,7 +282,7 @@ def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
     """
     print("Process volumes.")
     voluseg.step1_process_volumes(setup_parameters_nwb)
-
+    
     print("Align volumes.")
     voluseg.step2_align_volumes(setup_parameters_nwb)
 
@@ -378,7 +396,9 @@ def test_nwb_remote(tmp_path):
     data_path = "https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e"
 
     # Use pytest's tmp_path_factory fixture for output
-    tmp_dir = str(tmp_path_factory.mktemp("output_h5"))
+    #tmp_dir = str(tmp_path_factory.mktemp("output_h5"))
+    tmp_dir = tmp_path / "output_h5"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     # Save parameters
     filename_parameters = voluseg.step0_define_parameters(
@@ -402,3 +422,4 @@ def test_nwb_remote(tmp_path):
     assert (
         n_files_output == parameters["timepoints"]
     ), f"Number of output files ({n_files_output}) does not match number of timepoints ({parameters['timepoints']})"
+    

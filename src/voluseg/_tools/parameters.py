@@ -34,6 +34,12 @@ def load_parameters(filename: str) -> dict:
     return parameters
 
 
+def numpy_converter(obj):
+    """Convert NumPy arrays to lists for JSON serialization."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
 def save_parameters(parameters: dict, filename: str) -> None:
     """
     Save parameters to filename.
@@ -54,7 +60,9 @@ def save_parameters(parameters: dict, filename: str) -> None:
             pickle.dump(parameters, file_handle)
     elif filename.split(".")[-1] == "json":
         with open(filename, "w") as file_handle:
-            json.dump(parameters, file_handle, indent=4)
+            json.dump(parameters, file_handle, indent=4, default=numpy_converter)  # Convert NumPy arrays
     else:
         raise Exception("Parameters file must be either a pickle or a json file.")
+    
     print(f"Parameters successfully saved to: {filename}.")
+    

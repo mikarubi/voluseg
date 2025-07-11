@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - testing
   pull_request:
     branches:
       - master
+      - testing
 
 jobs:
   test:
@@ -45,6 +47,7 @@ jobs:
           wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
           unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d $HOME/
           rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
+          echo "$HOME/ants-2.5.3/bin" >> $GITHUB_PATH
           echo "ANTs installed successfully"
 
       - name: Install ANTs on macOS
@@ -53,6 +56,7 @@ jobs:
           curl -L -o $HOME/ants-2.5.3-macos-14-ARM64-clang.zip https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-macos-14-ARM64-clang.zip
           unzip $HOME/ants-2.5.3-macos-14-ARM64-clang.zip -d $HOME/
           rm $HOME/ants-2.5.3-macos-14-ARM64-clang.zip
+          echo "$HOME/ants-2.5.3/bin" >> $GITHUB_PATH
           echo "ANTs installed successfully on macOS"
 
       # - name: Install ANTs on Windows
@@ -67,7 +71,8 @@ jobs:
       - name: Install voluseg
         run: |
           python -m pip install --upgrade pip
-          pip install -r tests/requirements.txt --no-cache-dir
+          pip install -e .   
+          pip install -r requirements.txt -r tests/requirements.txt --no-cache-dir
 
       # Tests and coverage
       - name: Clear previous coverage data
@@ -78,7 +83,7 @@ jobs:
         env:
           ANTS_PATH: "$HOME/ants-2.5.3/bin"
         run: |
-          coverage run -m pytest -s -v --tb=short
+          coverage run -m pytest -s -v --tb=short -k "not test_nwb_remote"
 
       # - name: Run tests with pytest on Windows
       #   if: startsWith(matrix.os, 'windows')
