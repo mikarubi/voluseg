@@ -19,6 +19,14 @@ Load previously saved parameters from filename.
 
 * `dict`: Parameters dictionary.
 
+#### numpy\_converter
+
+```python
+def numpy_converter(obj)
+```
+
+Convert NumPy arrays to lists for JSON serialization.
+
 #### save\_parameters
 
 ```python
