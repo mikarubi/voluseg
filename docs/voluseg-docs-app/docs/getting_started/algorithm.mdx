@@ -1,0 +1,71 @@
+---
+title: Algorithm
+sidebar_position: 8
+---
+
+## Algorithm Overview
+
+> This algorithm extracts spatially and functionally distinct cellular components from whole-brain imaging data using constrained non-negative matrix factorization (NMF), optimized in parallel over overlapping 3D brain blocks.
+
+### 1. Preprocessing
+
+- Rigid-body registration of all volumes to the average brain using ANTs 2.1.0.
+- Construction of an intensity-based brain mask.
+- Division of the entire brain volume into ~1000 slightly overlapping 3D blocks to ensure boundary coverage.
+  
+### 2. Block-wise Factorization
+
+
+Each block is processed in parallel using the [Dask cluster](https://docs.dask.org/en/stable/deploying.html) framework. The algorithm was based on constrained non-negative matrix factorization. For $n$ voxels, $t$ time points, and $c$ cells, 
+
+
+$$
+V_{n \times t} \approx W_{n \times c} H_{c \times t} + X_{n \times 1} I_{1 \times t}
+$$
+
+where:
+- $V$: full spatiotemporal fluorescence matrix for each block
+- $W$: spatial locations
+- $H$: time series of segmented cells
+- $X$ and $I$: background signal
+
+The number of cells per block was initialized to 100 based on spatial packing assumptions and iteratively reduced by a factor of 0.95 until the matrix factorization converged without rank deficiency.
+
+### 3. Initialization
+
+- $W$ is initialized using local intensity peaks and local correlation coefficients.
+- $X$ is initialized with a constant vector.
+  
+
+### 4. Optimization
+
+- Equation (1) is approximately solved via alternating least squares (ALS).
+- Iterations run for a minimum of 10 and a maximum of 100 steps, or until numerical convergence:
+  
+  $$ \Delta \text{Residual} < 0.001 $$
+
+### 5. Constraints
+
+#### 5.1 Spatial Constraints
+
+- Each cell is restricted to its largest connected component within a static sphere of radius $12 \mu m$, centered at the local-intensity peak.
+
+#### 5.2 Soft Sparseness Constraint
+
+To encourage interpretable and compact spatial maps, Hoyer's sparseness measure is applied:
+
+$$
+\text{sparseness}(W_i) = \frac{\sqrt{n} - \frac{\sum_j |W_{ij}|}{\sqrt{\sum_j |W_{i}^2}|}}{\sqrt{n} - 1}
+$$
+
+The sparseness is required to be at least equal to that of a binary sphere with a $6 \mu m$ diameter.
+
+> Note: These constraints are not applied to the background signal.
+
+### 6. Output
+
+- The resulting cell representation of whole-brain activity accurately reproduced the raw voxel time series and had increased signal-to-noise ratio due to demixing and denoising.  
+- Regions of neuropil and astrocytic processes were factorized similarly to cell bodies, also yielding small patches of voxels with consistent signals.
+
+
+

@@ -6,167 +6,172 @@ sidebar_position: 8
 ## Parameters dictionary
 To run the Voluseg pipeline, you need to set up the parameters. The parameters are stored in a dictionary and can be modified to fit your specific needs. The parameters are used to control the behavior of the pipeline, such as the type of detrending, registration quality, cell diameter, and resolution.
 
-**detrending** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-  Type of detrending: 'standard', 'robust', or 'none' (default is 'standard').
-</div>
+---
 
-**registration** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Quality of registration: 'high', 'medium', 'low' or 'none' (default is 'medium').
-</div>
+### Input/Output Paths
 
-**registration_restrict** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Restrict registration (e.g. 1x1x1x1x1x1x0x0x0x1x1x0) (default is an empty string).
-</div>
+#### `input_dirs` (List[DirectoryPath], required)
 
-**diam_cell** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Cell diameter in microns (default is 6.0).
-</div>
+List of input directories containing the raw imaging data. Each must be a valid directory path.
 
-**dir_ants** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Path to the ANTs directory (default is an empty string).
-</div>
+#### `dir_output` (str, required)
 
-**dir_input** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Path to input directories, separate multiple directories with ';' (default is an empty string).
-</div>
+Path to the directory where output files will be saved.
 
-**dir_output** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Path to the output directory (default is an empty string).
-</div>
+#### `dir_transform` (DirectoryPath, default=`""`)
 
-**dir_transform** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Path to the transform directory (default is an empty string).
-</div>
+Directory containing precomputed transform files. If not provided, registration will compute new ones.
 
-**ds** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Spatial coarse-graining in x-y dimension (default is 2).
-</div>
+---
 
-**planes_pad** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Number of planes to pad the volume with for robust registration (default is 0).
-</div>
+### Preprocessing Options
 
-**planes_packed** (bool, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Packed planes in each volume, for single plane imaging with packed planes (default is False).
-</div>
+#### `detrending` (`standard` | `robust` | `none`, default=`standard`)
 
-**parallel_clean** (bool, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Parallelization of final cleaning (True is fast but memory-intensive, default is True).
-</div>
+Type of detrending applied to the timeseries data:
+- `standard`: Standard z-score detrending
+- `robust`: Robust detrending using median/MAD
+- `none`: No detrending
 
-**parallel_volume** (bool, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Parallelization of mean-volume computation (True is fast but memory-intensive, default is True).
-</div>
+#### `registration` (`high` | `medium` | `low` | `none` | `transform`, default=`medium`)
 
-**save_volume** (bool, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Save registered volumes after segmentation, True keeps a copy of the volumes (default is False).
-</div>
+Quality or mode of registration:
+- `high`: High-accuracy (slowest)
+- `medium`: Balanced setting
+- `low`: Fast but less accurate
+- `none`: No registration
+- `transform`: Use precomputed transforms from `dir_transform`
 
-**type_timepoints** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Type of timepoints to use for cell detection: 'dff', 'periodic' or 'custom' (default is 'dff').
-</div>
+#### `opts_ants` (dict, default=`{}`)
 
-**type_mask** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Type of volume averaging for the mask: 'mean', 'geomean' or 'max' (default is 'geomean').
-</div>
+Custom arguments passed to the ANTs registration backend.
 
-**timepoints** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Number ('dff', 'periodic') or vector ('custom') of timepoints for segmentation (default is 1000).
-</div>
+---
 
-**f_hipass** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Frequency (Hz) for high-pass filtering of cell timeseries (default is 0).
-</div>
+### Cell Segmentation
 
-**f_volume** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Imaging frequency in Hz (default is 2.0).
-</div>
+#### `diam_cell` (float > 0, default=`6.0`)
 
-**n_cells_block** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Number of cells in a block. Small number is fast but can lead to blocky output (default is 316).
-</div>
+Estimated cell diameter in microns.
 
-**n_colors** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Number of brain colors (2 in two-color volumes, default is 1).
-</div>
+#### `dim_order` (`xyz` | `xzy` | `yxz` | `yzx` | `zxy` | `zyx`, default=`zyx`)
 
-**res_x** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    X resolution in microns (default is 0.40625).
-</div>
+Ordering of dimensions in input volume arrays.
 
-**res_y** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Y resolution in microns (default is 0.40625).
-</div>
+#### `nwb_output` (bool, default=`False`)
 
-**res_z** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Z resolution in microns (default is 5.0).
-</div>
+Whether to output results in NWB format.
 
-**t_baseline** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Interval for baseline calculation in seconds (default is 300).
-</div>
+---
 
-**t_section** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Exposure time in seconds for slice acquisition (default is 0.01).
-</div>
+### Spatial Settings
 
-**thr_mask** (float, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Threshold for volume mask: 0 &lt; thr &lt;= 1 (probability) or thr &gt; 1 (intensity) (default is 0.5).
-</div>
+#### `ds` (int > 0, default=`2`)
 
-**volume_fullnames_input** (list[str], optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    List of full volume names (default is None).
-</div>
+Spatial downsampling factor in the XY plane.
 
-**volume_names** (list[str], optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    List of volume names (default is None).
-</div>
+#### `planes_pad` (int ≥ 0, default=`0`)
 
-**input_dirs** (list[str], optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    List of input directories (default is None).
-</div>
+Number of planes to pad on either side in Z for registration robustness.
 
-**ext** (str, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    File extension (default is None).
-</div>
+---
 
-**lt** (int, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Number of volumes (default is None).
-</div>
+### Performance Settings
 
-**affine_matrix** (list, optional):
-<div style={{ marginLeft: '1em', marginTop: '-1.5em' }}>
-    Affine matrix (default is None).
-</div>
+#### `parallel_extra` (bool, default=`True`)
+
+Enable extra parallel processing steps (e.g., cleaning). Requires more memory.
+
+#### `save_volume` (bool, default=`False`)
+
+Whether to save intermediate registered volumes.
+
+---
+
+### Timepoint and Masking
+
+#### `type_timepoints` (`dff` | `periodic` | `custom`, default=`dff`)
+
+Type of timepoint selection for segmentation:
+- `dff`: Use ΔF/F signals
+- `periodic`: Use uniformly spaced timepoints
+- `custom`: Use manually specified timepoints
+
+#### `timepoints` (int ≥ 0 or list of int, default=`1000`)
+
+Timepoints used for segmentation. Can be a number (`dff`/`periodic`) or a list (`custom`).
+
+#### `type_mask` (`mean` | `geomean` | `max`, default=`geomean`)
+
+Aggregation method for generating the volume mask:
+- `mean`: Mean across timepoints
+- `geomean`: Geometric mean
+- `max`: Maximum intensity
+
+---
+
+### Signal Filtering
+
+#### `f_hipass` (float ≥ 0, default=`0`)
+
+High-pass filter cutoff frequency for timeseries data in Hz.
+
+#### `f_volume` (float > 0, default=`2.0`)
+
+Imaging frame rate (volume rate) in Hz.
+
+---
+
+### Block Configuration
+
+#### `n_cells_block` (int > 0, default=`316`)
+
+Expected number of cells per spatial block.
+
+#### `n_colors` (int > 0, default=`1`)
+
+Number of imaging channels (colors). Use `2` for two-color experiments.
+
+---
+
+### Voxel Resolution
+
+#### `res_x`, `res_y` (float > 0, default=`0.40625`)
+
+Spatial resolution in X and Y (in microns).
+
+#### `res_z` (float > 0, default=`5.0`)
+
+Spatial resolution in Z (in microns).
+
+---
+
+### Timing Parameters
+
+#### `t_baseline` (int > 0, default=`300`)
+
+Time in seconds used to calculate baseline fluorescence.
+
+#### `t_section` (float > 0, default=`0.01`)
+
+Exposure time for a single slice in seconds.
+
+---
+
+### Masking Threshold
+
+#### `thr_mask` (float ≥ 0, default=`0.5`)
+
+Threshold for volume masking. Use:
+- `0 < thr ≤ 1` for probability-based masking
+- `thr > 1` for intensity-based masking
+
+---
+
+### Overwrite Behavior
+
+#### `overwrite` (bool, default=`False`)
+
+If `True`, overwrite existing output files in `dir_output`.
+
+---
