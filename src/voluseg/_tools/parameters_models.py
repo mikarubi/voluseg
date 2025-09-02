@@ -47,7 +47,7 @@ class TypeMask(str, Enum):
 
 
 class ParametersModel(BaseModel):
-    input_dirs: List[DirectoryPath]
+    input_dirs: List[str]
     dir_output: str
     dir_transform: DirectoryPath = Field(default="")
     detrending: Detrending = Field(default=Detrending.standard)
