@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 import numpy as np
 import h5py
+from dask.utils import parse_bytes
 
 
 # # To run tests locally, set these environment variables:
@@ -15,6 +16,29 @@ import h5py
 # os.environ["SAMPLE_DATA_PATH_NWB"] = (
 #     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_twophoton.nwb"
 # )
+
+@pytest.fixture(scope="session", autouse=True)
+def test_dask_client():
+    """
+        # Start a 6GB LocalCluster that we control.
+        # This way, if voluseg internally uses get_client() (and creates one if none exists), it will directly reuse this client.
+    """
+    from dask.distributed import Client, LocalCluster
+
+    cluster = LocalCluster(
+        n_workers=1,
+        threads_per_worker=1,
+        memory_limit="6GB",   
+        processes=True,
+    )
+    client = Client(cluster)
+    try:
+        w = next(iter(client.scheduler_info()["workers"].values()))
+        assert int(w["memory_limit"]) == parse_bytes("6GB")
+        yield
+    finally:
+        client.close()
+        cluster.close()
 
 
 def compare_dicts(
@@ -72,12 +96,19 @@ def setup_parameters(tmp_path_factory):
 
     # Load and return parameters for further use in tests
     parameters = voluseg.load_parameters(filename_parameters)
+    parameters["dask_config"] = {
+        "n_workers": 1,
+        "n_cores_per_worker": 1,
+        "memory_limit": "6GB",
+        "cluster_type": "local"
+    }
+
     if isinstance(parameters["volume_names"], list):
         parameters["volume_names"] = parameters["volume_names"][:1]
         parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:1]
         parameters["timepoints"] = 1
   
-
+    voluseg.save_parameters(parameters, str(Path(tmp_dir) / "parameters.json"))
     return parameters
 
 
@@ -110,6 +141,14 @@ def setup_parameters_nwb(tmp_path_factory):
     )
 
     parameters = voluseg.load_parameters(filename_parameters)
+
+    # Add custom Dask configuration for testing
+    parameters["dask_config"] = {
+        "n_workers": 1,
+        "n_cores_per_worker": 1,
+        "memory_limit": "6GB",
+        "cluster_type": "local"
+    }
 
     #Reduce to 1 timepoint to save memory and disk space
     if isinstance(parameters.get("volume_names"), list):
