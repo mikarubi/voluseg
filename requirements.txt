@@ -1,5 +1,6 @@
 h5py
 dask[distributed]
+dask-jobqueue
 scipy
 scikit-image
 scikit-learn
