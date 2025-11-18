@@ -5,7 +5,6 @@ This script provides comprehensive Dask configuration management,
 including the DaskConfig class and all utility functions.
 """
 
-import os
 import yaml
 from typing import Optional, Dict, Any, Union
 from pathlib import Path
@@ -82,7 +81,9 @@ class DaskConfig:
         
         if self.memory_limit is None:
             self.memory_limit = "2GB"
-    
+        
+        if self.dashboard_port is None:
+            self.dashboard_port = 8787    
     def load_from_file(self, config_file: Union[str, Path]) -> None:
         """
         Load configuration from YAML file.
@@ -153,12 +154,13 @@ class DaskConfig:
     def _create_local_cluster(self):
         """Create a local cluster."""
         cluster_config = self.cluster_config.copy()
+        dashboard_bind = self._build_dashboard_bind()
         
         cluster = LocalCluster(
             n_workers=self.n_workers,
             threads_per_worker=self.threads_per_worker,
             memory_limit=self.memory_limit,
-            dashboard_address=self.dashboard_address,
+            dashboard_address=dashboard_bind,
             **cluster_config
         )
         return cluster
@@ -193,30 +195,55 @@ class DaskConfig:
         cluster.scale(jobs=self.n_workers)
         return cluster
     
-    def get_client(self) -> Client:
+    def get_client(self, force_new: bool = False) -> Client:
         """
         Get or create a Dask client with the configured cluster.
+        
+        Parameters
+        ----------
+        force_new : bool
+            If True, close any existing client and create a new one.
+            Default is False (reuse existing client if available).
         
         Returns
         -------
         Client
             Dask distributed client.
         """
+        if force_new:
+            try:
+                existing_client = Client.current()
+                existing_client.close()
+                if hasattr(existing_client, 'cluster') and existing_client.cluster:
+                    existing_client.cluster.close()
+                logger.info("Closed existing Dask client to create new one")
+            except ValueError:
+                pass
+        
         try:
             # Try to get existing client
             client = Client.current()
-            logger.info(f"Using existing Dask client: {client}")
-            return client
+            if not force_new:
+                logger.info(f"Using existing Dask client: {client}")
+                return client
         except ValueError:
-            # Create new client
-            cluster = self.create_cluster()
-            client = Client(cluster)
-            logger.info(f"Created new Dask client: {client}")
-            return client
+            pass
+        
+        # Create new client
+        cluster = self.create_cluster()
+        client = Client(cluster)
+        logger.info(f"Created new Dask client: {client}")
+        return client
     
-    def configure_dask(self) -> Client:
+    def configure_dask(self, force_new: bool = True) -> Client:
         """
         Configure Dask with the current settings and return a client.
+        
+        Parameters
+        ----------
+        force_new : bool
+            If True, close any existing client and create a new one with
+            the new configuration. Default is True to ensure correct configuration.
         
         Returns
         -------
@@ -224,14 +251,17 @@ class DaskConfig:
             Configured Dask client.
         """
         # Set Dask configuration
+        # Lower memory thresholds to be more conservative and prevent worker kills
         dask.config.set({
-            'distributed.worker.memory.target': 0.8,
-            'distributed.worker.memory.spill': 0.9,
-            'distributed.worker.memory.pause': 0.95,
-            'distributed.worker.memory.terminate': 0.98,
+            'distributed.worker.memory.target': 0.6,  # Start spilling earlier
+            'distributed.worker.memory.spill': 0.75,   # Spill to disk at 75%
+            'distributed.worker.memory.pause': 0.85,   # Pause tasks at 85%
+            'distributed.worker.memory.terminate': 0.95, # Terminate at 95%
+            # Limit concurrent tasks to reduce memory pressure
+            'distributed.worker.tasks.max': 2,  # Max 2 tasks per worker
         })
         
-        client = self.get_client()
+        client = self.get_client(force_new=force_new)
         
         # Log configuration
         logger.info(f"Dask configuration:")
@@ -242,6 +272,16 @@ class DaskConfig:
         logger.info(f"  Dashboard: {client.dashboard_link}")
         
         return client
+    
+    def _build_dashboard_bind(self):
+        """Build dashboard bind address."""
+        if self.dashboard_address:
+            return self.dashboard_address
+        else:
+            if self.dashboard_port:
+                return f"localhost:{self.dashboard_port}"
+            else:
+                return None
     
     def get_config_info(self) -> Dict[str, Any]:
         """
