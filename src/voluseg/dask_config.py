@@ -251,30 +251,15 @@ class DaskConfig:
             Configured Dask client.
         """
         # Set Dask configuration
-        # Use more aggressive thresholds in CI environments
-        import os
-        is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
-        
-        if is_ci:
-            # More aggressive thresholds for CI (limited memory)
-            dask.config.set({
-                'distributed.worker.memory.target': 0.5,   # Start spilling at 50%
-                'distributed.worker.memory.spill': 0.6,     # Spill to disk at 60%
-                'distributed.worker.memory.pause': 0.7,     # Pause tasks at 70%
-                'distributed.worker.memory.terminate': 0.85, # Terminate at 85%
-                # Limit concurrent tasks to reduce memory pressure
-                'distributed.worker.tasks.max': 1,  # Max 1 task per worker in CI
-            })
-        else:
-            # Standard thresholds for local development
-            dask.config.set({
-                'distributed.worker.memory.target': 0.6,  # Start spilling earlier
-                'distributed.worker.memory.spill': 0.75,   # Spill to disk at 75%
-                'distributed.worker.memory.pause': 0.85,   # Pause tasks at 85%
-                'distributed.worker.memory.terminate': 0.95, # Terminate at 95%
-                # Limit concurrent tasks to reduce memory pressure
-                'distributed.worker.tasks.max': 2,  # Max 2 tasks per worker
-            })
+        # Lower memory thresholds to be more conservative and prevent worker kills
+        dask.config.set({
+            'distributed.worker.memory.target': 0.6,  # Start spilling earlier
+            'distributed.worker.memory.spill': 0.75,   # Spill to disk at 75%
+            'distributed.worker.memory.pause': 0.85,   # Pause tasks at 85%
+            'distributed.worker.memory.terminate': 0.95, # Terminate at 95%
+            # Limit concurrent tasks to reduce memory pressure
+            'distributed.worker.tasks.max': 2,  # Max 2 tasks per worker
+        })
         
         client = self.get_client(force_new=force_new)
         

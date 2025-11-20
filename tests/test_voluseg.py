@@ -134,13 +134,11 @@ def setup_parameters_nwb(tmp_path_factory):
     parameters = voluseg.load_parameters(filename_parameters)
 
     # Add custom Dask configuration for testing
-    # Use lower memory limit in CI (GitHub Actions has ~7GB available)
-    # Use 8GB for local, 3GB for CI (more conservative)
-    memory_limit = "3GB" if os.environ.get("GITHUB_ACTIONS") == "true" else "8GB"
+    # Use 8GB memory limit for NWB tests 
     parameters["dask_config"] = {
         "n_workers": 1,
         "n_cores_per_worker": 1,
-        "memory_limit": memory_limit,
+        "memory_limit": "8GB",
         "cluster_type": "local"
     }
 
