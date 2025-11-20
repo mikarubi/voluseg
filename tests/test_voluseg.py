@@ -134,11 +134,13 @@ def setup_parameters_nwb(tmp_path_factory):
     parameters = voluseg.load_parameters(filename_parameters)
 
     # Add custom Dask configuration for testing
-    # Use 8GB memory limit for NWB tests 
+    # Use lower memory limit in CI (GitHub Actions has ~7GB available)
+    # Use 8GB for local, 3GB for CI (more conservative)
+    memory_limit = "3GB" if os.environ.get("GITHUB_ACTIONS") == "true" else "8GB"
     parameters["dask_config"] = {
         "n_workers": 1,
         "n_cores_per_worker": 1,
-        "memory_limit": "8GB",
+        "memory_limit": memory_limit,
         "cluster_type": "local"
     }
 
@@ -315,7 +317,6 @@ def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
     Test the full pipeline with an NWB file as input.
     """
     # Configure Dask before running pipeline steps
-    # configure_dask_from_parameters already handles closing existing clients
     voluseg.configure_dask_from_parameters(setup_parameters_nwb)
     
     print("Process volumes.")
