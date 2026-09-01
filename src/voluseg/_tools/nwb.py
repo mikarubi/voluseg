@@ -165,6 +165,7 @@ def write_nwbfile(
     cell_z: np.ndarray,
     cell_weights: np.ndarray,
     cell_timeseries: np.ndarray,
+    parameters: dict = None,
 ) -> None:
     """
     Write results to a local NWB file.
@@ -183,33 +184,46 @@ def write_nwbfile(
         Voxel weights for all cells.
     cell_timeseries : np.ndarray
         Fluorescence timeseries data for all cells.
+    parameters : dict (optional)
+        Voluseg parameters dictionary; used for imaging metadata
+        (voxel resolution, downsampling, imaging rate).
 
     Returns
     -------
     None
     """
+    p = parameters or {}
+    rate = float(p.get("f_volume", 1.0))
+    # voxel size of the segmented volume, in micrometers
+    ds = float(p.get("ds", 1))
+    grid_spacing = [
+        float(p.get("res_x", 1.0)) * ds,
+        float(p.get("res_y", 1.0)) * ds,
+        float(p.get("res_z", 1.0)),
+    ]
+
     # Create NWB file basics
     nwbfile = pynwb.NWBFile(
-        session_description="voluseg results",
+        session_description="Voluseg volumetric cell segmentation output",
         identifier=str(uuid4()),
-        session_start_time=datetime.now(tzlocal()),  # TODO - get the correct metadata
+        session_start_time=datetime.now(tzlocal()),  # processing time, not acquisition
     )
     device = nwbfile.create_device(name="Microscope")
     optical_channel = pynwb.ophys.OpticalChannel(
         name="OpticalChannel",
         description="an optical channel",
-        emission_lambda=500.0,  # TODO - get the correct metadata
+        emission_lambda=float("nan"),  # unknown; NaN is the NWB convention
     )
     imaging_plane = nwbfile.create_imaging_plane(
         name="ImagingPlane",
         optical_channel=optical_channel,
-        description="Imaging plane",
+        description="Imaging volume segmented by Voluseg",
         device=device,
-        excitation_lambda=600.0,  # TODO - get the correct metadata
-        indicator="GFP",  # TODO - get the correct metadata
-        location="V1",  # TODO - get the correct metadata
-        grid_spacing=[0.01, 0.01],  # TODO - get the correct metadata
-        grid_spacing_unit="meters",  # TODO - get the correct metadata
+        excitation_lambda=float("nan"),  # unknown; NaN is the NWB convention
+        indicator="unknown",
+        location="unknown",
+        grid_spacing=grid_spacing,
+        grid_spacing_unit="micrometers",
     )
 
     # Create segmentation objects
@@ -243,11 +257,11 @@ def write_nwbfile(
     )
     roi_resp_series = pynwb.ophys.RoiResponseSeries(
         name="RoiResponseSeries",
-        description="Fluorescence responses for ROIs",
+        description="Detrended fluorescence responses for ROIs",
         data=cell_timeseries.T,
         rois=rt_region,
-        unit="lumens",  # TODO - get the correct metadata
-        rate=1.0,  # TODO - get the correct metadata
+        unit="n.a.",
+        rate=rate,
     )
     fl = pynwb.ophys.Fluorescence(roi_response_series=roi_resp_series)
     ophys_module.add(fl)

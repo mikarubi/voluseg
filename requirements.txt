@@ -10,4 +10,5 @@ numpy
 pandas
 pydantic>=2.8.0
 pynwb
+typer
 tifffile

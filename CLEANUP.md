@@ -108,6 +108,13 @@ large-scale calcium-imaging data (whole-brain zebrafish light-sheet):
 | 14 | `_steps/step4.py`, `_steps/step4e.py` | When every NMF attempt for a block fails, step 4 still wrote `n_cells` = last attempted count (with no cell data), and step 5 then crashed with `np.max` on an empty array. Seen on a 50-timepoint run (all 80 attempts: `array must not contain infs or NaNs`). | step 4 writes `n_cells = 0` for failed blocks; `collect_blocks` raises a clear `RuntimeError("no cells were detected …")`. Why very short recordings produce NaNs in the NMF is a science question, left open. |
 | 13 | `docs/voluseg-docs-app/docusaurus.config.js` | Footer linked `/docs/category/api-reference`, which did not exist because the generated `_steps`/`_tools` were excluded (see §4 Docs); `onBrokenLinks: 'throw'` failed the build. | Render the generated reference (custom `exclude`), which recreates the category page. |
 
+## 4c. Phase 2 — integration fixes (third commit)
+
+- **NWB output metadata** (`_tools/nwb.py`): `write_nwbfile` now takes the parameters dictionary and writes real metadata — `RoiResponseSeries.rate = f_volume`, `grid_spacing = [res_x*ds, res_y*ds, res_z]` micrometers; unknown optical metadata uses NWB conventions (`NaN` wavelengths, `"unknown"` indicator/location) instead of fabricated values (`"V1"`, `"GFP"`, `rate=1.0`, `unit="lumens"`).
+- **Dual output** (`_steps/step5.py`): `nwb_output=True` now writes the NWB file *in addition to* `cells0_clean.hdf5` instead of replacing it. This also fixes a latent bug: completion is detected via the HDF5 file, so NWB-only runs never registered as complete and their `volumes/`/`cells/` intermediates were never cleaned up.
+- **Console script**: new `src/voluseg/cli.py` (Typer), installed as `voluseg` (`[project.scripts]`); `app/app.py` is now a thin shim so the container entry point is unchanged. Adds the previously missing `--dim-order`, `--dir-transform`, `--nwb-output` options, a `--version` flag, and aligns `--parallel-extra` with the model default (True). `typer` added to requirements; `voluseg.__version__` exposed.
+- **Comparison test enabled** (`tests/test_voluseg.py`): the NWB fixture now uses the same `ds` as the h5 fixture (the two sample datasets were verified to be bit-identical, transposed), and `compare_results_nwb_and_h5_dir` is renamed `test_compare_…` so pytest collects it (it skips if the reduced fixture yields zero cells); `test_save_result_as_nwb` passes parameters for metadata.
+
 ## 5. Verification performed
 
 Local machine has no ANTs binary and system Python is 3.14, so the full
@@ -148,6 +155,6 @@ build, the ANTs-dependent steps 2–5, and the AWS Batch path.
 - **NWB output metadata** (Aim 2): bug 8 above; also `nwb_output=True` skips the HDF5 output entirely — consider writing both.
 - **Streaming NWB test** (`test_nwb_remote`) is skipped in CI for memory; `fsspec`/`aiohttp` are not declared dependencies for the remote path.
 - **Aim 3 infra missing**: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue/PR templates, `CHANGELOG.md`, git tags / semantic versioning (`version = "0.1.0"` is static), PyPI release (docs say `pip install voluseg`, but only the git install works).
-- `docs/requirements-docs.txt` pins a personal fork of `pydoc-markdown` (`luiztauffer/pydoc-markdown@develop`) — sustainability risk.
+- `docs/requirements-docs.txt` pins a personal fork of `pydoc-markdown` (`luiztauffer/pydoc-markdown@develop`) — sustainability risk. *Investigated during Phase 3: the fork exists because upstream 4.8.2 has no `numpy` docstring processor (`'numpy' is not a valid type ID`), which this project's NumPy-style docstrings need. Keeping the fork for now; the durable fix is to vendor the small numpy processor or upstream it.*
 - `requirements.txt` vs `requirements-docker.txt` are two sources of truth (unpinned vs pinned); consider a lock file or `pip-compile`.
 - Bare `except:` blocks (10 in `src/`) swallow real errors, e.g. `load_volume` returns `None` for any failure including a corrupt file.
