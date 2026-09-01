@@ -10,7 +10,7 @@ def format_voluseg_kwargs(voluseg_kwargs: dict) -> dict:
     parameter_to_env_var = {
         "detrending": "VOLUSEG_DETRENDING",
         "registration": "VOLUSEG_REGISTRATION",
-        "opts_ants": "VOLUSEG_REGISTRATION_OPTS",
+        "opts_ants": "VOLUSEG_OPTS_ANTS",
         "diam_cell": "VOLUSEG_DIAM_CELL",
         "ds": "VOLUSEG_DS",
         "planes_pad": "VOLUSEG_PLANES_PAD",
@@ -98,7 +98,8 @@ def run_job_in_aws_batch(
         )
 
     env_vars = format_voluseg_kwargs(voluseg_kwargs)
-    env_vars["VOLUSEG_DIR_OUTPUT"] = "/tmp/voluseg-jobs"
+    # must match the container_path mounted by iac/aws_batch (and app.py's default)
+    env_vars["VOLUSEG_DIR_OUTPUT"] = "/tmp/voluseg_output"
     env_vars["VOLUSEG_JOB_ID"] = job_name
 
     response = client.submit_job(

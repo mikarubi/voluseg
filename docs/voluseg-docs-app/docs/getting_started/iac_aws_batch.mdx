@@ -57,10 +57,10 @@ This deployment will create the following AWS resources in your account:
 Voluseg provides an utility function to submit jobs to AWS Batch. You can use this function to submit jobs from your local machine. You must provide the url of the remote file stored in S3, plus any other voluseg arguments you want to pass to the job. Example:
 
 ```python
-from voluseg.tools.aws import run_job_in_aws_batch
+from voluseg._tools.aws import run_job_in_aws_batch
 
 r = run_job_in_aws_batch(
-    job_name="my-voluseg-job",
+    job_name_prefix="my-voluseg-job",
     voluseg_kwargs={
         "dir_input": "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6b0/7b0/6b07b076-e4f2-4123-b8e5-08cec3e72aeb",
         "timepoints": 2000,

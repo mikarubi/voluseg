@@ -10,9 +10,9 @@ To run the Voluseg pipeline, you need to set up the parameters. The parameters a
 
 ### Input/Output Paths
 
-#### `input_dirs` (List[DirectoryPath], required)
+#### `input_dirs` (List[str], required)
 
-List of input directories containing the raw imaging data. Each must be a valid directory path.
+List of input directories containing the raw imaging data (or a single NWB file path / remote NWB URL). Built from `dir_input` by splitting on `;`.
 
 #### `dir_output` (str, required)
 

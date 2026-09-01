@@ -3,10 +3,7 @@ import nibabel
 import numpy as np
 from typing import Union
 
-try:
-    from skimage.external import tifffile
-except:
-    import tifffile
+import tifffile
 try:
     import PIL
     import pyklb

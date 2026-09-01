@@ -1,8 +1,8 @@
 import os
+import json
 import typer
 from typing_extensions import Annotated
 import voluseg
-from voluseg._tools.aws import export_to_s3
 
 app = typer.Typer()
 
@@ -10,7 +10,13 @@ app = typer.Typer()
 def run_pipeline(
     detrending: Annotated[str, typer.Option(envvar="VOLUSEG_DETRENDING")] = "standard",
     registration: Annotated[str, typer.Option(envvar="VOLUSEG_REGISTRATION")] = "medium",
-    opts_ants: Annotated[str, typer.Option(envvar="OPTIONS_ANTS")] = "",
+    opts_ants: Annotated[
+        str,
+        typer.Option(
+            envvar="VOLUSEG_OPTS_ANTS",
+            help="ANTs registration options as a JSON object, e.g. '{\"verbose\": \"1\"}'.",
+        ),
+    ] = "{}",
     diam_cell: Annotated[float, typer.Option(envvar="VOLUSEG_DIAM_CELL")] = 6.0,
     ds: Annotated[int, typer.Option(envvar="VOLUSEG_DS")] = 2,
     planes_pad: Annotated[int, typer.Option(envvar="VOLUSEG_PLANES_PAD")] = 0,
@@ -32,13 +38,16 @@ def run_pipeline(
     dir_input: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_INPUT")] = "/voluseg/data/",
     dir_output: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")] = "/tmp/voluseg_output",
 ):
+    # parse ANTs options (ParametersModel expects a dict, not a string)
+    opts_ants_dict = json.loads(opts_ants) if opts_ants.strip() else {}
+
     # set and save parameters
     filename_parameters = voluseg.step0_define_parameters(
         dir_input=dir_input,
         dir_output=dir_output,
         detrending=detrending,
         registration=registration,
-        opts_ants=opts_ants,
+        opts_ants=opts_ants_dict,
         diam_cell=diam_cell,
         ds=ds,
         planes_pad=planes_pad,
@@ -77,17 +86,22 @@ def run_pipeline(
     print("Clean cells...")
     voluseg.step5_clean_cells(parameters)
 
-    print("Save results to S3...")
-    stack_id = "VolusegBatchStack"
-    bucket_name = f"{stack_id}-bucket".lower()
+    # Export to S3 only when running as an AWS Batch job
+    # (VOLUSEG_JOB_ID is set by voluseg._tools.aws.run_job_in_aws_batch).
     job_id = os.environ.get("VOLUSEG_JOB_ID")
-    local_file = str(os.path.join(dir_output, "cells0_clean.hdf5"))
-    object_name = f"{job_id}/cells0_clean.hdf5"
-    export_to_s3(
-        local_path=local_file,
-        bucket_name=bucket_name,
-        object_name=object_name,
-    )
+    if job_id:
+        print("Save results to S3...")
+        from voluseg._tools.aws import export_to_s3
+
+        stack_id = "VolusegBatchStack"
+        bucket_name = f"{stack_id}-bucket".lower()
+        local_file = str(os.path.join(dir_output, "cells0_clean.hdf5"))
+        object_name = f"{job_id}/cells0_clean.hdf5"
+        export_to_s3(
+            local_path=local_file,
+            bucket_name=bucket_name,
+            object_name=object_name,
+        )
 
 
 if __name__ == "__main__":

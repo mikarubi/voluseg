@@ -114,7 +114,7 @@ def process_volumes(parameters: dict) -> None:
 
                 # pad planes as necessary
                 if p.planes_pad:
-                    volume = np.lib.pad(
+                    volume = np.pad(
                         volume,
                         ((0, 0), (0, 0), (p.planes_pad, p.planes_pad)),
                         "constant",
