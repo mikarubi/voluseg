@@ -46,10 +46,18 @@ const config = {
           sidebarPath: './sidebars.js',
           remarkPlugins: [math],
           rehypePlugins: [katex],
+          // pydoc-markdown writes the API reference into docs/reference/_steps
+          // and docs/reference/_tools (mirroring the module names). Docusaurus
+          // excludes '_*' paths by default, so override the exclude list to
+          // render them; keep package __init__ pages out.
+          exclude: [
+            '**/__init__/**',
+            '**/__init__.md',
+            '**/*.test.{js,jsx,ts,tsx}',
+            '**/__tests__/**',
+          ],
         },
-        blog: {
-          showReadingTime: true,
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -82,7 +90,6 @@ const config = {
             position: 'right',
             label: 'Documentation',
           },
-          { to: '/blog', label: 'Blog', position: 'right' },
           {
             href: 'https://github.com/mikarubi/voluseg',
             label: 'GitHub',
@@ -113,10 +120,6 @@ const config = {
           {
             title: 'More',
             items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
               {
                 label: 'GitHub',
                 href: 'https://github.com/mikarubi/voluseg',

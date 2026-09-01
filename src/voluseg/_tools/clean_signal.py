@@ -53,7 +53,8 @@ def clean_signal(
             0.1
         )
         baseline_df = baseline_df.rolling(ltau, min_periods=1, center=True).mean()
-        baseline = np.ravel(baseline_df)
+        # to_numpy(copy=True): pandas>=3 (Copy-on-Write) returns read-only views
+        baseline = baseline_df.to_numpy(copy=True).ravel()
         baseline += np.percentile(timeseries - baseline, 1)
         assert np.allclose(np.percentile(timeseries - baseline, 1), 0)
         return baseline

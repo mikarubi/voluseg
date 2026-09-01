@@ -7,7 +7,7 @@ matplotlib==3.9.2
 numpy==2.1.0
 pandas==2.2.2
 requests==2.32.3
-dandi==0.63.1
+dandi>=0.74.0
 typer==0.12.5
 pydantic==2.8.2
 boto3==1.34.131

@@ -8,6 +8,3 @@ from voluseg._steps.step4 import detect_cells as step4_detect_cells
 from voluseg._steps.step5 import clean_cells as step5_clean_cells
 
 from voluseg._tools.parameters import load_parameters, save_parameters
-from voluseg._tools.load_metadata import load_metadata
-
-from voluseg._update import voluseg_update as update

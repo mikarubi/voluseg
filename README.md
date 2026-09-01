@@ -43,9 +43,6 @@ import os
 import pprint
 import voluseg
 
-# check for updates
-voluseg.update()
-
 # Download sample data
 voluseg._tools.download_sample_data("/path/to/input/")
 

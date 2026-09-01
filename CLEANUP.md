@@ -82,10 +82,31 @@ large-scale calcium-imaging data (whole-brain zebrafish light-sheet):
 - `run_tests.yaml`: removed `ANTS_PATH` env var (nothing reads it; `dir_ants` was removed in Feb 2025) and the redundant `pip install -r requirements.txt` (already pulled in by `pip install -e .`).
 
 ### Docs
-- Deleted stale generated API-reference folders `docs/.../reference/{tools,steps,update.md}` — superseded by `_tools`, `_steps`, `_update.md` (which CI regenerates); `sidebar.json` did not reference them; `tools/parameter_dictionary.md` documented a removed function.
+- Deleted the hand-copied API-reference folders `docs/.../reference/{tools,steps,update.md}`. pydoc-markdown regenerates `_tools`/`_steps` in CI, but Docusaurus excludes `_*` paths by default, so those copies were what actually rendered — and they were stale (`tools/parameter_dictionary.md` documented a removed function). Phase 1 fixes this properly: `docusaurus.config.js` now overrides the docs `exclude` list so the generated `_steps`/`_tools` render directly (package `__init__` pages stay hidden).
 - `docusaurus.config.js`: `organizationName`/`projectName` were still the template values `facebook`/`docusaurus`.
 - `parameters.mdx`: `input_dirs` type updated to `List[str]` (relaxed in `53065d7`).
 - `iac/aws_batch/README.md`: replaced the untouched "Welcome to your CDK Python project!" scaffold with a short description and a pointer to the docs page.
+
+## 4b. Phase 1 — removals and the bugs they uncovered (second commit)
+
+### Removed (per the approved plan)
+- `src/voluseg/_update.py` and the `voluseg.update()` export; README no longer advertises it.
+- `src/voluseg/_tools/load_metadata.py` and its top-level export (no callers). Public API is now exactly: `step0_define_parameters … step5_clean_cells`, `load_parameters`, `save_parameters`.
+- KLB (`pyklb`) and PIL fallbacks in `_tools/load_volume.py`; the loader supports HDF5, TIFF (`tifffile`), NIfTI, and NWB via `step1`.
+- Pickle support in `_tools/parameters.py`; JSON only, with a `ValueError` for other extensions. `test_parameters_json_pickle` replaced by `test_parameters_json_roundtrip` + `test_parameters_unsupported_extension`.
+- Docusaurus blog (`blog/`, `blog: false`, navbar/footer links) and `src/pages/markdown-page.md`.
+- CDK scaffold `iac/aws_batch/{source.bat,requirements-dev.txt}` (+ `cdk.json` watch entry).
+- Stale `docs/voluseg-docs-app/package-lock.json` — CI installs with `yarn --frozen-lockfile`; the npm lock resolved Docusaurus 3.3.2 against a `^3.5.2` manifest and could not be used (`npm ci` fails).
+
+### Pre-existing bugs found while testing Phase 1 end-to-end (all fixed here)
+| # | Where | Problem | Fix |
+|---|---|---|---|
+| 9 | `tests/requirements.txt`, `requirements-docker.txt` | `dandi==0.63.x` is rejected by the DANDI server (`CliVersionTooOldError: requires at least 0.74.0`), so the CI NWB fixture download fails. | `dandi>=0.74.0` (the server enforces a moving minimum; an exact pin re-breaks). |
+| 10 | `_tools/sample_data.py` | DANDI renamed its staging instance; `for_dandi_instance("dandi-staging")` raises `KeyError` with a current client. | Use `"dandi-sandbox"` (dandiset 215495 verified present there). |
+| 11 | `_tools/clean_signal.py` | `np.ravel(DataFrame)` returns a read-only view under pandas ≥ 3 (Copy-on-Write); the following in-place `+=` raises `ValueError: output array is read-only`. **Step 3 fails on every run with current pandas.** | `baseline_df.to_numpy(copy=True).ravel()`. |
+| 12 | `docs/voluseg-docs-app/package.json` | `docusaurus.config.js` imports `remark-math`/`rehype-katex` (added July 2025) but neither was a dependency → `MODULE_NOT_FOUND`; the docs site could not build. | Added `remark-math@6`, `rehype-katex@7` (yarn.lock updated). |
+| 14 | `_steps/step4.py`, `_steps/step4e.py` | When every NMF attempt for a block fails, step 4 still wrote `n_cells` = last attempted count (with no cell data), and step 5 then crashed with `np.max` on an empty array. Seen on a 50-timepoint run (all 80 attempts: `array must not contain infs or NaNs`). | step 4 writes `n_cells = 0` for failed blocks; `collect_blocks` raises a clear `RuntimeError("no cells were detected …")`. Why very short recordings produce NaNs in the NMF is a science question, left open. |
+| 13 | `docs/voluseg-docs-app/docusaurus.config.js` | Footer linked `/docs/category/api-reference`, which did not exist because the generated `_steps`/`_tools` were excluded (see §4 Docs); `onBrokenLinks: 'throw'` failed the build. | Render the generated reference (custom `exclude`), which recreates the category page. |
 
 ## 5. Verification performed
 
@@ -104,6 +125,17 @@ pipeline cannot run here. What was checked in a Python 3.12 venv:
   → **3 passed** (step 0 and step 1 on real data; steps 2–5 need ANTs).
 - `step1_process_volumes` run with `planes_pad=1`, `registration="none"` on two
   sample volumes: output z-extent 1 → 3, confirming the `np.pad` change.
+
+### Phase 1 verification (ANTs 2.5.3 macOS-ARM64 binaries on PATH; Python 3.12; pandas 3.0.5, numpy 2.5.2, scipy 1.18.1, scikit-image 0.26.0, dask 2026.8.0)
+
+- `py_compile`, `pyflakes`, `yamllint`, `import voluseg` — clean; public API is exactly the 6 steps + `load_parameters`/`save_parameters`.
+- Repo test suite, `-k "parameters or h5_dir or save_result"` (steps 1–5 on the h5 sample + NWB export): **9 passed** in 9 min 16 s.
+- Full pipeline, steps 0–5, on the first **200** example volumes (`registration="high"`, `diam_cell=5.0`, `f_volume=2.0`): 5.4 min, **98 cells**, all 18 output checks passed (file set, 200 transforms, `mean_timeseries` shape/finite, `cells0_clean.hdf5` shapes/dtypes/coordinate bounds/`volume_id`, intermediates removed). Mask plot inspected: brain mask covers the tissue, midline excluded.
+- Docs site: `yarn install --frozen-lockfile && yarn build` succeeds; API Reference category and `_steps`/`_tools` pages render; no `/blog` output.
+- New deprecation seen (not changed): `skimage.morphology.remove_small_objects(min_size=…)` → `max_size` in 0.26 with an off-by-one semantic change (`<=` instead of `<`); `requirements-docker.txt` still pins 0.24, so a compat shim is needed before switching.
+- Full pipeline on **all 1000** example volumes: 9.0 min (step 4: 8.0 min), **609 cells**, all 18 output checks passed.
+- Same 200 volumes with `nwb_output=True`: 5.1 min, `cells0_clean.nwb` written; **98 ROIs** in `PlaneSegmentation` and `RoiResponseSeries` shape (200, 98) — identical cell count to the HDF5 run, so the two writers agree. (A 50-volume attempt produced zero cells and exposed bug 14; 50 timepoints is below what the NMF needs.)
+- Full pipeline with the **NWB sample file as input** (`ds=1`, 200 timepoints): all 18 checks passed, **240 cells** at full resolution; step 4 took 3.0 h (full-resolution blocks are ~4x larger — worth revisiting default `ds` guidance for NWB inputs).
 
 Things that still need a CI run or a real environment: the Docker image
 build, the ANTs-dependent steps 2–5, and the AWS Batch path.
