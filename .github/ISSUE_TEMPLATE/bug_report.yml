@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in Voluseg is not working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Minimal code or command line that triggers the problem.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error output
+      description: Full traceback or log output.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Voluseg version
+      description: Output of `voluseg --version` (or the installed commit).
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: "Python version, operating system, and how Voluseg runs (local install, Docker, Apptainer, HPC, cloud)."
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Input data
+      description: Format (HDF5 / TIFF / NIfTI / NWB), volume dimensions, and number of timepoints, if relevant.

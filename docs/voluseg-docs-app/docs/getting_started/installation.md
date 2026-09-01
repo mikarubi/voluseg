@@ -8,7 +8,9 @@ sidebar_position: 2
 In order to use Voluseg you need to have the following dependencies installed on your machine:
 
 - Python >= 3.10
-- [ANTs - Advanced Normalization Tools](https://github.com/ANTsX/ANTs)
+
+Registration uses [ANTsPy](https://github.com/ANTsX/ANTsPy), which is installed
+automatically with Voluseg — no separate ANTs installation is needed.
 
 It is recommended to install Voluseg in a separate environment, using [Anaconda](https://www.anaconda.com/distribution/) or [Virtual Environment](https://docs.python.org/3/library/venv.html).
 

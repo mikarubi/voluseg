@@ -14,8 +14,7 @@ Instructions [here](https://github.com/mikarubi/voluseg/blob/master/README-docke
 
 ## Dependencies
 
-- `h5py`, `dask`, `scipy`, `scikit-image`, `scikit-learn`, `matplotlib`, `nibabel`, `requests`, `numpy`, `pandas`, `pydantic>=2.8.0`, `pynwb`, `tifffile`
-- Advanced Normalization Tools (ANTs) for registration (can install via conda)
+- `h5py`, `dask`, `scipy`, `scikit-image`, `scikit-learn`, `matplotlib`, `nibabel`, `requests`, `numpy`, `pandas`, `pydantic>=2.8.0`, `pynwb`, `tifffile`, `typer`, `antspyx` (registration)
 
 ## Installation
 

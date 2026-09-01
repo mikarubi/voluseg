@@ -4,16 +4,11 @@ USER root
 
 WORKDIR /voluseg
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget unzip git && \
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Update pip
 RUN python3 -m pip install --upgrade pip
-
-# Download and install ANTs
-RUN wget https://github.com/ANTsX/ANTs/releases/download/v2.5.3/ants-2.5.3-ubuntu-20.04-X64-gcc.zip
-RUN unzip ants-2.5.3-ubuntu-20.04-X64-gcc.zip -d /
-RUN rm ants-2.5.3-ubuntu-20.04-X64-gcc.zip
 
 # Install requirements
 COPY requirements-docker.txt /voluseg/requirements-docker.txt

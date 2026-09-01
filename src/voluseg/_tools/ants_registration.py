@@ -1,69 +1,77 @@
+"""ANTsPy-based rigid registration (replaces the ANTs command-line tools)."""
+
+# registration quality settings (multi-resolution schedule)
+QUALITY_SETTINGS = {
+    "high": {
+        "iterations": (1000, 500, 250, 125),
+        "shrink_factors": (12, 8, 4, 2),
+        "smoothing_sigmas": (4, 3, 2, 1),
+    },
+    "medium": {
+        "iterations": (1000, 500, 250),
+        "shrink_factors": (12, 8, 4),
+        "smoothing_sigmas": (4, 3, 2),
+    },
+    "low": {
+        "iterations": (1000, 500),
+        "shrink_factors": (12, 8),
+        "smoothing_sigmas": (4, 3),
+    },
+}
+
+
 def ants_registration(
     in_nii: str,
     ref_nii: str,
     out_nii: str,
     prefix_out_tform: str,
-    typ: str,
-    opts_ants: dict = {},
-) -> str:
+    quality: str = "medium",
+    opts_ants: dict = None,
+) -> None:
     """
-    ANTs registration.
+    Rigid registration with ANTsPy.
+
+    Registers `in_nii` to `ref_nii`, writes the aligned volume to `out_nii`
+    and the affine transform to ``prefix_out_tform + "0GenericAffine.mat"``.
 
     Parameters
     ----------
     in_nii : str
-        Input nifti file.
+        Input (moving) nifti file.
     ref_nii : str
-        Reference nifti file.
+        Reference (fixed) nifti file.
     out_nii : str
-        Output nifti file.
+        Output nifti file for the aligned volume.
     prefix_out_tform : str
-        Prefix for output transformation files.
-    typ : str
-        Type of transformation.
+        Prefix for the output transform file.
+    quality : str
+        Registration quality: 'high', 'medium', or 'low' (multi-resolution
+        schedule; matches the historical ANTs CLI settings).
     opts_ants : dict (optional)
-        A dictionary of ANTs registration options.
+        Extra keyword arguments passed to :func:`ants.registration`
+        (e.g. ``{"aff_metric": "meansquares"}``).
 
     Returns
     -------
-    str
-        ANTs registration command.
+    None
     """
+    import ants  # imported here so that workers initialize ITK independently
 
-    lin_tform_params = " ".join(
-        [
-            "--metric MI[%s,%s,1,32,Regular,0.25]" % (ref_nii, in_nii),
-            "--convergence [1000x500x250x125]",
-            "--shrink-factors 12x8x4x2",
-            "--smoothing-sigmas 4x3x2x1vox",
-        ]
+    settings = QUALITY_SETTINGS[quality]
+    fixed = ants.image_read(ref_nii)
+    moving = ants.image_read(in_nii)
+    output = ants.registration(
+        fixed=fixed,
+        moving=moving,
+        type_of_transform="Rigid",
+        aff_metric="mattes",
+        aff_sampling=32,
+        aff_random_sampling_rate=0.25,
+        aff_iterations=settings["iterations"],
+        aff_shrink_factors=settings["shrink_factors"],
+        aff_smoothing_sigmas=settings["smoothing_sigmas"],
+        outprefix=prefix_out_tform,
+        verbose=False,
+        **(opts_ants or {}),
     )
-    syn_tform_params = " ".join(
-        [
-            "--metric CC[%s,%s,1,4]" % (ref_nii, in_nii),
-            "--convergence [100x100x70x50x20]",
-            "--shrink-factors 10x6x4x2x1",
-            "--smoothing-sigmas 5x3x2x1x0vox",
-        ]
-    )
-
-    antsRegistration_call = " ".join(
-        [
-            "antsRegistration",
-            "--output [%s,%s]" % (prefix_out_tform, out_nii),
-            "--dimensionality 3",
-            "--float 1",
-            "--interpolation Linear",
-            "--winsorize-image-intensities [0.005,0.995]",
-            "--use-histogram-matching 0",
-            ("--transform Translation[0.1] " + lin_tform_params if "t" in typ else ""),
-            ("--transform Rigid[0.1] " + lin_tform_params if "r" in typ else ""),
-            ("--transform Similarity[0.1] " + lin_tform_params if "i" in typ else ""),
-            ("--transform Affine[0.1] " + lin_tform_params if "a" in typ else ""),
-            ("--transform SyN[0.1,3,0] " + syn_tform_params if "s" in typ else ""),
-            ("--transform BSplineSyN[0.1,26,0,3]" + syn_tform_params if "b" in typ else ""),
-            (" ".join("--" + key + " " + value for key, value in opts_ants.items())),
-        ]
-    )
-
-    return antsRegistration_call
+    ants.image_write(output["warpedmovout"], out_nii)

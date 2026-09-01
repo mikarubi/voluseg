@@ -2,6 +2,12 @@
 
 Branch: `cleanup/mechanical-fixes` (off `master` @ `53065d7`, 2026-09-01).
 
+**How to read this document**: section 1 says what the tool is; section 2
+maps core vs. extras; section 3 lists the bugs found (each with status);
+sections 4, 4b, 4c, 4d describe the four commits on this branch; section 5
+records how everything was verified; section 6 lists remaining follow-ups.
+`CHANGELOG.md` carries the user-facing summary of the same changes.
+
 This document records an audit of the repository against the R03 research
 strategy (Aims 1–3: streamlined dependencies / containers / CI; NWB–DANDI–
 Neurosift integration; documentation and community), separates the core
@@ -115,6 +121,27 @@ large-scale calcium-imaging data (whole-brain zebrafish light-sheet):
 - **Console script**: new `src/voluseg/cli.py` (Typer), installed as `voluseg` (`[project.scripts]`); `app/app.py` is now a thin shim so the container entry point is unchanged. Adds the previously missing `--dim-order`, `--dir-transform`, `--nwb-output` options, a `--version` flag, and aligns `--parallel-extra` with the model default (True). `typer` added to requirements; `voluseg.__version__` exposed.
 - **Comparison test enabled** (`tests/test_voluseg.py`): the NWB fixture now uses the same `ds` as the h5 fixture (the two sample datasets were verified to be bit-identical, transposed), and `compare_results_nwb_and_h5_dir` is renamed `test_compare_…` so pytest collects it (it skips if the reduced fixture yields zero cells); `test_save_result_as_nwb` passes parameters for metadata.
 
+## 4d. Phase 3 — ANTsPy backend, release and community infrastructure (fourth commit)
+
+### ANTs CLI -> ANTsPy (grant Aim 1, months 1-6)
+- `_tools/ants_registration.py` and `_tools/ants_transformation.py` reimplemented on ANTsPy (`ants.registration` / `ants.apply_transforms`); `_steps/step2.py` no longer builds shell commands or calls `os.system`.
+- The multi-resolution schedules for `high`/`medium`/`low` reproduce the historical CLI settings (`1000x500x250x125` iterations, `12x8x4x2` shrink, `4x3x2x1` smoothing, MI/mattes 32 bins, 25% sampling); the old string-surgery `cmd.replace(...)` quality switching is gone.
+- Transform files keep the same names and ITK `.mat` format, so `registration="transform"` reuse and `scipy.io.loadmat` reading are unchanged.
+- **Semantic change**: `opts_ants` is now a dict of `ants.registration` keyword arguments (e.g. `{"aff_metric": "meansquares"}`) instead of raw CLI flags. Documented in `parameters.mdx`.
+- Removed: ANTs binary downloads from the Dockerfile (with `wget`/`unzip`) and from both CI install steps; the "install ANTs" prerequisite from README and docs. `antspyx` added to requirements.
+- Dropped with the rewrite: the unused non-rigid transform types in the old command builder ('t'/'i'/'a'/'s'/'b'; only rigid was ever called) and the CLI retry fallbacks (the "change initialization" retry was a no-op — its search string never occurred in the built command — and the dimensionality-2 fallback is obsolete: ANTsPy handles the single-plane volumes in this repo's own sample data directly).
+- Validation (see section 5): transforms agree with the CLI baseline to sub-voxel precision across all 200 volume pairs (rotation identical; translation max 0.47 um, median 0.07 um), registration is ~2x faster, and on the full 1000-volume dataset the pipeline detects 904 cells vs. the CLI baseline's 609 with all 4 blocks factorized.
+
+### Bug 15 (pre-existing, exposed by backend comparison): NMF dies on dead components
+- `_steps/step4d.py::nnmf_sparse` normalized voxel/component timeseries by their means without guarding against zero means. A "dead" component (all-zero timeseries after the sparseness projection) produced NaN/inf, the next `lstsq` raised `array must not contain infs or NaNs`, and the whole block attempt was scrapped — the retry loop then re-rolled the dice at a smaller peak fraction.
+- This is why 200-timepoint runs were marginal under *both* backends: the CLI baseline's 4 blocks succeeded only at the last fallback fraction (75 retries); the ANTsPy volumes (equivalent but not bit-identical) initially pushed 3 of 4 blocks over the same cliff (79 retries, 15 cells).
+- Fix: guarded normalization (`safe_scale`) — zero-mean rows stay zero; dead components keep zero weights and are dropped cleanly downstream (step 4 writes them without voxels; step 5's mask-threshold check discards them).
+
+### Release and community infrastructure (grant Aim 3)
+- `CHANGELOG.md` (Keep-a-Changelog format), version bumped to 0.2.0 (semantic versioning from here on).
+- `CONTRIBUTING.md` (dev setup, tests, PR flow), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), issue templates (bug report, feature request) and a PR template under `.github/`.
+- PyPI publication is prepared (console script, version, metadata) but the actual upload is the maintainer's call — the docs' `pip install voluseg` remains aspirational until then.
+
 ## 5. Verification performed
 
 Local machine has no ANTs binary and system Python is 3.14, so the full
@@ -143,6 +170,16 @@ pipeline cannot run here. What was checked in a Python 3.12 venv:
 - Full pipeline on **all 1000** example volumes: 9.0 min (step 4: 8.0 min), **609 cells**, all 18 output checks passed.
 - Same 200 volumes with `nwb_output=True`: 5.1 min, `cells0_clean.nwb` written; **98 ROIs** in `PlaneSegmentation` and `RoiResponseSeries` shape (200, 98) — identical cell count to the HDF5 run, so the two writers agree. (A 50-volume attempt produced zero cells and exposed bug 14; 50 timepoints is below what the NMF needs.)
 - Full pipeline with the **NWB sample file as input** (`ds=1`, 200 timepoints): all 18 checks passed, **240 cells** at full resolution; step 4 took 3.0 h (full-resolution blocks are ~4x larger — worth revisiting default `ds` guidance for NWB inputs).
+
+### Phase 3 verification (ANTsPy 0.6.x backend; NO ANTs binaries on PATH)
+
+- Full test suite with no system ANTs installed: **11 passed** — before the NMF guard (13 min 51 s) and again after it (38 min 20 s; slower because factorization now succeeds at the full peak fraction instead of failing down to the last fallback).
+- Registration equivalence: all 200 transform pairs vs. the CLI baseline — rotation part identical, translation max 0.47 um / median 0.07 um (sub-voxel); registration ~2x faster (10 s vs 18 s for 1000 volumes).
+- End-to-end, full 1000 volumes: pre-guard 904 cells (4/4 blocks, 33 retries) vs. CLI baseline 609; post-guard **1494 cells, 4/4 blocks, 0 retries**.
+- End-to-end, 200 volumes: post-guard **1456 cells, 0 retries** — cell count is now consistent across recording lengths (1456 vs 1494), where pre-guard it collapsed with recording length (98 vs 609), because blocks no longer degrade to tiny peak fractions.
+- Footprints inspected visually: dense, uniform tiling of the brain mask (74% coverage, median 56 voxels/cell), clear calcium transients in dF/F traces.
+- **Honest caveat for reviewers**: the guard changes the NMF's effective operating point (by design — the fraction-reduction loop was a workaround for the crash it fixes). The detected-cell population is much larger than the historical prototype's on this sample; scientific validation of cell quality against the published results (Mu 2019 / Yang 2022 pipelines) is a maintainer task before a release is cut.
+- Docs site rebuilt cleanly after all Phase 3 doc edits.
 
 Things that still need a CI run or a real environment: the Docker image
 build, the ANTs-dependent steps 2–5, and the AWS Batch path.
