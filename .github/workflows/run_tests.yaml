@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - cleanup/mechanical-fixes  # temporary: validate CI before merge
   pull_request:
     branches:
       - master

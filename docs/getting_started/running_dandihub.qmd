@@ -1,6 +1,5 @@
 ---
 title: Running on DANDI Hub
-sidebar_position: 4
 ---
 
 ## DANDI Hub

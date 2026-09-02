@@ -1,6 +1,5 @@
 ---
 title: Running from Container
-sidebar_position: 3
 ---
 
 You can easily run the Voluseg pipeline using a container. This is useful if you want to run the pipeline without having to install all the dependencies on your local machine.

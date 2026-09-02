@@ -1,4 +1,2 @@
-# pydoc-markdown==4.8.2
-# Fork adds the numpy docstring processor missing from upstream 4.8.2;
-# pinned to a commit so the docs build cannot change under us.
-git+https://github.com/luiztauffer/pydoc-markdown.git@4919c1b6b86f
+quartodoc==0.11.1
+griffe<2  # quartodoc 0.11 uses the pre-2.0 griffe docstring API

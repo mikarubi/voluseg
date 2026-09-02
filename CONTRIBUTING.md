@@ -38,7 +38,7 @@ skipped in CI and can be run locally when bandwidth allows.
 2. Keep changes focused; unrelated fixes belong in separate PRs.
 3. Add or update tests for any behavior change.
 4. Make sure `pytest` passes and the documentation still builds
-   (`cd docs/voluseg-docs-app && yarn && yarn build`) if you touched docs.
+   (`quartodoc build && quarto render` in `docs/`) if you touched docs.
 5. Open the PR with a clear description of the problem and the solution.
 
 CI runs the test suite on Linux and macOS across supported Python versions;
@@ -46,9 +46,9 @@ a PR must be green before review.
 
 ## Documentation
 
-The documentation is a Docusaurus site in `docs/voluseg-docs-app`. The API
-reference is generated from docstrings by `pydoc-markdown` (see
-`docs/README.md`), so document new functions with NumPy-style docstrings.
+The documentation is a Quarto site in `docs/`. The API reference is
+generated from docstrings by `quartodoc` (see `docs/README.md`), so document
+new functions with NumPy-style docstrings.
 
 ## Code style
 

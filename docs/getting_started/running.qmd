@@ -1,6 +1,5 @@
 ---
 title: Running Voluseg Pipeline
-sidebar_position: 2
 ---
 
 
@@ -29,7 +28,7 @@ voluseg._tools.download_sample_data("/path/to/input/")
 ```
 
 ### Setup pipeline parameters
-Voluseg validates parameters with sensible defaults that can be overridden to fit your specific needs. You can read more about the parameters in the [Parameters](/docs/getting_started/parameters) section. Define and save the parameters by running:
+Voluseg validates parameters with sensible defaults that can be overridden to fit your specific needs. You can read more about the parameters in the [Parameters](parameters.qmd) section. Define and save the parameters by running:
 
 ```python
 # Set and save parameters

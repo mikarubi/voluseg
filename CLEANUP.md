@@ -259,6 +259,28 @@ Question: of the things we are keeping, is anything still fragile?
   a directory whose *name* contains ".nwb" would be misrouted. Cosmetic
   risk; left for a future tightening.
 
+## 4g. Docs migration to Quarto; CI enabled on the branch (seventh commit)
+
+- **Why (user-directed, and it fits the fragility razor)**: the Docusaurus
+  site carried a ~1,000-package npm tree — the source of GitHub's "206
+  vulnerabilities" banner (all Dependabot npm alerts against
+  `docs/voluseg-docs-app`; the only Actions history on `master` is failing
+  npm auto-update jobs) — plus two lockfiles and a personal pydoc-markdown
+  fork. Quarto is a single CLI; pages are plain markdown; quartodoc reads
+  NumPy docstrings natively, so the fork dependency is retired outright.
+- Pages were ported verbatim (only frontmatter keys and one absolute link
+  changed); math renders via Quarto's built-in support. Generated files
+  (`docs/reference/`, `docs/_site/`) are gitignored and rebuilt by CI —
+  the auto-commit failure mode cannot recur.
+- **Note for the grant**: Aim 3 names Docusaurus explicitly; the deliverable
+  (versioned, searchable docs with generated API reference) is unchanged,
+  but the maintainer should be aware of the tooling substitution.
+- **CI status finding**: no workflow had ever run on this branch — all
+  triggers were master/PR-only, so "is CI broken?" was unanswerable. The
+  three workflows now temporarily include this branch (docs and docker in
+  build-only mode; Pages deploy and image publish stay master-gated).
+  Remove the temporary trigger lines at merge.
+
 ## 5. Verification performed
 
 Local machine has no ANTs binary and system Python is 3.14, so the full
