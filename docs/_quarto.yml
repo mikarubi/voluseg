@@ -1,0 +1,55 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Voluseg"
+  description: "Pipeline for volumetric cell segmentation of calcium imaging data"
+  navbar:
+    right:
+      - icon: github
+        href: https://github.com/mikarubi/voluseg
+        aria-label: GitHub
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - index.qmd
+      - section: "Getting started"
+        contents:
+          - getting_started/installation.qmd
+          - getting_started/running.qmd
+          - getting_started/running_container.qmd
+          - getting_started/running_dandihub.qmd
+          - getting_started/parameters.qmd
+          - getting_started/algorithm.qmd
+          - getting_started/output.qmd
+      - faq.qmd
+      - text: "API Reference"
+        href: reference/index.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+
+quartodoc:
+  package: voluseg
+  dir: reference
+  title: "API Reference"
+  parser: numpy
+  sections:
+    - title: "Pipeline steps"
+      desc: "The six pipeline stages, in order."
+      contents:
+        - step0_define_parameters
+        - step1_process_volumes
+        - step2_align_volumes
+        - step3_mask_volumes
+        - step4_detect_cells
+        - step5_clean_cells
+    - title: "Parameter files"
+      desc: "Saving and loading the parameters.json file."
+      contents:
+        - load_parameters
+        - save_parameters

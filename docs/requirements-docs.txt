@@ -1,2 +1,2 @@
-# pydoc-markdown==4.8.2
-git+https://github.com/luiztauffer/pydoc-markdown.git@develop
+quartodoc==0.11.1
+griffe<2  # quartodoc 0.11 uses the pre-2.0 griffe docstring API
