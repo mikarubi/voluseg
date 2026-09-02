@@ -8,7 +8,7 @@ from scipy import stats
 from sklearn import mixture
 from skimage import morphology
 from types import SimpleNamespace
-from scipy.ndimage.filters import median_filter
+from scipy.ndimage import median_filter
 
 
 with warnings.catch_warnings():

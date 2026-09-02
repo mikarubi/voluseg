@@ -61,6 +61,14 @@ def nnmf_sparse(
     Tuple[np.ndarray, np.ndarray, float]
         Tuple containing: Spatial footprint, temporal footprint, convergence error.
     """
+    # NOTE (intentional behavior, do not "fix"): if a component's timeseries
+    # collapses to zero, the mean-normalizations below produce NaN/inf and the
+    # next lstsq call raises "array must not contain infs or NaNs". Step 4
+    # catches this and retries with a smaller peak fraction (and thus fewer
+    # cells) - an adaptive model-order selection that keeps detected cells
+    # conservative. Guarding these divisions disables that mechanism and
+    # inflates cell counts.
+
     # CAUTION: variable is modified in-place to save memory
     V0 *= timeseries_mean / V0.mean(1)[:, None]  # normalize voxel timeseries
 
