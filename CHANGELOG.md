@@ -47,6 +47,9 @@ the project adheres to [Semantic Versioning](https://semver.org/).
 - Unused `loguru` dependency; contradictory `[dask]` extra.
 
 ### Fixed
+- Remote NWB streaming works from a plain install: `fsspec` and `aiohttp`
+  are now declared dependencies (previously only present via test
+  packages, so the documented remote-ingestion path raised ImportError).
 - Container CLI failed at startup: `opts_ants` was passed as a string into a
   pydantic `dict` field; it is now a JSON option.
 - Unconditional S3 upload after every pipeline run (now only inside AWS

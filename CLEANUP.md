@@ -206,6 +206,59 @@ not over-engineered, and do not make the pipeline fragile.
   to the branch (that pattern created the stale-docs mess cleaned up in
   Phase 0); the reference is generated at build time.
 
+## 4f. Fragility audit of the keep-set (sixth commit)
+
+Question: of the things we are keeping, is anything still fragile?
+
+### Fixed here
+- **Remote NWB streaming had an undeclared dependency**: `fsspec`'s http
+  backend needs `aiohttp`, which nothing in a plain `pip install voluseg`
+  provided (it only arrived via test-only packages). A user calling the
+  documented remote-NWB ingestion would hit ImportError. `fsspec` and
+  `aiohttp` are now declared. Verified by streaming the DANDI archive
+  directly: correct HDF5 signature read from the remote 394 GB NWB file,
+  and the (CI-skipped) `test_nwb_remote` streamed and wrote 1001 volumes
+  before aborting on local disk space (see cache note below). Two
+  verification notes:
+  - On macOS with python.org framework Python, aiohttp cannot find the
+    system CA store and raises `SSLCertVerificationError` (surfaced by
+    fsspec as a misleading `FileNotFoundError`); fix with
+    `export SSL_CERT_FILE=$(python -m certifi)`. Environment quirk, not
+    a voluseg issue; no code change.
+  - `open_nwbfile_remote` caches remote blocks into `dir_output` with no
+    size bound; against a 394 GB archive file this filled tens of GB of
+    local disk during one step-1 pass. Left as-is (cache policy is a
+    design decision), but flagged: large remote runs need scratch space
+    comparable to the data actually read, or a bounded/blockcache
+    strategy in a future revision.
+- `antspyx` pinned in `requirements-docker.txt` (`==0.6.3`) like every
+  other dependency there — registration numerics in the published
+  container cannot drift with library releases.
+- The `pydoc-markdown` fork is pinned to a commit (`4919c1b6`) instead of
+  a moving `@develop` branch.
+
+### Known-fragile, deliberately left (with reasons)
+- **Bare `except:` clauses in the science path** (10, e.g. `load_volume`
+  returns `None` for any failure, including a corrupt file). Changing
+  error-handling changes pipeline behavior on partial data — after the
+  NMF-guard lesson, that is a maintainer decision, not a cleanup.
+- **Sample-data hosting**: the h5 sample is a hardcoded Google Drive link
+  (no checksum) and the NWB sample lives on the wipeable DANDI *sandbox*.
+  Fixing this requires the maintainer to host the data somewhere durable
+  (e.g. a real DANDI dandiset); code can then point at it.
+- **`requirements.txt` is unpinned** (by design — it is a library);
+  the pandas-3 breakage shows the risk, but adding upper bounds is a
+  maintenance-policy choice for the maintainer. The Docker image is fully
+  pinned, so users have a reproducible option today.
+- **`remove_small_objects(min_size=…)` deprecation** (skimage ≥ 0.26 warns;
+  removal promised for 2.0): migration is NOT mechanical — empirically, the
+  documented mapping (`max_size = thr - 1`) does not reproduce legacy
+  behavior on test data, so the legacy call stays until the semantics are
+  pinned down with the maintainer.
+- `.nwb`/remote input detection is substring-based (`".nwb" in dir_input`);
+  a directory whose *name* contains ".nwb" would be misrouted. Cosmetic
+  risk; left for a future tightening.
+
 ## 5. Verification performed
 
 Local machine has no ANTs binary and system Python is 3.14, so the full

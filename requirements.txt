@@ -10,6 +10,8 @@ numpy
 pandas
 pydantic>=2.8.0
 pynwb
+fsspec
+aiohttp  # fsspec http backend, for remote NWB streaming
 typer
 antspyx
 tifffile

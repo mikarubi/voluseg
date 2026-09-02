@@ -9,5 +9,5 @@ pandas==2.2.2
 requests==2.32.3
 dandi>=0.74.0
 typer==0.12.5
-antspyx
+antspyx==0.6.3
 pydantic==2.8.2
