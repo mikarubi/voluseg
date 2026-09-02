@@ -96,6 +96,7 @@ def align_volumes(parameters: dict) -> None:
                         ),
                         quality=p.registration,
                         opts_ants=p.opts_ants,
+                        restrict=getattr(p, "registration_restrict", "") or None,
                     )
             except Exception as msg:
                 raise Exception(

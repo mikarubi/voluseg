@@ -3,6 +3,8 @@ import json
 import numpy as np
 from warnings import warn
 from voluseg._tools.get_volume_name import get_volume_name
+from voluseg._tools.load_volume import load_volume
+from voluseg._tools.evenly_parallelize import evenly_parallelize
 from voluseg._tools.parameters import save_parameters
 from voluseg._tools.parameters_models import ParametersModel
 from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
@@ -119,6 +121,8 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
             aux_list = dir_input.split(":")
         if len(input_dirs) > 1:
             raise Exception("Only one file path can be specified for NWB input.")
+        if parameters["planes_packed"]:
+            raise Exception("'planes_packed' is not supported for NWB input.")
         volume_fullnames_input = [aux_list[0]]
         with open_nwbfile(
             input_path=volume_fullnames_input[0],
@@ -147,9 +151,28 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
                 os.path.join(dir_input_h, i) for i in volume_names_input_h
             ]
 
-            volume_names_h = [
-                get_volume_name(i, dir_prefix_h) for i in volume_names_input_h
-            ]
+            if parameters["planes_packed"]:
+                # packed planes: single-plane imaging with multiple planes
+                # packed into each volume file; treat each plane as a volume
+                parameters["res_z"] = parameters["diam_cell"]
+
+                def get_plane_names(fullname_volume_input):
+                    lp = len(load_volume(fullname_volume_input + ext))
+                    return [
+                        get_volume_name(fullname_volume_input, dir_prefix_h, pi)
+                        for pi in range(lp)
+                    ]
+
+                names_nested = (
+                    evenly_parallelize(volume_fullnames_input_h)
+                    .map(get_plane_names)
+                    .compute()
+                )
+                volume_names_h = [pi for ni in names_nested for pi in ni]
+            else:
+                volume_names_h = [
+                    get_volume_name(i, dir_prefix_h) for i in volume_names_input_h
+                ]
 
             # grow volume-name lists
             volume_fullnames_input += volume_fullnames_input_h

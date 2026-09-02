@@ -52,12 +52,14 @@ class ParametersModel(BaseModel):
     dir_transform: DirectoryPath = Field(default="")
     detrending: Detrending = Field(default=Detrending.standard)
     registration: Registration = Field(default=Registration.medium)
+    registration_restrict: str = Field(default="")
     opts_ants: dict = Field(default={})
     diam_cell: PositiveFloat = Field(default=6.0)
     dim_order: DimOrder = Field(default=DimOrder.zyx)
     nwb_output: bool = Field(default=False)
     ds: PositiveInt = Field(default=2)
     planes_pad: NonNegativeInt = Field(default=0)
+    planes_packed: bool = Field(default=False)
     parallel_extra: bool = Field(default=True)
     save_volume: bool = Field(default=False)
     type_timepoints: TypeTimepoints = Field(default=TypeTimepoints.dff)
@@ -74,6 +76,22 @@ class ParametersModel(BaseModel):
     t_section: PositiveFloat = Field(default=0.01)
     thr_mask: NonNegativeFloat = Field(default=0.5)
     overwrite: bool = Field(default=False)
+
+    @model_validator(mode="after")
+    def check_registration_restrict(self):
+        """
+        Validate 'registration_restrict' (e.g. '1x1x1x1x1x0'): '1'/'0' flags
+        separated by 'x', one per transform parameter.
+        """
+        import re
+
+        if self.registration_restrict and not re.fullmatch(
+            r"[01](x[01])*", self.registration_restrict
+        ):
+            raise ValueError(
+                "'registration_restrict' must comprise '1's and '0's, separated by 'x's."
+            )
+        return self
 
     @model_validator(mode="before")
     def convert_array_to_list(cls, values):

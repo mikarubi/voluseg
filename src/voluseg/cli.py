@@ -4,7 +4,6 @@ Installed as the ``voluseg`` console script; ``app/app.py`` keeps the
 container entry point (``python3 /voluseg/app/app.py``) working.
 """
 
-import os
 import json
 from typing import Annotated, Optional
 
@@ -34,6 +33,13 @@ def run_pipeline(
             help="ANTs registration options as a JSON object, e.g. '{\"verbose\": \"1\"}'.",
         ),
     ] = "{}",
+    registration_restrict: Annotated[
+        str,
+        typer.Option(
+            envvar="VOLUSEG_REGISTRATION_RESTRICT",
+            help="Restrict transform parameters, e.g. '1x1x1x1x1x0'.",
+        ),
+    ] = "",
     diam_cell: Annotated[float, typer.Option(envvar="VOLUSEG_DIAM_CELL")] = 6.0,
     dim_order: Annotated[str, typer.Option(envvar="VOLUSEG_DIM_ORDER")] = "zyx",
     dir_transform: Annotated[
@@ -46,6 +52,13 @@ def run_pipeline(
     nwb_output: Annotated[bool, typer.Option(envvar="VOLUSEG_NWB_OUTPUT")] = False,
     ds: Annotated[int, typer.Option(envvar="VOLUSEG_DS")] = 2,
     planes_pad: Annotated[int, typer.Option(envvar="VOLUSEG_PLANES_PAD")] = 0,
+    planes_packed: Annotated[
+        bool,
+        typer.Option(
+            envvar="VOLUSEG_PLANES_PACKED",
+            help="Input volumes contain packed planes (single-plane imaging).",
+        ),
+    ] = False,
     parallel_extra: Annotated[bool, typer.Option(envvar="VOLUSEG_PARALLEL_EXTRA")] = True,
     save_volume: Annotated[bool, typer.Option(envvar="VOLUSEG_SAVE_VOLUME")] = False,
     type_timepoints: Annotated[str, typer.Option(envvar="VOLUSEG_TYPE_TIMEPOINTS")] = "dff",
@@ -77,12 +90,14 @@ def run_pipeline(
         dir_output=dir_output,
         detrending=detrending,
         registration=registration,
+        registration_restrict=registration_restrict,
         opts_ants=opts_ants_dict,
         diam_cell=diam_cell,
         dim_order=dim_order,
         nwb_output=nwb_output,
         ds=ds,
         planes_pad=planes_pad,
+        planes_packed=planes_packed,
         parallel_extra=parallel_extra,
         save_volume=save_volume,
         type_timepoints=type_timepoints,
@@ -121,23 +136,6 @@ def run_pipeline(
 
     print("Clean cells...")
     voluseg.step5_clean_cells(parameters)
-
-    # Export to S3 only when running as an AWS Batch job
-    # (VOLUSEG_JOB_ID is set by voluseg._tools.aws.run_job_in_aws_batch).
-    job_id = os.environ.get("VOLUSEG_JOB_ID")
-    if job_id:
-        print("Save results to S3...")
-        from voluseg._tools.aws import export_to_s3
-
-        stack_id = "VolusegBatchStack"
-        bucket_name = f"{stack_id}-bucket".lower()
-        local_file = str(os.path.join(dir_output, "cells0_clean.hdf5"))
-        object_name = f"{job_id}/cells0_clean.hdf5"
-        export_to_s3(
-            local_path=local_file,
-            bucket_name=bucket_name,
-            object_name=object_name,
-        )
 
 
 if __name__ == "__main__":

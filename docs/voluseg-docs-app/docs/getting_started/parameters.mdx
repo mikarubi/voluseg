@@ -47,6 +47,19 @@ Quality or mode of registration:
 Extra keyword arguments passed to ANTsPy's `ants.registration` (for example
 `{"aff_metric": "meansquares"}`).
 
+
+#### `registration_restrict` (str, default=`""`)
+
+Restrict transformation parameters during registration: `'1'`/`'0'` flags
+separated by `'x'`, one per transform parameter (e.g. `1x1x1x1x1x0` for a 3D
+rigid transform with no z-translation). Restored from the 2024-03 release.
+
+#### `planes_packed` (bool, default=`False`)
+
+Input volumes contain packed planes (single-plane imaging with multiple
+planes packed into each volume file); each plane is treated as its own
+volume and `res_z` is set to `diam_cell`. Restored from the 2024-03 release.
+
 ---
 
 ### Cell Segmentation

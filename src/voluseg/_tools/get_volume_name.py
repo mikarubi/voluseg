@@ -4,6 +4,7 @@ import os
 def get_volume_name(
     fullname_volume: str,
     dir_prefix: str = None,
+    plane_i: int = None,
 ) -> str:
     """
     Get name of volume (with directory prefix and plane suffix).
@@ -15,7 +16,7 @@ def get_volume_name(
     dir_prefix : str (optional)
         Prefix for directory. Default is None.
     plane_i : int (optional)
-        Index of plane. Default is None.
+        Index of plane (for packed-planes data). Default is None.
 
     Returns
     -------
@@ -27,5 +28,9 @@ def get_volume_name(
     # add prefix (multiple input directories)
     if dir_prefix is not None:
         name_volume = dir_prefix + "_" + name_volume
+
+    # add suffix (packed planes)
+    if plane_i is not None:
+        name_volume += "_PLN" + str(plane_i).zfill(3)
 
     return name_volume

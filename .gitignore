@@ -18,3 +18,4 @@ htmlcov/
 sample_data/*
 output/*
 logs/*
+.DS_Store

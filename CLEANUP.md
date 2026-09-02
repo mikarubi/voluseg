@@ -132,15 +132,79 @@ large-scale calcium-imaging data (whole-brain zebrafish light-sheet):
 - Dropped with the rewrite: the unused non-rigid transform types in the old command builder ('t'/'i'/'a'/'s'/'b'; only rigid was ever called) and the CLI retry fallbacks (the "change initialization" retry was a no-op — its search string never occurred in the built command — and the dimensionality-2 fallback is obsolete: ANTsPy handles the single-plane volumes in this repo's own sample data directly).
 - Validation (see section 5): transforms agree with the CLI baseline to sub-voxel precision across all 200 volume pairs (rotation identical; translation max 0.47 um, median 0.07 um), registration is ~2x faster, and on the full 1000-volume dataset the pipeline detects 904 cells vs. the CLI baseline's 609 with all 4 blocks factorized.
 
-### Bug 15 (pre-existing, exposed by backend comparison): NMF dies on dead components
-- `_steps/step4d.py::nnmf_sparse` normalized voxel/component timeseries by their means without guarding against zero means. A "dead" component (all-zero timeseries after the sparseness projection) produced NaN/inf, the next `lstsq` raised `array must not contain infs or NaNs`, and the whole block attempt was scrapped — the retry loop then re-rolled the dice at a smaller peak fraction.
-- This is why 200-timepoint runs were marginal under *both* backends: the CLI baseline's 4 blocks succeeded only at the last fallback fraction (75 retries); the ANTsPy volumes (equivalent but not bit-identical) initially pushed 3 of 4 blocks over the same cliff (79 retries, 15 cells).
-- Fix: guarded normalization (`safe_scale`) — zero-mean rows stay zero; dead components keep zero weights and are dropped cleanly downstream (step 4 writes them without voxels; step 5's mask-threshold check discards them).
+### "Bug 15" - reclassified as intended behavior (guard reverted)
+- Initial reading: `nnmf_sparse` divides timeseries by their means without a
+  zero guard; a dead component produces NaN/inf, `lstsq` raises, and the
+  block attempt is scrapped. A guard was briefly added and validated
+  (counts rose to ~1456-1494 and became length-consistent).
+- **Maintainer verdict: this is a feature, not a defect.** The NaN-triggered
+  abort plus step 4's fraction-reduction loop is an adaptive model-order
+  selection: when too many components are requested, factorization fails
+  and is retried with fewer, stronger peak voxels, keeping detected cells
+  conservative and well-supported. The guard disabled exactly that
+  mechanism (hence the count inflation).
+- The guard has been reverted; the original math is restored with a
+  prominent code comment marking the behavior as intentional so it is not
+  "fixed" again. Consequence to note: in marginal regimes the mechanism is
+  sensitive to sub-voxel input differences (ANTsPy vs CLI on the reduced
+  200-timepoint sample: 15 vs 98 cells; on the full dataset: 904 vs 609,
+  both healthy).
+- Kept (with maintainer review welcome): the two *bookkeeping* fixes from
+  bug 14 - a block whose every retry fails now records `n_cells = 0`
+  instead of a phantom count, and step 5 raises a clear "no cells were
+  detected" error instead of crashing on an empty array. These only fire
+  after the retry mechanism is fully exhausted, so they do not alter it.
 
 ### Release and community infrastructure (grant Aim 3)
 - `CHANGELOG.md` (Keep-a-Changelog format), version bumped to 0.2.0 (semantic versioning from here on).
 - `CONTRIBUTING.md` (dev setup, tests, PR flow), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), issue templates (bug report, feature request) and a PR template under `.github/`.
 - PyPI publication is prepared (console script, version, metadata) but the actual upload is the maintainer's call — the docs' `pip install voluseg` remains aspirational until then.
+
+## 4e. Stable-release audit — 2024-03 parity, descoping, CI hygiene (fifth commit)
+
+Instruction: the `2024-03` release is the stable reference; every method in it
+stays. Additions since then stay only if they solve a specific problem, are
+not over-engineered, and do not make the pipeline fragile.
+
+### 2024-03 method parity
+- All step 1–5 algorithms verified intact (diffs vs. the tag are Spark→Dask
+  plumbing, formatting/typing, the ANTsPy backend, and the NMF guard).
+- **Restored `planes_packed`** (dropped upstream in `8993400`, Feb 2025):
+  single-plane imaging with planes packed into each volume file; each plane
+  becomes its own volume (`_PLN###` suffix) and `res_z` is set to
+  `diam_cell`. Re-implemented in step 0/1 on Dask, exposed in the CLI, and
+  covered by a new synthetic-data test. Not supported for NWB input
+  (explicit error).
+- **Restored `registration_restrict`** (same removal): '1'/'0' flags
+  restricting transform parameters, mapped to ANTsPy's
+  `restrict_transformation`; as in 2024-03, the center-of-mass
+  initialization is dropped when a restriction is set. Pydantic-validated,
+  CLI-exposed, unit-tested.
+- Restriction verified functionally: with `1x1x1x1x1x0`, z-translation is
+  exactly 0 across a 5-volume step-2 run.
+- **Equivalence nuance recorded**: on a synthetic 3-voxel wrap-rolled
+  volume, neither backend recovers the shift (CLI and ANTsPy produce the
+  identical transform and warped correlation, 0.8862) — the historical
+  registration settings barely move from their initialization on this
+  single-plane sample. Not a regression (backends match exactly); flagged
+  as a science-QA item for large-motion datasets.
+
+### Descoped (failed the criteria; approved by the user)
+- `iac/aws_batch/` CDK stack, `_tools/aws.py`, the S3-export branch of the
+  CLI, the `[aws]` extra, `boto3` pin, and the AWS docs page. Rationale:
+  ~600 lines of cloud plumbing that solves no current problem (grant
+  schedules IaC for months 19–24, multi-cloud), was never exercised by
+  tests, and had already yielded three configuration bugs. Recoverable from
+  git history when that milestone arrives.
+- `.DS_Store` (accidentally committed by the Phase 3 `git add -A`) removed
+  and ignored.
+
+### CI hygiene (approved by the user)
+- Docker workflow: PRs only build the image; only pushes to `master`
+  publish `:latest` — PR branches no longer create GHCR tags.
+- Docs workflow: no longer auto-commits generated API-reference files back
+  to the branch (that pattern created the stale-docs mess cleaned up in
+  Phase 0); the reference is generated at build time.
 
 ## 5. Verification performed
 
@@ -176,7 +240,7 @@ pipeline cannot run here. What was checked in a Python 3.12 venv:
 - Full test suite with no system ANTs installed: **11 passed** — before the NMF guard (13 min 51 s) and again after it (38 min 20 s; slower because factorization now succeeds at the full peak fraction instead of failing down to the last fallback).
 - Registration equivalence: all 200 transform pairs vs. the CLI baseline — rotation part identical, translation max 0.47 um / median 0.07 um (sub-voxel); registration ~2x faster (10 s vs 18 s for 1000 volumes).
 - End-to-end, full 1000 volumes: pre-guard 904 cells (4/4 blocks, 33 retries) vs. CLI baseline 609; post-guard **1494 cells, 4/4 blocks, 0 retries**.
-- End-to-end, 200 volumes: post-guard **1456 cells, 0 retries** — cell count is now consistent across recording lengths (1456 vs 1494), where pre-guard it collapsed with recording length (98 vs 609), because blocks no longer degrade to tiny peak fractions.
+- *(Historical - guard since reverted per maintainer)* End-to-end, 200 volumes: post-guard **1456 cells, 0 retries** — cell count is now consistent across recording lengths (1456 vs 1494), where pre-guard it collapsed with recording length (98 vs 609), because blocks no longer degrade to tiny peak fractions.
 - Footprints inspected visually: dense, uniform tiling of the brain mask (74% coverage, median 56 voxels/cell), clear calcium transients in dF/F traces.
 - **Honest caveat for reviewers**: the guard changes the NMF's effective operating point (by design — the fraction-reduction loop was a workaround for the crash it fixes). The detected-cell population is much larger than the historical prototype's on this sample; scientific validation of cell quality against the published results (Mu 2019 / Yang 2022 pipelines) is a maintainer task before a release is cut.
 - Docs site rebuilt cleanly after all Phase 3 doc edits.

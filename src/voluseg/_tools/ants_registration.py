@@ -27,6 +27,7 @@ def ants_registration(
     prefix_out_tform: str,
     quality: str = "medium",
     opts_ants: dict = None,
+    restrict: str = None,
 ) -> None:
     """
     Rigid registration with ANTsPy.
@@ -50,6 +51,12 @@ def ants_registration(
     opts_ants : dict (optional)
         Extra keyword arguments passed to :func:`ants.registration`
         (e.g. ``{"aff_metric": "meansquares"}``).
+    restrict : str (optional)
+        Restrict transformation parameters: '1'/'0' flags separated by 'x',
+        one per transform parameter (e.g. '1x1x1x1x1x0' for a 3D rigid
+        transform with no z-translation). When set, the default
+        center-of-mass initialization is disabled (it would violate the
+        restriction), matching the behavior of the 2024-03 release.
 
     Returns
     -------
@@ -58,6 +65,13 @@ def ants_registration(
     import ants  # imported here so that workers initialize ITK independently
 
     settings = QUALITY_SETTINGS[quality]
+    extra = dict(opts_ants or {})
+    if restrict:
+        extra.setdefault(
+            "restrict_transformation",
+            tuple(int(v) for v in restrict.split("x")),
+        )
+        extra.setdefault("initial_transform", "identity")
     fixed = ants.image_read(ref_nii)
     moving = ants.image_read(in_nii)
     output = ants.registration(
@@ -72,6 +86,6 @@ def ants_registration(
         aff_smoothing_sigmas=settings["smoothing_sigmas"],
         outprefix=prefix_out_tform,
         verbose=False,
-        **(opts_ants or {}),
+        **extra,
     )
     ants.image_write(output["warpedmovout"], out_nii)

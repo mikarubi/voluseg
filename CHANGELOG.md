@@ -7,6 +7,11 @@ the project adheres to [Semantic Versioning](https://semver.org/).
 ## [0.2.0] - 2026-09-01
 
 ### Added
+- Restored two methods from the 2024-03 stable release that had been
+  dropped: `planes_packed` (packed-planes single-plane imaging, `_PLN###`
+  volume naming, `res_z = diam_cell`) and `registration_restrict`
+  (restrict transform parameters, e.g. `1x1x1x1x1x0`), both validated,
+  CLI-exposed, and tested.
 - `voluseg` console script (Typer CLI) with all pipeline parameters,
   environment-variable equivalents, and a `--version` flag;
   `voluseg.__version__` is exposed.
@@ -31,6 +36,10 @@ the project adheres to [Semantic Versioning](https://semver.org/).
   `_steps`/`_tools` pages; blog and template pages removed.
 
 ### Removed
+- AWS Batch integration (CDK stack under `iac/`, `voluseg._tools.aws`,
+  automatic S3 export, `[aws]` extra): unexercised cloud plumbing removed
+  to keep the pipeline lean; recoverable from git history when cloud
+  deployment work is scheduled.
 - `voluseg.update()` (self-reinstall via pip).
 - `voluseg.load_metadata()` (lab-specific XML parser with no callers).
 - Apache Spark / Java leftovers (pyspark, JDK) from the container, CI, and
@@ -38,11 +47,6 @@ the project adheres to [Semantic Versioning](https://semver.org/).
 - Unused `loguru` dependency; contradictory `[dask]` extra.
 
 ### Fixed
-- Numerical robustness of the sparse NMF: components with all-zero
-  timeseries produced NaN/inf during normalization and aborted the whole
-  block factorization ("array must not contain infs or NaNs"); they are now
-  zeroed out and cleanly discarded, substantially reducing block-level
-  retries and failures on short recordings.
 - Container CLI failed at startup: `opts_ants` was passed as a string into a
   pydantic `dict` field; it is now a JSON option.
 - Unconditional S3 upload after every pipeline run (now only inside AWS

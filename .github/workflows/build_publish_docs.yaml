@@ -41,18 +41,9 @@ jobs:
       - name: Build website
         run: cd docs/voluseg-docs-app && yarn build
 
-      - name: Commit pydoc-markdown files
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          GIT_STATUS=$(git status -s)
-          [[ ! -z "$GIT_STATUS" ]] && git add docs/* && git commit -m "auto-commit-docs" -a || echo "No changes to commit"
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      # The generated API reference is built into the site below; it is
+      # deliberately NOT committed back to the branch (CI pushing to its own
+      # branch previously left stale generated files in the repo).
 
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus

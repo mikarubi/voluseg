@@ -166,6 +166,62 @@ def test_load_parameters(setup_parameters):
     )
 
 
+@pytest.mark.order(1)
+def test_planes_packed(tmp_path):
+    """
+    Packed-planes input (restored 2024-03 method): each plane of a packed
+    volume becomes its own output volume with a _PLN suffix, and res_z is
+    set to diam_cell.
+    """
+    import h5py
+
+    n_files, n_planes = 4, 3
+    dir_in = tmp_path / "packed_in"
+    dir_in.mkdir()
+    rng = np.random.default_rng(0)
+    for i in range(n_files):
+        with h5py.File(dir_in / f"TM{i:07d}.h5", "w") as f:
+            f["default"] = 100 + 10 * rng.random((n_planes, 40, 50)).astype("float32")
+
+    filename_parameters = voluseg.step0_define_parameters(
+        dir_input=str(dir_in),
+        dir_output=str(tmp_path / "packed_out"),
+        registration="none",
+        planes_packed=True,
+        diam_cell=5.0,
+        f_volume=2.0,
+    )
+    parameters = voluseg.load_parameters(filename_parameters)
+    assert parameters["lt"] == n_files * n_planes
+    assert parameters["res_z"] == parameters["diam_cell"]
+    names = list(parameters["volume_names"])
+    assert names[0].endswith("_PLN000") and names[n_planes - 1].endswith(
+        f"_PLN{n_planes - 1:03d}"
+    )
+
+    voluseg.step1_process_volumes(parameters)
+    out = list((tmp_path / "packed_out" / "volumes" / "0").glob("*_aligned.hdf5"))
+    assert len(out) == n_files * n_planes
+
+
+@pytest.mark.order(1)
+def test_registration_restrict_validation():
+    """
+    'registration_restrict' (restored 2024-03 method) must be 1/0 flags
+    separated by 'x'.
+    """
+    from voluseg._tools.parameters_models import ParametersModel
+    import pydantic
+
+    ParametersModel(
+        input_dirs=["/tmp"], dir_output="/tmp/o", registration_restrict="1x1x1x1x1x0"
+    )
+    with pytest.raises(pydantic.ValidationError):
+        ParametersModel(
+            input_dirs=["/tmp"], dir_output="/tmp/o", registration_restrict="1x2x0"
+        )
+
+
 @pytest.mark.order(2)
 def test_voluseg_h5_dir_step_1(setup_parameters):
     """
