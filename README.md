@@ -14,7 +14,7 @@ Instructions [here](https://github.com/mikarubi/voluseg/blob/master/README-docke
 
 ## Dependencies
 
-- `h5py`, `dask`, `scipy`, `scikit-image`, `scikit-learn`, `matplotlib`, `nibabel`, `requests`, `numpy`, `pandas`, `pydantic>=2.8.0`, `pynwb>=2.8.0`
+- `h5py`, `dask`, `scipy`, `scikit-image`, `scikit-learn`, `matplotlib`, `nibabel`, `requests`, `numpy`, `pandas`, `pydantic>=2.8.0`, `pynwb`, `tifffile`
 - Advanced Normalization Tools (ANTs) for registration (can install via conda)
 
 ## Installation
@@ -42,9 +42,6 @@ pip install git+https://github.com/mikarubi/voluseg.git
 import os
 import pprint
 import voluseg
-
-# check for updates
-voluseg.update()
 
 # Download sample data
 voluseg._tools.download_sample_data("/path/to/input/")
