@@ -152,24 +152,32 @@ def setup_parameters_nwb(tmp_path_factory):
 
 
 @pytest.mark.order(1)
-def test_parameters_json_pickle(setup_parameters, tmp_path):
+def test_parameters_json_roundtrip(setup_parameters, tmp_path):
     """
-    Test saving and loading parameters as JSON and pickle.
+    Test that parameters survive a save/load round trip through JSON.
     """
     temp_json = str((tmp_path / "parameters.json").resolve())
     voluseg.save_parameters(setup_parameters, temp_json)
     loaded_parameters_json = voluseg.load_parameters(temp_json)
 
-    temp_pickle = str((tmp_path / "parameters.pickle").resolve())
-    voluseg.save_parameters(setup_parameters, temp_pickle)
-    loaded_parameters_pickle = voluseg.load_parameters(temp_pickle)
-
     compare_dicts(
+        setup_parameters,
+        "setup_parameters",
         loaded_parameters_json,
         "loaded_parameters_json",
-        loaded_parameters_pickle,
-        "loaded_parameters_pickle",
     )
+
+
+@pytest.mark.order(1)
+def test_parameters_unsupported_extension(setup_parameters, tmp_path):
+    """
+    Only JSON parameter files are supported.
+    """
+    temp_pickle = str((tmp_path / "parameters.pickle").resolve())
+    with pytest.raises(ValueError):
+        voluseg.save_parameters(setup_parameters, temp_pickle)
+    with pytest.raises(ValueError):
+        voluseg.load_parameters(temp_pickle)
 
 
 @pytest.mark.order(1)

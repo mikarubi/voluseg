@@ -1,11 +1,15 @@
 import json
-import pickle
 import numpy as np
+
+
+def _check_json_filename(filename: str) -> None:
+    if not filename.lower().endswith(".json"):
+        raise ValueError(f"Parameters file must be a .json file, got: {filename}")
 
 
 def load_parameters(filename: str) -> dict:
     """
-    Load previously saved parameters from filename.
+    Load previously saved parameters from a JSON file.
 
     Parameters
     ----------
@@ -17,14 +21,9 @@ def load_parameters(filename: str) -> dict:
     dict
         Parameters dictionary.
     """
-    if filename.split(".")[-1] in ["pickle", "pkl"]:
-        with open(filename, "rb") as file_handle:
-            parameters = pickle.load(file_handle)
-    elif filename.split(".")[-1] == "json":
-        with open(filename, "r") as file_handle:
-            parameters = json.load(file_handle)
-    else:
-        raise Exception("Parameters file must be either a pickle or a json file.")
+    _check_json_filename(filename)
+    with open(filename, "r") as file_handle:
+        parameters = json.load(file_handle)
 
     # convert lists to numpy arrays
     for key, value in parameters.items():
@@ -40,9 +39,10 @@ def numpy_converter(obj):
         return obj.tolist()
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
+
 def save_parameters(parameters: dict, filename: str) -> None:
     """
-    Save parameters to filename.
+    Save parameters to a JSON file.
 
     Parameters
     ----------
@@ -55,14 +55,8 @@ def save_parameters(parameters: dict, filename: str) -> None:
     -------
     None
     """
-    if filename.split(".")[-1] in ["pickle", "pkl"]:
-        with open(filename, "wb") as file_handle:
-            pickle.dump(parameters, file_handle)
-    elif filename.split(".")[-1] == "json":
-        with open(filename, "w") as file_handle:
-            json.dump(parameters, file_handle, indent=4, default=numpy_converter)  # Convert NumPy arrays
-    else:
-        raise Exception("Parameters file must be either a pickle or a json file.")
-    
+    _check_json_filename(filename)
+    with open(filename, "w") as file_handle:
+        json.dump(parameters, file_handle, indent=4, default=numpy_converter)
+
     print(f"Parameters successfully saved to: {filename}.")
-    
