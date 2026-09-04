@@ -9,5 +9,11 @@ from voluseg._steps.step5 import clean_cells as step5_clean_cells
 
 from voluseg._tools.parameters import load_parameters, save_parameters
 from voluseg._tools.load_metadata import load_metadata
+from .dask_config import (
+    DaskConfig,
+    configure_dask_from_parameters,
+    get_dask_client,
+    print_dask_info,
+)
 
 from voluseg._update import voluseg_update as update
