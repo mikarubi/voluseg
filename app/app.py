@@ -31,6 +31,12 @@ def run_pipeline(
     thr_mask: Annotated[float, typer.Option(envvar="VOLUSEG_THR_MASK")] = 0.5,
     dir_input: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_INPUT")] = "/voluseg/data/",
     dir_output: Annotated[str, typer.Option(envvar="VOLUSEG_DIR_OUTPUT")] = "/tmp/voluseg_output",
+    # Dask configuration options
+    dask_config_file: Annotated[str, typer.Option(envvar="VOLUSEG_DASK_CONFIG_FILE")] = "",
+    dask_n_workers: Annotated[int, typer.Option(envvar="VOLUSEG_DASK_N_WORKERS")] = 0,
+    dask_n_cores_per_worker: Annotated[int, typer.Option(envvar="VOLUSEG_DASK_N_CORES_PER_WORKER")] = 1,
+    dask_memory_limit: Annotated[str, typer.Option(envvar="VOLUSEG_DASK_MEMORY_LIMIT")] = "2GB",
+    dask_cluster_type: Annotated[str, typer.Option(envvar="VOLUSEG_DASK_CLUSTER_TYPE")] = "local",
 ):
     # set and save parameters
     filename_parameters = voluseg.step0_define_parameters(
@@ -60,6 +66,26 @@ def run_pipeline(
     )
 
     parameters = voluseg.load_parameters(filename_parameters)
+    
+    # Configure Dask if options are provided
+    dask_config = {}
+    if dask_config_file:
+        dask_config['config_file'] = dask_config_file
+    if dask_n_workers > 0:
+        dask_config['n_workers'] = dask_n_workers
+    if dask_n_cores_per_worker > 0:
+        dask_config['n_cores_per_worker'] = dask_n_cores_per_worker
+    if dask_memory_limit:
+        dask_config['memory_limit'] = dask_memory_limit
+    if dask_cluster_type:
+        dask_config['cluster_type'] = dask_cluster_type
+    
+    if dask_config:
+        parameters['dask_config'] = dask_config
+        # Configure Dask
+        client = voluseg.configure_dask_from_parameters(parameters)
+        print(f"Dask configured: {client.dashboard_link}")
+    
     print("Parameters:\n", parameters)
 
     print("Process volumes...")

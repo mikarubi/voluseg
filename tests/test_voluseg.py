@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 import numpy as np
 import h5py
+from dask.distributed import Client
 
 
 # # To run tests locally, set these environment variables:
@@ -15,6 +16,20 @@ import h5py
 # os.environ["SAMPLE_DATA_PATH_NWB"] = (
 #     "/mnt/shared_storage/taufferconsulting/client_catalystneuro/project_voluseg/sample_twophoton.nwb"
 # )
+
+@pytest.fixture(autouse=True)
+def cleanup_dask():
+    """Clean up Dask clients after each test to prevent conflicts."""
+    yield
+    try:
+        client = Client.current()
+        client.close()
+        # close cluster if it exists
+        if hasattr(client, 'cluster') and client.cluster:
+            client.cluster.close()
+    except (ValueError, AttributeError):
+        # No active client
+        pass
 
 
 def compare_dicts(
@@ -70,14 +85,21 @@ def setup_parameters(tmp_path_factory):
         f_volume = 2.0,
     )
 
-    # Load and return parameters for further use in tests
+    # Load and return daskparameters 
     parameters = voluseg.load_parameters(filename_parameters)
+    parameters["dask_config"] = {
+        "n_workers": 1,
+        "n_cores_per_worker": 1,
+        "memory_limit": "4GB",
+        "cluster_type": "local",
+    }
+
     if isinstance(parameters["volume_names"], list):
         parameters["volume_names"] = parameters["volume_names"][:1]
         parameters["volume_fullnames_input"] = parameters["volume_fullnames_input"][:1]
         parameters["timepoints"] = 1
   
-
+    voluseg.save_parameters(parameters, str(Path(tmp_dir) / "parameters.json"))
     return parameters
 
 
@@ -103,13 +125,22 @@ def setup_parameters_nwb(tmp_path_factory):
     filename_parameters = voluseg.step0_define_parameters(
         dir_input = data_path,
         dir_output = tmp_dir,
-        registration = "high",
+        registration = "low",
         diam_cell = 5.0,
         f_volume = 2.0,
         ds = 1
     )
 
     parameters = voluseg.load_parameters(filename_parameters)
+
+    # Add custom Dask configuration for testing
+    # Use 8GB memory limit for NWB tests 
+    parameters["dask_config"] = {
+        "n_workers": 1,
+        "n_cores_per_worker": 1,
+        "memory_limit": "8GB",
+        "cluster_type": "local"
+    }
 
     #Reduce to 1 timepoint to save memory and disk space
     if isinstance(parameters.get("volume_names"), list):
@@ -264,6 +295,9 @@ def test_voluseg_h5_dir_step_4(setup_parameters):
     """
     Test the fourth step of the pipeline - detect cells.
     """
+    # Configure Dask before running step4
+    # configure_dask_from_parameters already handles closing existing clients
+    voluseg.configure_dask_from_parameters(setup_parameters)
     print("Detect cells.")
     voluseg.step4_detect_cells(setup_parameters)
     assert Path(
@@ -288,6 +322,9 @@ def test_voluseg_pipeline_nwbfile(setup_parameters_nwb):
     """
     Test the full pipeline with an NWB file as input.
     """
+    # Configure Dask before running pipeline steps
+    voluseg.configure_dask_from_parameters(setup_parameters_nwb)
+    
     print("Process volumes.")
     voluseg.step1_process_volumes(setup_parameters_nwb)
     

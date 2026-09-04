@@ -8,7 +8,7 @@ from pydantic.types import (
     PositiveFloat,
     DirectoryPath,
 )
-from typing import List, Union
+from typing import List, Union, Dict, Any, Optional
 
 
 class DimOrder(str, Enum):
@@ -74,6 +74,8 @@ class ParametersModel(BaseModel):
     t_section: PositiveFloat = Field(default=0.01)
     thr_mask: NonNegativeFloat = Field(default=0.5)
     overwrite: bool = Field(default=False)
+    # Dask configuration
+    dask_config: Dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     def convert_array_to_list(cls, values):

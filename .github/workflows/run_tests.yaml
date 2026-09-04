@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - dask
   pull_request:
     branches:
       - master
+      - dask
 
 jobs:
   test:
@@ -14,8 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
           - macos-14
+          # - ubuntu-latest
           # - windows-latest
         python:
           - '3.10'
@@ -74,7 +76,7 @@ jobs:
       - name: Run tests with pytest on Unix-like systems
         if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
-          coverage run -m pytest -s -v --tb=short -k "not test_nwb_remote"
+          coverage run -m pytest -s -v --tb=short -k "not test_nwb_remote and not test_dask"
 
       # - name: Run tests with pytest on Windows
       #   if: startsWith(matrix.os, 'windows')

@@ -57,6 +57,19 @@ filename_parameters = voluseg.step0_define_parameters(
 
 # load and print parameters
 parameters = voluseg.load_parameters(filename_parameters)
+
+# Configure Dask for parallel processing (optional)
+parameters["dask_config"] = {
+    "n_workers": 1,  # Reduce workers
+    "n_cores_per_worker": 2,  # Increase cores per worker
+    "memory_limit": "4GB",  # Increase memory limit
+    "cluster_type": "local"
+}
+
+# Configure Dask and get client
+client = voluseg.configure_dask_from_parameters(parameters)
+print(f"Dask dashboard available at: {client.dashboard_link}")
+
 pprint.pprint(parameters)
 
 print("process volumes.")
@@ -73,6 +86,9 @@ voluseg.step4_detect_cells(parameters)
 
 print("clean cells.")
 voluseg.step5_clean_cells(parameters)
+
+# Close Dask client
+client.close()
 ```
 
 ## Pipeline Output
