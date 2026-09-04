@@ -37,7 +37,7 @@ def download_sample_data(
 def download_sample_data_nwb_file(destination_folder: str = ".") -> Union[str, None]:
     """
     Download sample NWB file for Voluseg.
-    Ref: https://gui-staging.dandiarchive.org/dandiset/215495/draft
+    Ref: https://sandbox.dandiarchive.org/dandiset/215495/draft
 
     Parameters
     ----------
@@ -55,7 +55,7 @@ def download_sample_data_nwb_file(destination_folder: str = ".") -> Union[str, N
     dandiset_id = "215495"
     nwb_file_path = "sub-001/sub-001_ophys.nwb"
 
-    with DandiAPIClient.for_dandi_instance("dandi-staging") as client:
+    with DandiAPIClient.for_dandi_instance("dandi-sandbox") as client:
         dandiset = client.get_dandiset(dandiset_id)
         asset = dandiset.get_asset_by_path(nwb_file_path)
         s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)

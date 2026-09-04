@@ -237,7 +237,8 @@ def detect_cells(parameters: dict) -> None:
                         file_handle["/cell/%05d/weights" % (ci)] = wi
                         file_handle["/cell/%05d/timeseries" % (ci)] = ti
 
-                file_handle["n_cells"] = n_cells
+                # a block whose factorization never succeeded has no cells
+                file_handle["n_cells"] = n_cells if success else 0
                 file_handle["completion"] = 1
 
         if block_valids.any():

@@ -80,6 +80,11 @@ def collect_blocks(
     # extract data
     cell_block_id, cell_xyz, cell_weights, cell_timeseries = cell_data
     cn = len(cell_xyz)
+    if cn == 0:
+        raise RuntimeError(
+            "no cells were detected in any block (color %d); check the mask plots, "
+            "'diam_cell', and that enough timepoints were provided." % color_i
+        )
     cell_block_id = np.array(cell_block_id)
     cell_lengths = np.array([len(i) for i in cell_weights])
     cell_xyz_array = np.full((cn, np.max(cell_lengths), 3), -1, dtype=int)
