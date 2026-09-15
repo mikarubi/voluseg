@@ -5,6 +5,10 @@ on:
     branches:
       - docs
       - master
+  # PRs build the site for verification; deployment below stays master-only
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build-and-publish:
@@ -41,22 +45,14 @@ jobs:
       - name: Build website
         run: cd docs/voluseg-docs-app && yarn build
 
-      - name: Commit pydoc-markdown files
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          GIT_STATUS=$(git status -s)
-          [[ ! -z "$GIT_STATUS" ]] && git add docs/* && git commit -m "auto-commit-docs" -a || echo "No changes to commit"
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      # Generated files are deliberately NOT committed back to the branch
+      # (CI pushing to its own branch previously left stale generated docs
+      # in the repo); the site is rebuilt from source on every push.
 
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
       - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
