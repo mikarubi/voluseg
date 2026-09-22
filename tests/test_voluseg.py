@@ -18,17 +18,31 @@ from dask.distributed import Client
 # )
 
 @pytest.fixture(autouse=True)
-def cleanup_dask():
-    """Clean up Dask clients after each test to prevent conflicts."""
-    yield
+def dask_test_client():
+    """
+    Run every test against an explicitly configured, conservative Dask
+    client: a single worker with no hard memory cap.
+
+    Without this, pipeline steps fall back to a default cluster
+    (one worker per CPU with per-worker memory limits), which
+    oversubscribes CI runners; on memory-heavy steps the nannies kill
+    the workers and tests fail with distributed.scheduler.KilledWorker.
+    """
+    from voluseg.dask_config import DaskConfig
+
+    config = DaskConfig(
+        n_workers=1,
+        n_cores_per_worker=1,
+        memory_limit="0",  # 0 disables the per-worker cap
+    )
+    client = config.get_client(force_new=True)
+    yield client
     try:
-        client = Client.current()
+        cluster = getattr(client, "cluster", None)
         client.close()
-        # close cluster if it exists
-        if hasattr(client, 'cluster') and client.cluster:
-            client.cluster.close()
-    except (ValueError, AttributeError):
-        # No active client
+        if cluster:
+            cluster.close()
+    except Exception:
         pass
 
 
@@ -128,7 +142,6 @@ def setup_parameters_nwb(tmp_path_factory):
         registration = "low",
         diam_cell = 5.0,
         f_volume = 2.0,
-        ds = 1
     )
 
     parameters = voluseg.load_parameters(filename_parameters)
