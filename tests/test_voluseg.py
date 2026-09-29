@@ -211,6 +211,42 @@ def test_load_parameters(setup_parameters):
     )
 
 
+@pytest.mark.order(1)
+def test_zarr_input(tmp_path):
+    """
+    4D Zarr stores (time, then three spatial axes) are read directly,
+    mirroring the 4D NWB input path.
+    """
+    import zarr
+
+    rng = np.random.default_rng(0)
+    data = (100 + 10 * rng.random((5, 2, 40, 50))).astype("float32")  # t, z, y, x
+    store_path = str(tmp_path / "sample.zarr")
+    zarr.save_array(store_path, data)
+
+    filename_parameters = voluseg.step0_define_parameters(
+        dir_input=store_path,
+        dir_output=str(tmp_path / "out"),
+        registration="none",
+        ds=1,
+        diam_cell=5.0,
+        f_volume=2.0,
+    )
+    parameters = voluseg.load_parameters(filename_parameters)
+    assert parameters["ext"] == ".zarr"
+    assert parameters["lt"] == 5
+    assert list(parameters["volume_names"])[0] == "volume_0"
+
+    voluseg.step1_process_volumes(parameters)
+    out_dir = tmp_path / "out" / "volumes" / "0"
+    out_files = sorted(out_dir.glob("*_aligned.hdf5"))
+    assert len(out_files) == 5, f"expected 5 output volumes, found {len(out_files)}"
+    # with ds=1, no padding and no registration, the saved volume is the
+    # source frame itself (zyx layout round-trips through the pipeline)
+    with h5py.File(out_files[0], "r") as f:
+        assert np.array_equal(f["volume"][()], data[0])
+
+
 @pytest.mark.order(2)
 def test_voluseg_h5_dir_step_1(setup_parameters):
     """

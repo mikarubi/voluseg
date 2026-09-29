@@ -8,6 +8,7 @@ from voluseg._tools.get_volume_name import get_volume_name
 from voluseg._tools.constants import ori, ali, nii, hdf
 from voluseg._tools.evenly_parallelize import evenly_parallelize
 from voluseg._tools.nwb import open_nwbfile, get_nwbfile_volume
+from voluseg._tools.zarr_io import open_zarr_volume
 
 
 def process_volumes(parameters: dict) -> None:
@@ -27,7 +28,7 @@ def process_volumes(parameters: dict) -> None:
 
     p = SimpleNamespace(**parameters)
 
-    if p.ext == ".nwb":
+    if p.ext in (".nwb", ".zarr"):
         volume_fullname_inputRDD = evenly_parallelize(p.volume_names)
     else:
         volume_fullname_inputRDD = evenly_parallelize(p.volume_fullnames_input)
@@ -144,6 +145,14 @@ def process_volumes(parameters: dict) -> None:
                         acquisition_name=acquisition_name,
                     )
                     volume = nwb_volume.data[time_index]
+                make_output_volume(
+                    name_volume=fullname_volume_input,
+                    volume=volume,
+                )
+            elif p.ext == ".zarr":
+                _, time_index = fullname_volume_input.rsplit("_", 1)
+                zarr_volume = open_zarr_volume(p.volume_fullnames_input[0])
+                volume = zarr_volume[int(time_index)]
                 make_output_volume(
                     name_volume=fullname_volume_input,
                     volume=volume,
