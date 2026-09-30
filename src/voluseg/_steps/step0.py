@@ -6,6 +6,7 @@ from voluseg._tools.get_volume_name import get_volume_name
 from voluseg._tools.parameters import save_parameters
 from voluseg._tools.parameters_models import ParametersModel
 from voluseg._tools.nwb import open_nwbfile, find_nwbfile_volume_object_name
+from voluseg._tools.zarr_io import open_zarr_volume
 
 
 def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
@@ -112,7 +113,18 @@ def define_parameters(*, dir_input: str, dir_output: str, **kwargs) -> str:
     remote = "https://" in dir_input
     volume_fullnames_input = []
     volume_names = []
-    if (".nwb" in dir_input) or remote:
+    if ".zarr" in dir_input:
+        if len(input_dirs) > 1:
+            raise Exception("Only one store path can be specified for Zarr input.")
+        volume_fullnames_input = [dir_input if remote else input_dirs[0]]
+        zarr_volume = open_zarr_volume(volume_fullnames_input[0])
+        lt = zarr_volume.shape[0]
+        if parameters["timepoints"]:
+            lt = min(lt, parameters["timepoints"])
+        for ii in range(lt):
+            volume_names.append("volume_%d" % ii)
+        ext = ".zarr"
+    elif (".nwb" in dir_input) or remote:
         if remote:
             aux_list = [dir_input]
         else:
