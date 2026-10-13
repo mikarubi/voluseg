@@ -8,6 +8,9 @@ requires-python = ">=3.10"
 license = { file = "LICENSE" }
 keywords = ["voluseg", "volumetric segmentation", "calcium imaging"]
 
+[project.scripts]
+voluseg = "voluseg.cli:app"
+
 [project.urls]
 homepage = "https://github.com/mikarubi/voluseg"
 repository = "https://github.com/mikarubi/voluseg"
