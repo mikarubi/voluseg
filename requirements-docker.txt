@@ -6,7 +6,7 @@ scikit-image==0.24.0
 matplotlib==3.9.2
 numpy==2.1.0
 pandas==2.2.2
-requests==2.32.3
+requests==2.33.0
 dandi>=0.74.0
 typer==0.12.5
 antspyx==0.6.3
