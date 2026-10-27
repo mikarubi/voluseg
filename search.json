@@ -1,0 +1,496 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Voluseg",
+    "section": "",
+    "text": "🌟 Welcome to Voluseg, an open-source tool providing a pipeline for automatic volumetric cell segmentation from calcium imaging recordings.",
+    "crumbs": [
+      "Voluseg"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_dandihub.html",
+    "href": "getting_started/running_dandihub.html",
+    "title": "Running on DANDI Hub",
+    "section": "",
+    "text": "Neuroscientists registered at DANDI archive can use the DANDI Hub to interact with the data stored in the archive. DANDI Hub is a JupyterHub instance in the cloud, free to use for exploratory analysis of data on DANDI.",
+    "crumbs": [
+      "Getting started",
+      "Running on DANDI Hub"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_dandihub.html#dandi-hub",
+    "href": "getting_started/running_dandihub.html#dandi-hub",
+    "title": "Running on DANDI Hub",
+    "section": "",
+    "text": "Neuroscientists registered at DANDI archive can use the DANDI Hub to interact with the data stored in the archive. DANDI Hub is a JupyterHub instance in the cloud, free to use for exploratory analysis of data on DANDI.",
+    "crumbs": [
+      "Getting started",
+      "Running on DANDI Hub"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_dandihub.html#setup",
+    "href": "getting_started/running_dandihub.html#setup",
+    "title": "Running on DANDI Hub",
+    "section": "Setup",
+    "text": "Setup\nFollow the instructions in the DANDI Hub Handbook to spin up a Jupyter notebook instance on DANDI Hub.\nOnce you have a Jupyter notebook running on DANDI Hub, follow these steps: 1. Open a new terminal 2. Create a folder for your Voluseg run: mkdir my_voluseg_run 3. Change to the new directory: cd my_voluseg_run",
+    "crumbs": [
+      "Getting started",
+      "Running on DANDI Hub"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_dandihub.html#running-voluseg-with-apptainer",
+    "href": "getting_started/running_dandihub.html#running-voluseg-with-apptainer",
+    "title": "Running on DANDI Hub",
+    "section": "Running Voluseg with Apptainer",
+    "text": "Running Voluseg with Apptainer\nPull the image from GHCR and convert it to an Apptainer image:\napptainer pull docker://ghcr.io/mikarubi/voluseg/voluseg:latest\nYou should see a .sif file in your working directory, this is the Voluseg image converted to the Apptainer format.\nYou can now run the Voluseg pipeline using this Apptainer image. For example:\napptainer exec \\\n--bind $(pwd)/output:/voluseg/output  \\\nvoluseg_latest.sif \\\npython3 /voluseg/app/app.py \\\n--registration high \\\n--diam-cell 5.0 \\\n--dir-input \"https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e\" \\\n2&gt;&1 | tee log_file.log\nThe command above will: - Use the data stored in the S3 path (from DANDI archive) as input - Run the Voluseg pipeline with the user-specified parameters - Store the output in the output directory - Save the log output to a file named log_file.log",
+    "crumbs": [
+      "Getting started",
+      "Running on DANDI Hub"
+    ]
+  },
+  {
+    "objectID": "getting_started/iac_aws_batch.html",
+    "href": "getting_started/iac_aws_batch.html",
+    "title": "Running on AWS Batch",
+    "section": "",
+    "text": "Here we provide instructions for setting up your Voluseg service to run jobs in AWS Batch. First you will need to provision the base AWS Batch infrastructure using CDK. This includes IAM roles, VPC, Security Group, Batch Compute Environments and Batch Job Queues. Next you will need to configure your compute resource controller to submit jobs to AWS Batch. Finally, when you submit jobs from the web interface, you must select aws_batch as the run method.",
+    "crumbs": [
+      "Getting started",
+      "Running on AWS Batch"
+    ]
+  },
+  {
+    "objectID": "getting_started/iac_aws_batch.html#prerequisites",
+    "href": "getting_started/iac_aws_batch.html#prerequisites",
+    "title": "Running on AWS Batch",
+    "section": "Prerequisites",
+    "text": "Prerequisites\n\nPython &gt;= 3.11\nAWS CLI\nAWS CDK Toolkit\nSet up your AWS credentials, either by configuring the AWS CLI or by setting environment variables.",
+    "crumbs": [
+      "Getting started",
+      "Running on AWS Batch"
+    ]
+  },
+  {
+    "objectID": "getting_started/iac_aws_batch.html#step-1.-provision-base-batch-infrastructure-with-cdk",
+    "href": "getting_started/iac_aws_batch.html#step-1.-provision-base-batch-infrastructure-with-cdk",
+    "title": "Running on AWS Batch",
+    "section": "Step 1. Provision base Batch infrastructure with CDK",
+    "text": "Step 1. Provision base Batch infrastructure with CDK\nAWS CDK is a very convenient tool, it helps automate the provisioning of AWS infrastructure and organizes all created resources in a CloudFormation stack, which can be easily updated or deleted.\nFollow these steps if you’re running the Voluseg CDK stack for the first time:\n\ngo to cloned_voluseg_repo_path/iac/aws_batch directory.\nrun pip install -r requirements.txt to install the required Python packages.\nrun cdk bootstrap to set up the CDK deployment infrastructure (CKDToolkit) in your AWS account. This only needs to be done once.\nrun cdk deploy to deploy the stack to your default AWS account/region.\nyou will be prompted to confirm the deployment. Review the changes, then type y and hit enter.\n\nIf deployment is successful, you will be able to see the stacks in the CloudFormation page in AWS console.\n\n\n\n\n\n\nTipOther useful CDK commands\n\n\n\n\ncdk ls - list all stacks in the app.\ncdk synth to synthesize the CloudFormation template without deploying it.\ncdk diff - compare deployed stack with current state.\ncdk destroy - destroy the stack.\ncdk docs - open CDK documentation.\n\n\n\nThis deployment will create the following AWS resources in your account:\n\nIAM roles:\n\nBatch service role\nECS instance role\nBatch jobs access role\n\nVPC\nSecurity group\nEC2 Launch template\nBatch Compute environment\nBatch Job queue\nBatch Job definition\nS3 bucket",
+    "crumbs": [
+      "Getting started",
+      "Running on AWS Batch"
+    ]
+  },
+  {
+    "objectID": "getting_started/iac_aws_batch.html#step-2.-submit-jobs-to-aws-batch",
+    "href": "getting_started/iac_aws_batch.html#step-2.-submit-jobs-to-aws-batch",
+    "title": "Running on AWS Batch",
+    "section": "Step 2. Submit jobs to AWS Batch",
+    "text": "Step 2. Submit jobs to AWS Batch\nVoluseg provides an utility function to submit jobs to AWS Batch. You can use this function to submit jobs from your local machine. You must provide the url of the remote file stored in S3, plus any other voluseg arguments you want to pass to the job. Example:\nfrom voluseg._tools.aws import run_job_in_aws_batch\n\nr = run_job_in_aws_batch(\n    job_name=\"my-voluseg-job\",\n    voluseg_kwargs={\n        \"dir_input\": \"https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6b0/7b0/6b07b076-e4f2-4123-b8e5-08cec3e72aeb\",\n        \"timepoints\": 2000,\n    },\n    aws_local_profile=\"default\",  # optional - if not provided, the default profile will be used\n)\nprint(r)\nOnce submitted, you can monitor the job status in the AWS Batch console.\nThe results of the job will be stored in the S3 bucket created by the CDK stack. You can access the results by navigating to the S3 bucket in the AWS console.",
+    "crumbs": [
+      "Getting started",
+      "Running on AWS Batch"
+    ]
+  },
+  {
+    "objectID": "getting_started/running.html",
+    "href": "getting_started/running.html",
+    "title": "Running Voluseg Pipeline",
+    "section": "",
+    "text": "The Voluseg pipeline consists of an initial setup of parameters followed by five consecutive steps:\n\nProcess volumes\nAlign volumes\nMask volumes\nDetect cells\nClean cells",
+    "crumbs": [
+      "Getting started",
+      "Running Voluseg Pipeline"
+    ]
+  },
+  {
+    "objectID": "getting_started/running.html#pipeline-overview",
+    "href": "getting_started/running.html#pipeline-overview",
+    "title": "Running Voluseg Pipeline",
+    "section": "",
+    "text": "The Voluseg pipeline consists of an initial setup of parameters followed by five consecutive steps:\n\nProcess volumes\nAlign volumes\nMask volumes\nDetect cells\nClean cells",
+    "crumbs": [
+      "Getting started",
+      "Running Voluseg Pipeline"
+    ]
+  },
+  {
+    "objectID": "getting_started/running.html#running-a-demo-workflow",
+    "href": "getting_started/running.html#running-a-demo-workflow",
+    "title": "Running Voluseg Pipeline",
+    "section": "Running a demo workflow",
+    "text": "Running a demo workflow\nTo get familiar with Voluseg, let’s run a simple example with a demo dataset.\n\nDownload the sample data\nTo run the demo you will need start by downloading the sample data to your local machine:\nimport voluseg\n\n# Download sample data\nvoluseg._tools.download_sample_data(\"/path/to/input/\")\n\n\nSetup pipeline parameters\nVoluseg validates parameters with sensible defaults that can be overridden to fit your specific needs. You can read more about the parameters in the Parameters section. Define and save the parameters by running:\n# Set and save parameters\nfilename_parameters = voluseg.step0_define_parameters(\n    dir_input='/path/to/input/downloaded_data/',\n    dir_output='/path/to/output/directory/',\n    registration='high',\n    diam_cell=5.0,\n    f_volume=2.0,\n)\n\n# Load parameters (required as input to each pipeline step)\nparameters = voluseg.load_parameters(filename_parameters)\nThe parameters file is saved in the output directory as parameters.json.\n\n\nStep 1. Process volumes\nThe first step of the pipeline is to process the input volumes and to save them as nifti files. This step will perform downsampling and padding if specified in parameters.\nvoluseg.step1_process_volumes(parameters)\n\nStep 2. Align volumes\nIn the second step, the volumes are aligned to a reference volume. This step will generate ANTs transform files (.mat).\nvoluseg.step2_align_volumes(parameters)\n\n\n\nStep 3. Mask volumes\nIn the third step, the volumes are masked to create an intensity mask from the average registered volume. This step will produce figures with masks and histograms, and will save mean_timeseries.hdf5 and volume0.hdf5 files.\nvoluseg.step3_mask_volumes(parameters)\n\n\nStep 4. Detect cells\nIn the fourth step, cells are detected in volumetric blocks.\nvoluseg.step4_detect_cells(parameters)\n\n\nStep 5. Clean cells\nIn the final step, the detected cells are cleaned by removing noisy cells, detrending and detecting a baseline signal.\nvoluseg.step5_clean_cells(parameters)",
+    "crumbs": [
+      "Getting started",
+      "Running Voluseg Pipeline"
+    ]
+  },
+  {
+    "objectID": "getting_started/parameters.html",
+    "href": "getting_started/parameters.html",
+    "title": "Pipeline Parameters",
+    "section": "",
+    "text": "To run the Voluseg pipeline, you need to set up the parameters. The parameters are stored in a dictionary and can be modified to fit your specific needs. The parameters are used to control the behavior of the pipeline, such as the type of detrending, registration quality, cell diameter, and resolution.\n\n\n\n\n\nList of input directories containing the raw imaging data (or a single NWB file path / remote NWB URL). Built from dir_input by splitting on ;.\n\n\n\nPath to the directory where output files will be saved.\n\n\n\nDirectory containing precomputed transform files. If not provided, registration will compute new ones.\n\n\n\n\n\n\n\nType of detrending applied to the timeseries data: - standard: Standard z-score detrending - robust: Robust detrending using median/MAD - none: No detrending\n\n\n\nQuality or mode of registration: - high: High-accuracy (slowest) - medium: Balanced setting - low: Fast but less accurate - none: No registration - transform: Use precomputed transforms from dir_transform\n\n\n\nExtra keyword arguments passed to ANTsPy’s ants.registration (for example {\"aff_metric\": \"meansquares\"}).\n\n\n\n\n\n\n\nEstimated cell diameter in microns.\n\n\n\nOrdering of dimensions in input volume arrays.\n\n\n\nWhether to output results in NWB format.\n\n\n\n\n\n\n\nSpatial downsampling factor in the XY plane.\n\n\n\nNumber of planes to pad on either side in Z for registration robustness.\n\n\n\n\n\n\n\nEnable extra parallel processing steps (e.g., cleaning). Requires more memory.\n\n\n\nWhether to save intermediate registered volumes.\n\n\n\n\n\n\n\nType of timepoint selection for segmentation: - dff: Use ΔF/F signals - periodic: Use uniformly spaced timepoints - custom: Use manually specified timepoints\n\n\n\nTimepoints used for segmentation. Can be a number (dff/periodic) or a list (custom).\n\n\n\nAggregation method for generating the volume mask: - mean: Mean across timepoints - geomean: Geometric mean - max: Maximum intensity\n\n\n\n\n\n\n\nHigh-pass filter cutoff frequency for timeseries data in Hz.\n\n\n\nImaging frame rate (volume rate) in Hz.\n\n\n\n\n\n\n\nExpected number of cells per spatial block.\n\n\n\nNumber of imaging channels (colors). Use 2 for two-color experiments.\n\n\n\n\n\n\n\nSpatial resolution in X and Y (in microns).\n\n\n\nSpatial resolution in Z (in microns).\n\n\n\n\n\n\n\nTime in seconds used to calculate baseline fluorescence.\n\n\n\nExposure time for a single slice in seconds.\n\n\n\n\n\n\n\nThreshold for volume masking. Use: - 0 &lt; thr ≤ 1 for probability-based masking - thr &gt; 1 for intensity-based masking\n\n\n\n\n\n\n\nIf True, overwrite existing output files in dir_output.",
+    "crumbs": [
+      "Getting started",
+      "Pipeline Parameters"
+    ]
+  },
+  {
+    "objectID": "getting_started/parameters.html#parameters-dictionary",
+    "href": "getting_started/parameters.html#parameters-dictionary",
+    "title": "Pipeline Parameters",
+    "section": "",
+    "text": "To run the Voluseg pipeline, you need to set up the parameters. The parameters are stored in a dictionary and can be modified to fit your specific needs. The parameters are used to control the behavior of the pipeline, such as the type of detrending, registration quality, cell diameter, and resolution.\n\n\n\n\n\nList of input directories containing the raw imaging data (or a single NWB file path / remote NWB URL). Built from dir_input by splitting on ;.\n\n\n\nPath to the directory where output files will be saved.\n\n\n\nDirectory containing precomputed transform files. If not provided, registration will compute new ones.\n\n\n\n\n\n\n\nType of detrending applied to the timeseries data: - standard: Standard z-score detrending - robust: Robust detrending using median/MAD - none: No detrending\n\n\n\nQuality or mode of registration: - high: High-accuracy (slowest) - medium: Balanced setting - low: Fast but less accurate - none: No registration - transform: Use precomputed transforms from dir_transform\n\n\n\nExtra keyword arguments passed to ANTsPy’s ants.registration (for example {\"aff_metric\": \"meansquares\"}).\n\n\n\n\n\n\n\nEstimated cell diameter in microns.\n\n\n\nOrdering of dimensions in input volume arrays.\n\n\n\nWhether to output results in NWB format.\n\n\n\n\n\n\n\nSpatial downsampling factor in the XY plane.\n\n\n\nNumber of planes to pad on either side in Z for registration robustness.\n\n\n\n\n\n\n\nEnable extra parallel processing steps (e.g., cleaning). Requires more memory.\n\n\n\nWhether to save intermediate registered volumes.\n\n\n\n\n\n\n\nType of timepoint selection for segmentation: - dff: Use ΔF/F signals - periodic: Use uniformly spaced timepoints - custom: Use manually specified timepoints\n\n\n\nTimepoints used for segmentation. Can be a number (dff/periodic) or a list (custom).\n\n\n\nAggregation method for generating the volume mask: - mean: Mean across timepoints - geomean: Geometric mean - max: Maximum intensity\n\n\n\n\n\n\n\nHigh-pass filter cutoff frequency for timeseries data in Hz.\n\n\n\nImaging frame rate (volume rate) in Hz.\n\n\n\n\n\n\n\nExpected number of cells per spatial block.\n\n\n\nNumber of imaging channels (colors). Use 2 for two-color experiments.\n\n\n\n\n\n\n\nSpatial resolution in X and Y (in microns).\n\n\n\nSpatial resolution in Z (in microns).\n\n\n\n\n\n\n\nTime in seconds used to calculate baseline fluorescence.\n\n\n\nExposure time for a single slice in seconds.\n\n\n\n\n\n\n\nThreshold for volume masking. Use: - 0 &lt; thr ≤ 1 for probability-based masking - thr &gt; 1 for intensity-based masking\n\n\n\n\n\n\n\nIf True, overwrite existing output files in dir_output.",
+    "crumbs": [
+      "Getting started",
+      "Pipeline Parameters"
+    ]
+  },
+  {
+    "objectID": "reference/load_parameters.html",
+    "href": "reference/load_parameters.html",
+    "title": "load_parameters",
+    "section": "",
+    "text": "load_parameters(filename)\nLoad previously saved parameters from a JSON file.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nfilename\nstr\nFilename of parameter file.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\ndict\nParameters dictionary."
+  },
+  {
+    "objectID": "reference/load_parameters.html#parameters",
+    "href": "reference/load_parameters.html#parameters",
+    "title": "load_parameters",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nfilename\nstr\nFilename of parameter file.\nrequired"
+  },
+  {
+    "objectID": "reference/load_parameters.html#returns",
+    "href": "reference/load_parameters.html#returns",
+    "title": "load_parameters",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\ndict\nParameters dictionary."
+  },
+  {
+    "objectID": "reference/step3_mask_volumes.html",
+    "href": "reference/step3_mask_volumes.html",
+    "title": "step3_mask_volumes",
+    "section": "",
+    "text": "step3_mask_volumes(parameters)\nCreate intensity mask from the average registered volume. Produces figures with masks and histograms. Produces mean_timeseries.hdf5 and volume0.hdf5 files.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step3_mask_volumes.html#parameters",
+    "href": "reference/step3_mask_volumes.html#parameters",
+    "title": "step3_mask_volumes",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired"
+  },
+  {
+    "objectID": "reference/step3_mask_volumes.html#returns",
+    "href": "reference/step3_mask_volumes.html#returns",
+    "title": "step3_mask_volumes",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/save_parameters.html",
+    "href": "reference/save_parameters.html",
+    "title": "save_parameters",
+    "section": "",
+    "text": "save_parameters(parameters, filename)\nSave parameters to a JSON file.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\nfilename\nstr\nFilename of parameter file.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/save_parameters.html#parameters",
+    "href": "reference/save_parameters.html#parameters",
+    "title": "save_parameters",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\nfilename\nstr\nFilename of parameter file.\nrequired"
+  },
+  {
+    "objectID": "reference/save_parameters.html#returns",
+    "href": "reference/save_parameters.html#returns",
+    "title": "save_parameters",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step1_process_volumes.html",
+    "href": "reference/step1_process_volumes.html",
+    "title": "step1_process_volumes",
+    "section": "",
+    "text": "step1_process_volumes(parameters)\nProcess original volumes and save them to nifti files. Performs downsampling and padding if specified in parameters.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step1_process_volumes.html#parameters",
+    "href": "reference/step1_process_volumes.html#parameters",
+    "title": "step1_process_volumes",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired"
+  },
+  {
+    "objectID": "reference/step1_process_volumes.html#returns",
+    "href": "reference/step1_process_volumes.html#returns",
+    "title": "step1_process_volumes",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "dask_configuration.html",
+    "href": "dask_configuration.html",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "This document describes how to configure Dask distributed computing in the voluseg pipeline for optimal performance.\n\n\nThe voluseg pipeline uses Dask for parallel processing of volumetric data. By default, it uses a simple local cluster, but you can configure it for better performance or to use cluster resources.\n\n\n\n\n\nimport voluseg\n\n# Configure Dask with custom settings\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {\n    'n_workers': 4,\n    'n_cores_per_worker': 2,\n    'memory_limit': '4GB',\n    'cluster_type': 'local'\n}\n\n# Configure Dask\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n# Run pipeline\nvoluseg.step1_process_volumes(parameters)\n\n\n\nCreate a configuration file dask_config.yaml:\nn_workers: 4\nn_cores_per_worker: 2\nmemory_limit: \"4GB\"\ncluster_type: \"local\"\ndashboard_address: \"localhost\"\ndashboard_port: 8787\nThen use it:\nparameters['dask_config'] = {'config_file': 'dask_config.yaml'}\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n\n\n# Use environment variables\nexport VOLUSEG_DASK_N_WORKERS=4\nexport VOLUSEG_DASK_MEMORY_LIMIT=\"4GB\"\npython -m app.app run-pipeline\n\n# Or use command line options\npython -m app.app run-pipeline --dask-n-workers 4 --dask-memory-limit \"4GB\"\n\n\n\n\n\n\n\n\n\nParameter\nType\nDefault\nDescription\n\n\n\n\nn_workers\nint\nCPU count\nNumber of workers\n\n\nn_cores_per_worker\nint\n1\nCores per worker\n\n\nmemory_limit\nstr\n“2GB”\nMemory limit per worker\n\n\nthreads_per_worker\nint\nn_cores_per_worker\nThreads per worker\n\n\ncluster_type\nstr\n“local”\nCluster type\n\n\n\n\n\n\n\n\ncluster_type: \"local\"\ncluster_config:\n  local_directory: \"/tmp/dask-worker-space\"\n\n\n\ncluster_type: \"slurm\"\ncluster_config:\n  queue: \"normal\"\n  project: \"your_project\"\n  walltime: \"02:00:00\"\n  local_directory: \"/tmp/dask-worker-space\"\n  log_directory: \"/tmp/dask-logs\"\n\n\n\ncluster_type: \"pbs\"\ncluster_config:\n  queue: \"normal\"\n  project: \"your_project\"\n  walltime: \"02:00:00\"\n  local_directory: \"/tmp/dask-worker-space\"\n  log_directory: \"/tmp/dask-logs\"\n\n\n\ncluster_type: \"sge\"\ncluster_config:\n  queue: \"all.q\"\n  project: \"your_project\"\n  walltime: \"02:00:00\"\n  local_directory: \"/tmp/dask-worker-space\"\n  log_directory: \"/tmp/dask-logs\"\n\n\n\n\ndashboard_address: \"localhost\"\ndashboard_port: 8787\n\n\n\n\n\n\nOnce Dask is configured, you can access the dashboard at:\nhttp://localhost:8787\n\n\n\nimport voluseg\nvoluseg.print_dask_info()\n\n\n\n\n\n\n\nSet memory_limit based on your data size\nMonitor memory usage in the dashboard\nUse distributed.worker.memory.target for fine-tuning\n\n\n\n\n\nFor CPU-intensive tasks: n_cores_per_worker = 1\nFor I/O-intensive tasks: n_cores_per_worker &gt; 1\nBalance workers vs cores per worker\n\n\n\n\n\nLocal: Good for development and small datasets\nSLURM/PBS/SGE: For HPC environments with large datasets\n\n\n\n\n# For large datasets\nparameters['dask_config'] = {\n    'n_workers': 8,\n    'n_cores_per_worker': 1,\n    'memory_limit': '8GB',\n    'cluster_type': 'local'\n}\n\n# For memory-intensive tasks\nparameters['dask_config'] = {\n    'n_workers': 4,\n    'n_cores_per_worker': 2,\n    'memory_limit': '16GB',\n    'cluster_type': 'local'\n}\n\n\n\n# Get detailed configuration info\nconfig_info = client.get_config_info()\nprint(config_info)\n\n# Check worker status\nprint(client.scheduler_info()['workers'])\n\n\n\n\n\n\nimport voluseg\n\n# Simple local configuration\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {\n    'n_workers': 2,\n    'memory_limit': '4GB'\n}\n\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n\n\nimport voluseg\n\n# SLURM configuration\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {\n    'n_workers': 16,\n    'n_cores_per_worker': 4,\n    'memory_limit': '32GB',\n    'cluster_type': 'slurm',\n    'cluster_config': {\n        'queue': 'normal',\n        'project': 'my_project',\n        'walltime': '04:00:00'\n    }\n}\n\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n\n\n# dask_config.yaml\nn_workers: 8\nn_cores_per_worker: 2\nmemory_limit: \"8GB\"\ncluster_type: \"local\"\ndashboard_address: \"0.0.0.0\"\ndashboard_port: 8787\ncluster_config:\n  local_directory: \"/scratch/dask-worker-space\"\nimport voluseg\n\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {'config_file': 'dask_config.yaml'}\nclient = voluseg.configure_dask_from_parameters(parameters)",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "dask_configuration.html#overview",
+    "href": "dask_configuration.html#overview",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "The voluseg pipeline uses Dask for parallel processing of volumetric data. By default, it uses a simple local cluster, but you can configure it for better performance or to use cluster resources.",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "dask_configuration.html#quick-start",
+    "href": "dask_configuration.html#quick-start",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "import voluseg\n\n# Configure Dask with custom settings\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {\n    'n_workers': 4,\n    'n_cores_per_worker': 2,\n    'memory_limit': '4GB',\n    'cluster_type': 'local'\n}\n\n# Configure Dask\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n# Run pipeline\nvoluseg.step1_process_volumes(parameters)\n\n\n\nCreate a configuration file dask_config.yaml:\nn_workers: 4\nn_cores_per_worker: 2\nmemory_limit: \"4GB\"\ncluster_type: \"local\"\ndashboard_address: \"localhost\"\ndashboard_port: 8787\nThen use it:\nparameters['dask_config'] = {'config_file': 'dask_config.yaml'}\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n\n\n# Use environment variables\nexport VOLUSEG_DASK_N_WORKERS=4\nexport VOLUSEG_DASK_MEMORY_LIMIT=\"4GB\"\npython -m app.app run-pipeline\n\n# Or use command line options\npython -m app.app run-pipeline --dask-n-workers 4 --dask-memory-limit \"4GB\"",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "dask_configuration.html#configuration-options",
+    "href": "dask_configuration.html#configuration-options",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "Parameter\nType\nDefault\nDescription\n\n\n\n\nn_workers\nint\nCPU count\nNumber of workers\n\n\nn_cores_per_worker\nint\n1\nCores per worker\n\n\nmemory_limit\nstr\n“2GB”\nMemory limit per worker\n\n\nthreads_per_worker\nint\nn_cores_per_worker\nThreads per worker\n\n\ncluster_type\nstr\n“local”\nCluster type\n\n\n\n\n\n\n\n\ncluster_type: \"local\"\ncluster_config:\n  local_directory: \"/tmp/dask-worker-space\"\n\n\n\ncluster_type: \"slurm\"\ncluster_config:\n  queue: \"normal\"\n  project: \"your_project\"\n  walltime: \"02:00:00\"\n  local_directory: \"/tmp/dask-worker-space\"\n  log_directory: \"/tmp/dask-logs\"\n\n\n\ncluster_type: \"pbs\"\ncluster_config:\n  queue: \"normal\"\n  project: \"your_project\"\n  walltime: \"02:00:00\"\n  local_directory: \"/tmp/dask-worker-space\"\n  log_directory: \"/tmp/dask-logs\"\n\n\n\ncluster_type: \"sge\"\ncluster_config:\n  queue: \"all.q\"\n  project: \"your_project\"\n  walltime: \"02:00:00\"\n  local_directory: \"/tmp/dask-worker-space\"\n  log_directory: \"/tmp/dask-logs\"\n\n\n\n\ndashboard_address: \"localhost\"\ndashboard_port: 8787",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "dask_configuration.html#monitoring",
+    "href": "dask_configuration.html#monitoring",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "Once Dask is configured, you can access the dashboard at:\nhttp://localhost:8787\n\n\n\nimport voluseg\nvoluseg.print_dask_info()",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "dask_configuration.html#best-practices",
+    "href": "dask_configuration.html#best-practices",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "Set memory_limit based on your data size\nMonitor memory usage in the dashboard\nUse distributed.worker.memory.target for fine-tuning\n\n\n\n\n\nFor CPU-intensive tasks: n_cores_per_worker = 1\nFor I/O-intensive tasks: n_cores_per_worker &gt; 1\nBalance workers vs cores per worker\n\n\n\n\n\nLocal: Good for development and small datasets\nSLURM/PBS/SGE: For HPC environments with large datasets\n\n\n\n\n# For large datasets\nparameters['dask_config'] = {\n    'n_workers': 8,\n    'n_cores_per_worker': 1,\n    'memory_limit': '8GB',\n    'cluster_type': 'local'\n}\n\n# For memory-intensive tasks\nparameters['dask_config'] = {\n    'n_workers': 4,\n    'n_cores_per_worker': 2,\n    'memory_limit': '16GB',\n    'cluster_type': 'local'\n}\n\n\n\n# Get detailed configuration info\nconfig_info = client.get_config_info()\nprint(config_info)\n\n# Check worker status\nprint(client.scheduler_info()['workers'])",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "dask_configuration.html#examples",
+    "href": "dask_configuration.html#examples",
+    "title": "Dask Configuration for voluseg",
+    "section": "",
+    "text": "import voluseg\n\n# Simple local configuration\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {\n    'n_workers': 2,\n    'memory_limit': '4GB'\n}\n\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n\n\nimport voluseg\n\n# SLURM configuration\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {\n    'n_workers': 16,\n    'n_cores_per_worker': 4,\n    'memory_limit': '32GB',\n    'cluster_type': 'slurm',\n    'cluster_config': {\n        'queue': 'normal',\n        'project': 'my_project',\n        'walltime': '04:00:00'\n    }\n}\n\nclient = voluseg.configure_dask_from_parameters(parameters)\n\n\n\n# dask_config.yaml\nn_workers: 8\nn_cores_per_worker: 2\nmemory_limit: \"8GB\"\ncluster_type: \"local\"\ndashboard_address: \"0.0.0.0\"\ndashboard_port: 8787\ncluster_config:\n  local_directory: \"/scratch/dask-worker-space\"\nimport voluseg\n\nparameters = voluseg.load_parameters('parameters.json')\nparameters['dask_config'] = {'config_file': 'dask_config.yaml'}\nclient = voluseg.configure_dask_from_parameters(parameters)",
+    "crumbs": [
+      "Dask Configuration for voluseg"
+    ]
+  },
+  {
+    "objectID": "faq.html",
+    "href": "faq.html",
+    "title": "FAQ",
+    "section": "",
+    "text": "Frequently Asked Questions\n\n\nWhat is Voluseg?\n\n\nVoluseg is a pipeline for automatic volumetric cell segmentation from calcium imaging recordings.",
+    "crumbs": [
+      "FAQ"
+    ]
+  },
+  {
+    "objectID": "reference/step5_clean_cells.html",
+    "href": "reference/step5_clean_cells.html",
+    "title": "step5_clean_cells",
+    "section": "",
+    "text": "step5_clean_cells(parameters)\nRemove noise cells, detrend and detect baseline.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step5_clean_cells.html#parameters",
+    "href": "reference/step5_clean_cells.html#parameters",
+    "title": "step5_clean_cells",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired"
+  },
+  {
+    "objectID": "reference/step5_clean_cells.html#returns",
+    "href": "reference/step5_clean_cells.html#returns",
+    "title": "step5_clean_cells",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step2_align_volumes.html",
+    "href": "reference/step2_align_volumes.html",
+    "title": "step2_align_volumes",
+    "section": "",
+    "text": "step2_align_volumes(parameters)\nRegister volumes to a reference volume. Generates ANTs transforms files (.mat).\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step2_align_volumes.html#parameters",
+    "href": "reference/step2_align_volumes.html#parameters",
+    "title": "step2_align_volumes",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired"
+  },
+  {
+    "objectID": "reference/step2_align_volumes.html#returns",
+    "href": "reference/step2_align_volumes.html#returns",
+    "title": "step2_align_volumes",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step4_detect_cells.html",
+    "href": "reference/step4_detect_cells.html",
+    "title": "step4_detect_cells",
+    "section": "",
+    "text": "step4_detect_cells(parameters)\nDetect cells in volumetric blocks.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step4_detect_cells.html#parameters",
+    "href": "reference/step4_detect_cells.html#parameters",
+    "title": "step4_detect_cells",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nparameters\ndict\nParameters dictionary.\nrequired"
+  },
+  {
+    "objectID": "reference/step4_detect_cells.html#returns",
+    "href": "reference/step4_detect_cells.html#returns",
+    "title": "step4_detect_cells",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone"
+  },
+  {
+    "objectID": "reference/step0_define_parameters.html",
+    "href": "reference/step0_define_parameters.html",
+    "title": "step0_define_parameters",
+    "section": "",
+    "text": "step0_define_parameters\nstep0_define_parameters(dir_input, dir_output, **kwargs)\nCreate and save a parameter dictionary with specified defaults.\nRequired arguments: dir_input: Name of input directory/ies, separate multiple directories with ‘;’ dir_output: Name of output directory (default is an empty string).\nOptional arguments: detrending: Type of detrending ‘standard’, ‘robust’, or ‘none’ (default is ‘standard’).\nregistration: Registration type or quality\n    'high', 'medium', 'low', 'none' or 'transform' (default is 'medium').\n\nopts_ants: Dictionary of ANTs registration options\n\ndiam_cell: Cell diameter in microns (default is 6.0).\n\ndir_transform: Path to the transform directory (required for 'transform' registration).\n\nnwb_output: Output in NWB format (default is False).\n\nds: Spatial coarse-graining in x-y dimension (default is 2).\n\nplanes_pad: Number of planes to pad the volume with for robust registration (default is 0).\n\nparallel_extra: Additional Parallelization that may be memory-intensive (default is True).\n\nsave_volume: Save registered volumes after segmentation to check registration (default is False).\n\ntype_mask: Type of volume averaging for the mask:\n    'mean', 'geomean' or 'max' (default is 'geomean').\n\ntype_timepoints: Type of timepoints to use for segmentation\n    'dff', 'periodic' or 'custom' (default is 'dff').\n\ntimepoints:\n    Number of timepoints for segmenttaion (if type_timepoints is 'dff', 'periodic')\n    Vector of timepoints for segmenttaion (if type_timepoints is 'custom')\n    Default is 1000.\n\nf_hipass: Frequency (Hz) for high-pass filtering of cell timeseries (default is 0).\n\nf_volume: Imaging frequency in Hz (default is 2.0).\n\nn_cells_block: Number of cells in a segmentation block. (default is 316)\n    Small number is fast but can lead to blocky output.\n\nn_colors: Number of brain colors (default is 1). Use 2 in two-color volumes.\n\nres_x:  X resolution in microns (default is 0.40625).\n\nres_y:  Y resolution in microns (default is 0.40625).\n\nres_z:  Z resolution in microns (default is 5.0).\n\nt_baseline: Interval for baseline calculation in seconds (default is 300).\n\nt_section: Exposure time in seconds for slice acquisition (default is 0.01).\n\nthr_mask: Threshold for volume mask (default is 0.5).\n    0 &lt; thr &lt;= 1 (probability threshold)\n    thr &gt; 1 (intensity threshold)\n\noverwrite: Overwrite existing parameter file (default is False)."
+  },
+  {
+    "objectID": "reference/index.html",
+    "href": "reference/index.html",
+    "title": "API Reference",
+    "section": "",
+    "text": "The six pipeline stages, in order.\n\n\n\nstep0_define_parameters\nCreate and save a parameter dictionary with specified defaults.\n\n\nstep1_process_volumes\nProcess original volumes and save them to nifti files.\n\n\nstep2_align_volumes\nRegister volumes to a reference volume.\n\n\nstep3_mask_volumes\nCreate intensity mask from the average registered volume.\n\n\nstep4_detect_cells\nDetect cells in volumetric blocks.\n\n\nstep5_clean_cells\nRemove noise cells, detrend and detect baseline.\n\n\n\n\n\n\nSaving and loading the parameters.json file.\n\n\n\nload_parameters\nLoad previously saved parameters from a JSON file.\n\n\nsave_parameters\nSave parameters to a JSON file.",
+    "crumbs": [
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#pipeline-steps",
+    "href": "reference/index.html#pipeline-steps",
+    "title": "API Reference",
+    "section": "",
+    "text": "The six pipeline stages, in order.\n\n\n\nstep0_define_parameters\nCreate and save a parameter dictionary with specified defaults.\n\n\nstep1_process_volumes\nProcess original volumes and save them to nifti files.\n\n\nstep2_align_volumes\nRegister volumes to a reference volume.\n\n\nstep3_mask_volumes\nCreate intensity mask from the average registered volume.\n\n\nstep4_detect_cells\nDetect cells in volumetric blocks.\n\n\nstep5_clean_cells\nRemove noise cells, detrend and detect baseline.",
+    "crumbs": [
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#parameter-files",
+    "href": "reference/index.html#parameter-files",
+    "title": "API Reference",
+    "section": "",
+    "text": "Saving and loading the parameters.json file.\n\n\n\nload_parameters\nLoad previously saved parameters from a JSON file.\n\n\nsave_parameters\nSave parameters to a JSON file.",
+    "crumbs": [
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "getting_started/output.html",
+    "href": "getting_started/output.html",
+    "title": "Output Files Overview",
+    "section": "",
+    "text": "This page describes the contents and purpose of output files and directories generated by the Voluseg pipeline.\n\n\nparameters.json\nParameter dictionary\n\nLoaded via:\nparameters = voluseg.load_parameters('parameters.json')\nRequired as input to individual pipeline steps.\n\n\n\n\nmask_plots/\nDirectory of average volume plane images\n\nContains average brain volume planes with brain mask superimposed.\nUseful for visually assessing the accuracy of brain masks.\n\n\n\n\ntransforms/\nDirectory of affine transforms for individual volumes\n\nStores affine transformation matrices for aligning volumes.\nCan be used to:\n\nQuantify movement across time.\nRegister volumes from concurrent or different recordings.\n\n\n\n\n\nvolume0.hdf5\nMetadata and statistics for the registered brain volume\n\nbackground: Estimated background fluorescence.\nblock_valids: Indices of blocks used for segmentation.\nblock_xyz0 / block_xyz1: Minimum and maximum XYZ coordinates of each block.\nn_blocks: Total number of blocks.\nn_voxels_cells: Approximate number of voxels per segmented cell.\nthr_intensity: Intensity threshold for the brain mask.\nthr_probability: Probability threshold for the brain mask.\nvolume_mean: Mean intensity of the volume.\nvolume_mask: Brain mask array.\nvolume_peak: Local peak intensity values.\n\n\n\n\nmean_timeseries.hdf5\nVolume-mean fluorescence over time\n\nmean_baseline: Detrended baseline of volume-mean fluorescence.\nmean_timeseries: Detrended volume-mean fluorescence time series.\nmean_timeseries_raw: Raw (unprocessed) volume-mean fluorescence time series.\ntimepoints: Indices of timepoints used for cell segmentation.\n\n\n\n\ncells0_clean.hdf5\nExtracted cell data from segmentation and denoising steps\n\nbackground: Estimated background fluorescence.\ncell_baseline: Computed baselines for each cell.\ncell_timeseries: Detrended (and optionally filtered) fluorescence signals per cell.\ncell_timeseries_raw: Raw cell timeseries directly from segmentation.\ncell_weights: Spatial footprints of cells (NMF spatial components).\ncell_x, cell_y, cell_z: XYZ coordinates of each cell.\nn: Total number of segmented cells.\nt: Number of timepoints.\nvolume_id: Index mapping cells to volume regions.\nvolume_weight: Spatial footprint weights per cell in the volume.\nx, y, z: Dimensions of the volume array.",
+    "crumbs": [
+      "Getting started",
+      "Output Files Overview"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_container.html",
+    "href": "getting_started/running_container.html",
+    "title": "Running from Container",
+    "section": "",
+    "text": "You can easily run the Voluseg pipeline using a container. This is useful if you want to run the pipeline without having to install all the dependencies on your local machine.",
+    "crumbs": [
+      "Getting started",
+      "Running from Container"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_container.html#using-docker",
+    "href": "getting_started/running_container.html#using-docker",
+    "title": "Running from Container",
+    "section": "Using Docker",
+    "text": "Using Docker\nPull the image from GHCR:\ndocker pull ghcr.io/mikarubi/voluseg/voluseg:latest\nRun with access to your local data and pass user-defined parameters values:\ndocker run \\\n-v $(pwd)/local_data:/voluseg/data \\\n-v $(pwd)/output:/voluseg/output \\\nvoluseg \\\npython3 /voluseg/app/app.py \\\n--registration high \\\n--diam-cell 5.0\nTo get a list of all available parameters, run:\ndocker run voluseg python3 /voluseg/app/app.py --help\n\nExample: reading from a remote NWB file\nVoluseg can read from remote NWB files stored in S3 buckets. To do this, you should pass the URL of the NWB file to the --dir-input parameter:\ndocker run \\\n-v $(pwd)/output_stream:/voluseg/output  \\\nvoluseg \\\npython3 /voluseg/app/app.py \\\n--registration high \\\n--diam-cell 5.0 \\\n--dir-input \"https://dandiarchive.s3.amazonaws.com/blobs/057/ecb/057ecbef-e732-4e94-8d99-40ebb74d346e\"\n\n\nFor developers\nFrom the repository root, you can build the image locally and run it with hot reload for the voluseg package (useful for development).\nBuild the image locally:\nDOCKER_BUILDKIT=1 docker build -t voluseg .\nRun with local data volume mount, default parameters values and hot reload for the voluseg package:\ndocker run \\\n-v $(pwd)/local_data:/voluseg/data \\\n-v $(pwd)/output:/voluseg/output \\\n-v $(pwd)/voluseg:/voluseg/voluseg \\\n-v $(pwd)/app:/voluseg/app \\\nvoluseg",
+    "crumbs": [
+      "Getting started",
+      "Running from Container"
+    ]
+  },
+  {
+    "objectID": "getting_started/running_container.html#using-apptainer",
+    "href": "getting_started/running_container.html#using-apptainer",
+    "title": "Running from Container",
+    "section": "Using Apptainer",
+    "text": "Using Apptainer\nPull the image from GHCR and convert it to an Apptainer image:\napptainer pull docker://ghcr.io/mikarubi/voluseg/voluseg:latest\nRun with access to your local data and pass user-defined parameters values:\napptainer exec \\\n--bind $(pwd)/local_data:/voluseg/data \\\n--bind $(pwd)/output:/voluseg/output  \\\nvoluseg_latest.sif \\\npython3 /voluseg/app/app.py \\\n--registration high \\\n--diam-cell 5.0 \\\n2&gt;&1 | tee log_file.log",
+    "crumbs": [
+      "Getting started",
+      "Running from Container"
+    ]
+  },
+  {
+    "objectID": "getting_started/algorithm.html",
+    "href": "getting_started/algorithm.html",
+    "title": "Algorithm",
+    "section": "",
+    "text": "This algorithm extracts spatially and functionally distinct cellular components from whole-brain imaging data using constrained non-negative matrix factorization (NMF), optimized in parallel over overlapping 3D brain blocks.\n\n\n\n\nRigid-body registration of all volumes to the average brain using ANTs 2.1.0.\nConstruction of an intensity-based brain mask.\nDivision of the entire brain volume into ~1000 slightly overlapping 3D blocks to ensure boundary coverage.\n\n\n\n\nEach block is processed in parallel using the Dask cluster framework. The algorithm was based on constrained non-negative matrix factorization. For \\(n\\) voxels, \\(t\\) time points, and \\(c\\) cells,\n\\[\nV_{n \\times t} \\approx W_{n \\times c} H_{c \\times t} + X_{n \\times 1} I_{1 \\times t}\n\\]\nwhere: - \\(V\\): full spatiotemporal fluorescence matrix for each block - \\(W\\): spatial locations - \\(H\\): time series of segmented cells - \\(X\\) and \\(I\\): background signal\nThe number of cells per block was initialized to 100 based on spatial packing assumptions and iteratively reduced by a factor of 0.95 until the matrix factorization converged without rank deficiency.\n\n\n\n\n\\(W\\) is initialized using local intensity peaks and local correlation coefficients.\n\\(X\\) is initialized with a constant vector.\n\n\n\n\n\nEquation (1) is approximately solved via alternating least squares (ALS).\nIterations run for a minimum of 10 and a maximum of 100 steps, or until numerical convergence:\n\\[ \\Delta \\text{Residual} &lt; 0.001 \\]\n\n\n\n\n\n\n\nEach cell is restricted to its largest connected component within a static sphere of radius \\(12 \\mu m\\), centered at the local-intensity peak.\n\n\n\n\nTo encourage interpretable and compact spatial maps, Hoyer’s sparseness measure is applied:\n\\[\n\\text{sparseness}(W_i) = \\frac{\\sqrt{n} - \\frac{\\sum_j |W_{ij}|}{\\sqrt{\\sum_j |W_{i}^2}|}}{\\sqrt{n} - 1}\n\\]\nThe sparseness is required to be at least equal to that of a binary sphere with a \\(6 \\mu m\\) diameter.\n\nNote: These constraints are not applied to the background signal.\n\n\n\n\n\n\nThe resulting cell representation of whole-brain activity accurately reproduced the raw voxel time series and had increased signal-to-noise ratio due to demixing and denoising.\n\nRegions of neuropil and astrocytic processes were factorized similarly to cell bodies, also yielding small patches of voxels with consistent signals.",
+    "crumbs": [
+      "Getting started",
+      "Algorithm"
+    ]
+  },
+  {
+    "objectID": "getting_started/algorithm.html#algorithm-overview",
+    "href": "getting_started/algorithm.html#algorithm-overview",
+    "title": "Algorithm",
+    "section": "",
+    "text": "This algorithm extracts spatially and functionally distinct cellular components from whole-brain imaging data using constrained non-negative matrix factorization (NMF), optimized in parallel over overlapping 3D brain blocks.\n\n\n\n\nRigid-body registration of all volumes to the average brain using ANTs 2.1.0.\nConstruction of an intensity-based brain mask.\nDivision of the entire brain volume into ~1000 slightly overlapping 3D blocks to ensure boundary coverage.\n\n\n\n\nEach block is processed in parallel using the Dask cluster framework. The algorithm was based on constrained non-negative matrix factorization. For \\(n\\) voxels, \\(t\\) time points, and \\(c\\) cells,\n\\[\nV_{n \\times t} \\approx W_{n \\times c} H_{c \\times t} + X_{n \\times 1} I_{1 \\times t}\n\\]\nwhere: - \\(V\\): full spatiotemporal fluorescence matrix for each block - \\(W\\): spatial locations - \\(H\\): time series of segmented cells - \\(X\\) and \\(I\\): background signal\nThe number of cells per block was initialized to 100 based on spatial packing assumptions and iteratively reduced by a factor of 0.95 until the matrix factorization converged without rank deficiency.\n\n\n\n\n\\(W\\) is initialized using local intensity peaks and local correlation coefficients.\n\\(X\\) is initialized with a constant vector.\n\n\n\n\n\nEquation (1) is approximately solved via alternating least squares (ALS).\nIterations run for a minimum of 10 and a maximum of 100 steps, or until numerical convergence:\n\\[ \\Delta \\text{Residual} &lt; 0.001 \\]\n\n\n\n\n\n\n\nEach cell is restricted to its largest connected component within a static sphere of radius \\(12 \\mu m\\), centered at the local-intensity peak.\n\n\n\n\nTo encourage interpretable and compact spatial maps, Hoyer’s sparseness measure is applied:\n\\[\n\\text{sparseness}(W_i) = \\frac{\\sqrt{n} - \\frac{\\sum_j |W_{ij}|}{\\sqrt{\\sum_j |W_{i}^2}|}}{\\sqrt{n} - 1}\n\\]\nThe sparseness is required to be at least equal to that of a binary sphere with a \\(6 \\mu m\\) diameter.\n\nNote: These constraints are not applied to the background signal.\n\n\n\n\n\n\nThe resulting cell representation of whole-brain activity accurately reproduced the raw voxel time series and had increased signal-to-noise ratio due to demixing and denoising.\n\nRegions of neuropil and astrocytic processes were factorized similarly to cell bodies, also yielding small patches of voxels with consistent signals.",
+    "crumbs": [
+      "Getting started",
+      "Algorithm"
+    ]
+  },
+  {
+    "objectID": "getting_started/installation.html",
+    "href": "getting_started/installation.html",
+    "title": "Installation",
+    "section": "",
+    "text": "Prerequisites\nIn order to use Voluseg you need to have the following dependencies installed on your machine:\n\nPython &gt;= 3.10\n\nRegistration uses ANTsPy, which is installed automatically with Voluseg — no separate ANTs installation is needed.\nIt is recommended to install Voluseg in a separate environment, using Anaconda or Virtual Environment.\n\n\nInstall with pip\npip install voluseg\n\n\nInstall from Github repository\n\nClone the Voluseg repository to your local machine by running\n\ngit clone https://github.com/mikarubi/voluseg.git\n\nInstall Voluseg from local source Install Voluseg with pip in your active virtual environment by running\n\ncd voluseg\npip install .",
+    "crumbs": [
+      "Getting started",
+      "Installation"
+    ]
+  }
+]
