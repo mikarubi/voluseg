@@ -21,9 +21,11 @@ website:
           - getting_started/running.qmd
           - getting_started/running_container.qmd
           - getting_started/running_dandihub.qmd
+          - getting_started/iac_aws_batch.qmd
           - getting_started/parameters.qmd
           - getting_started/algorithm.qmd
           - getting_started/output.qmd
+      - dask_configuration.md
       - faq.qmd
       - text: "API Reference"
         href: reference/index.qmd
