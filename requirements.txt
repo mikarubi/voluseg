@@ -15,3 +15,4 @@ typer
 fsspec
 aiohttp  # fsspec http backend, for remote NWB streaming
 tifffile
+zarr
