@@ -3,9 +3,7 @@ name: Build and Publish Docs to GitHub Pages
 on:
   push:
     branches:
-      - docs
       - master
-  # PRs build the site for verification; deployment below stays master-only
   pull_request:
     branches:
       - master
@@ -16,44 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pages: write
-      id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: "3.12"
 
-      - name: Install docs dependencies.
-        run: pip install -r docs/requirements-docs.txt
+      - name: Install voluseg and docs tooling
+        run: |
+          pip install -e .
+          pip install -r docs/requirements-docs.txt
 
-      - name: Auto generate API Reference.
-        run: cd docs && pydoc-markdown
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: yarn
-          working-directory: docs/voluseg-docs-app
-          cache-dependency-path: docs/voluseg-docs-app/yarn.lock
+      - name: Generate API reference
+        run: cd docs && quartodoc build
 
-      - name: Install dependencies
-        run: cd docs/voluseg-docs-app && yarn install --frozen-lockfile
+      - name: Render site
+        run: quarto render docs
 
-      - name: Build website
-        run: cd docs/voluseg-docs-app && yarn build
-
-      # Generated files are deliberately NOT committed back to the branch
-      # (CI pushing to its own branch previously left stale generated docs
-      # in the repo); the site is rebuilt from source on every push.
-
-      # Popular action to deploy to GitHub Pages:
-      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
+      # Generated files are never committed back to the branch; the site is
+      # rebuilt from source on every push.
       - name: Deploy to GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/voluseg-docs-app/build
+          publish_dir: ./docs/_site

@@ -1,0 +1,12 @@
+---
+title: FAQ
+---
+
+### Frequently Asked Questions
+<details>
+  <summary>What is Voluseg?</summary>
+  <p>
+    Voluseg is a pipeline for automatic volumetric cell segmentation from calcium imaging recordings.
+  </p>
+</details>
+

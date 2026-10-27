@@ -18,3 +18,10 @@ htmlcov/
 sample_data/*
 output/*
 logs/*
+.DS_Store
+
+# Quarto docs build
+docs/_site/
+docs/.quarto/
+docs/reference/
+docs/objects.json
